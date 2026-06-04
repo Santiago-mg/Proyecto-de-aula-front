@@ -5,6 +5,7 @@ import { PhoneCard } from '../components/phones/PhoneCard'
 import { Loading } from '../components/ui/Loading'
 import { ContainerScroll } from '../components/ui/ContainerScrollAnimation'
 import { RevealOnScroll } from '../components/ui/RevealOnScroll'
+import { ShaderBackground } from '../components/ui/ShaderBackground'
 import { phonesService } from '../services/phones.service'
 import type { PhoneListItem } from '../types/phone'
 
@@ -22,9 +23,12 @@ export function Home() {
 
   return (
     <div>
+      {/* Shader WebGL como fondo animado — solo en Home */}
+      <ShaderBackground />
+
       {/* ─── HERO ─────────────────────────────────────────────── */}
-      <section className="cp-hero">
-        <div className="cp-hero-bg" />
+      <section className="cp-hero" style={{ background: 'transparent' }}>
+        {/* cp-hero-bg omitido: el ShaderBackground ya provee el fondo */}
         <div className="cp-container cp-hero-content">
           <div
             style={{

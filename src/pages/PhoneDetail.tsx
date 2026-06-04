@@ -7,10 +7,15 @@ import {
   HardDrive,
   MemoryStick,
   ChevronLeft,
+  Eye,
+  Truck,
+  RefreshCw,
+  Lock,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Loading } from '../components/ui/Loading'
+import { StickyAddToCart } from '../components/ui/StickyAddToCart'
 import { useCart } from '../context/CartContext'
 import { useToast } from '../context/ToastContext'
 import { phonesService } from '../services/phones.service'
@@ -40,6 +45,12 @@ export function PhoneDetail() {
   const [qty, setQty] = useState(1)
   const { addToCart } = useCart()
   const { showToast } = useToast()
+
+  // Simula "personas viendo ahora" — número fijo por slug para que sea consistente
+  const viewersNow = useMemo(() => {
+    const seed = (slug ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0)
+    return 3 + (seed % 14)
+  }, [slug])
 
   useEffect(() => {
     if (!slug) return
@@ -92,7 +103,14 @@ export function PhoneDetail() {
   ].filter(Boolean) as { icon: JSX.Element; label: string; value: string }[]
 
   return (
-    <div className="cp-container" style={{ paddingTop: 40, paddingBottom: 80 }}>
+    <>
+    <StickyAddToCart
+      phone={phone}
+      selectedColor={selectedColor}
+      qty={qty}
+      onAdd={handleAddToCart}
+    />
+    <div className="cp-container cp-reveal" style={{ paddingTop: 40, paddingBottom: 80 }}>
       <Link
         to="/catalog"
         style={{
@@ -109,6 +127,20 @@ export function PhoneDetail() {
       >
         <ChevronLeft size={14} /> Catálogo
       </Link>
+
+      {/* Social proof strip */}
+      <div className="cp-detail-social-proof">
+        <span className="cp-social-proof-viewers">
+          <Eye size={13} />
+          <span className="cp-dot-live" />
+          <strong>{viewersNow}</strong> personas viendo ahora
+        </span>
+        {phone.stock > 0 && phone.stock <= 5 && (
+          <span className="cp-social-proof-urgency">
+            ⚡ Solo <strong>{phone.stock}</strong> en stock
+          </span>
+        )}
+      </div>
 
       <div className="cp-detail-grid">
         {/* Galería */}
@@ -305,8 +337,7 @@ export function PhoneDetail() {
           {/* CTA */}
           {phone.stock > 0 ? (
             <button
-              className="cp-btn cp-btn-primary"
-              style={{ width: '100%', fontSize: 15, padding: '16px 24px' }}
+              className="cp-btn cp-btn-primary cp-btn-buy"
               onClick={handleAddToCart}
               disabled={phone.colors.length > 0 && !selectedColor}
             >
@@ -317,6 +348,21 @@ export function PhoneDetail() {
               Sin stock
             </button>
           )}
+
+          {/* Trust badges */}
+          <div className="cp-detail-trust-badges">
+            {[
+              { icon: <ShieldCheck size={14} />, label: 'IMEI limpio verificado' },
+              { icon: <Truck size={14} />, label: 'Envío en 24–48 h' },
+              { icon: <RefreshCw size={14} />, label: 'Garantía incluida' },
+              { icon: <Lock size={14} />, label: 'Pago 100% seguro' },
+            ].map((b) => (
+              <div key={b.label} className="cp-detail-trust-badge">
+                <span style={{ color: 'var(--accent)' }}>{b.icon}</span>
+                <span>{b.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -389,5 +435,6 @@ export function PhoneDetail() {
         </div>
       )}
     </div>
+    </>
   )
 }

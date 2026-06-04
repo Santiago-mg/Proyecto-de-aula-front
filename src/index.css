@@ -1955,3 +1955,428 @@ body > * { position: relative; z-index: 1; }
 @media (max-width: 768px) {
   .cp-category-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   UI/UX PRO MAX — TRANSITIONS, ANIMATIONS & PURCHASE ELEMENTS
+   Based on: Cyberpunk style, Trust & Authority pattern, Funnel CTA
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── New keyframes ──────────────────────────────────────────── */
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes revealLeft {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.85); }
+  60%  { transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmerSlide {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+@keyframes neonTextPulse {
+  0%, 100% { text-shadow: 0 0 8px rgba(0,229,255,0.4), 0 0 20px rgba(0,229,255,0.15); }
+  50%       { text-shadow: 0 0 16px rgba(0,229,255,0.8), 0 0 40px rgba(0,229,255,0.3), 0 0 80px rgba(0,229,255,0.1); }
+}
+@keyframes marqueeScroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes dotBlink {
+  0%, 100% { opacity: 1; box-shadow: 0 0 4px #22ff88; }
+  50%       { opacity: 0.4; box-shadow: none; }
+}
+@keyframes borderScan {
+  0%   { clip-path: inset(0 100% 0 0); }
+  50%  { clip-path: inset(0 0 0 0); }
+  100% { clip-path: inset(0 0 0 100%); }
+}
+@keyframes glitch {
+  0%, 100% { transform: none; filter: none; }
+  20% { transform: translateX(-2px) skew(-1deg); filter: hue-rotate(30deg); }
+  40% { transform: translateX(2px) skew(1deg); filter: hue-rotate(-30deg); }
+  60% { transform: translateX(-1px); filter: none; }
+}
+
+/* ─── Reveal animation (scroll-triggered via CSS) ────────────── */
+.cp-reveal {
+  animation: revealUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
+}
+.cp-reveal-left {
+  animation: revealLeft 0.5s cubic-bezier(0.16,1,0.3,1) both;
+}
+.cp-pop-in {
+  animation: popIn 0.5s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+/* ─── Promo Bar ───────────────────────────────────────────────── */
+.cp-promo-bar {
+  position: relative;
+  z-index: 51;
+  background: linear-gradient(90deg, #050a14 0%, rgba(0,229,255,0.08) 50%, #050a14 100%);
+  border-bottom: 1px solid rgba(0,229,255,0.15);
+  display: flex;
+  align-items: center;
+  height: 36px;
+  overflow: hidden;
+}
+.cp-promo-bar::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: borderScan 3s linear infinite;
+}
+.cp-promo-bar-track {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+.cp-promo-marquee {
+  display: flex;
+  gap: 0;
+  white-space: nowrap;
+  animation: marqueeScroll 30s linear infinite;
+  width: max-content;
+}
+.cp-promo-marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 36px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+}
+.cp-promo-marquee-item svg { color: var(--accent); flex-shrink: 0; }
+.cp-promo-bar-cta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border-left: 1px solid var(--glass-border);
+  flex-shrink: 0;
+}
+.cp-promo-bar-link {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.cp-promo-bar-close {
+  background: transparent;
+  border: none;
+  color: var(--ink-faint);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+.cp-promo-bar-close:hover { color: var(--ink); }
+
+/* Nav shifts down when promo bar is visible */
+.cp-main { padding-top: 108px; }
+
+/* ─── Social proof strip ─────────────────────────────────────── */
+.cp-detail-social-proof {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.cp-social-proof-viewers {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+  padding: 6px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+}
+.cp-dot-live {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22ff88;
+  animation: dotBlink 1.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.cp-social-proof-urgency {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #ffaa00;
+  padding: 6px 12px;
+  background: rgba(255,170,0,0.08);
+  border: 1px solid rgba(255,170,0,0.25);
+  border-radius: 999px;
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+/* ─── Buy CTA button (enhanced) ─────────────────────────────── */
+.cp-btn-buy {
+  width: 100%;
+  font-size: 15px;
+  padding: 18px 24px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  position: relative;
+  overflow: hidden;
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+.cp-btn-buy::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 40%;
+  height: 200%;
+  background: rgba(255,255,255,0.15);
+  transform: skewX(-20deg);
+  animation: shimmerSlide 3s ease-in-out infinite;
+}
+.cp-btn-buy:hover { animation: none; transform: translateY(-2px); box-shadow: 0 0 40px rgba(0,229,255,0.5), 0 8px 24px rgba(0,0,0,0.4); }
+
+/* ─── Trust badges (detail) ──────────────────────────────────── */
+.cp-detail-trust-badges {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 16px;
+}
+.cp-detail-trust-badge {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  transition: border-color 0.2s;
+}
+.cp-detail-trust-badge:hover { border-color: rgba(0,229,255,0.2); }
+
+/* ─── Sticky Add to Cart ─────────────────────────────────────── */
+.cp-sticky-cart {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 90;
+  background: rgba(5,10,20,0.92);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border-top: 1px solid rgba(0,229,255,0.2);
+  box-shadow: 0 -4px 24px rgba(0,229,255,0.08), 0 -1px 0 rgba(0,229,255,0.15);
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  padding: 12px 0;
+}
+.cp-sticky-cart.visible { transform: translateY(0); }
+.cp-sticky-cart-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.cp-sticky-cart-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+.cp-sticky-cart-img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--glass-border);
+  flex-shrink: 0;
+}
+.cp-sticky-cart-name {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cp-sticky-cart-color {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.cp-sticky-cart-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.cp-sticky-cart-price {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.cp-sticky-cart-trust {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+/* ─── Skeleton loading ────────────────────────────────────────── */
+.cp-skeleton {
+  background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
+  background-size: 400px 100%;
+  animation: shimmerSlide 1.5s ease-in-out infinite;
+  border-radius: var(--radius);
+}
+.cp-skeleton-card {
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.cp-skeleton-img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  border-radius: 0;
+}
+.cp-skeleton-body { padding: 20px; }
+.cp-skeleton-line { border-radius: 4px; }
+
+/* ─── PhoneCard hover improvements ───────────────────────────── */
+.cp-phone-card {
+  transition: border-color 0.25s, transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s ease;
+}
+.cp-phone-card:hover {
+  border-color: rgba(0,229,255,0.3);
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px -8px rgba(0,0,0,0.5), 0 0 24px rgba(0,229,255,0.06);
+}
+
+/* ─── Hero enhancements ───────────────────────────────────────── */
+.cp-hero-title {
+  animation: revealUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s both;
+}
+.cp-hero-subtitle {
+  animation: revealUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.25s both;
+}
+.cp-hero-actions {
+  animation: revealUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.4s both;
+}
+.cp-hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: linear-gradient(to bottom, transparent, var(--bg));
+  pointer-events: none;
+}
+
+/* ─── Section entrance animations ────────────────────────────── */
+.cp-section { animation: revealUp 0.6s cubic-bezier(0.16,1,0.3,1) both; }
+.cp-manifesto-row { transition: background 0.2s ease; }
+.cp-manifesto-row:hover { background: rgba(0,229,255,0.02); }
+
+/* ─── Auth page entrance ──────────────────────────────────────── */
+.cp-auth-card { animation: popIn 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* ─── Nav logo glow ───────────────────────────────────────────── */
+.cp-logo:hover .cp-logo span:first-of-type {
+  animation: neonTextPulse 1.5s ease-in-out;
+}
+
+/* ─── KPI cards entrance ──────────────────────────────────────── */
+.cp-kpi-card:nth-child(1) { animation: revealUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.05s both; }
+.cp-kpi-card:nth-child(2) { animation: revealUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.10s both; }
+.cp-kpi-card:nth-child(3) { animation: revealUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.15s both; }
+.cp-kpi-card:nth-child(4) { animation: revealUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.20s both; }
+
+/* ─── Category cards entrance ────────────────────────────────── */
+.cp-category-card {
+  animation: revealUp 0.5s cubic-bezier(0.16,1,0.3,1) both;
+}
+.cp-category-card:nth-child(1) { animation-delay: 0.05s; }
+.cp-category-card:nth-child(2) { animation-delay: 0.10s; }
+.cp-category-card:nth-child(3) { animation-delay: 0.15s; }
+.cp-category-card:nth-child(4) { animation-delay: 0.20s; }
+
+/* ─── Testimonials entrance ───────────────────────────────────── */
+.cp-testimonial {
+  animation: revealUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.cp-testimonial:hover {
+  border-color: rgba(0,229,255,0.2);
+  box-shadow: 0 0 20px rgba(0,229,255,0.05);
+}
+
+/* ─── PhoneCard stock bar ──────────────────────────────────────── */
+.cp-phone-card-stock-bar {
+  height: 3px;
+  background: var(--surface-2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.cp-phone-card-stock-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+/* ─── Neon title effect (hero) ────────────────────────────────── */
+.cp-neon-text {
+  animation: neonTextPulse 3s ease-in-out infinite;
+}
+
+/* ─── Page transition wrapper ─────────────────────────────────── */
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.cp-main > * {
+  animation: pageFadeIn 0.4s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+/* ─── Sticky cart responsive ─────────────────────────────────── */
+@media (max-width: 768px) {
+  .cp-sticky-cart-info { display: none; }
+  .cp-sticky-cart-right { width: 100%; justify-content: space-between; }
+  .cp-sticky-cart-price { font-size: 14px; }
+  .cp-sticky-cart-trust { display: none; }
+  .cp-detail-trust-badges { grid-template-columns: 1fr; }
+}

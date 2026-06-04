@@ -38,16 +38,53 @@ const STATUS_LABEL: Record<string, string> = {
 export function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
+  function load() {
+    setLoading(true)
+    setError(null)
     adminService
       .getStats()
       .then(setStats)
+      .catch((err) => {
+        const status = err?.response?.status
+        if (status === 401 || status === 403) {
+          setError('Sin permisos. Verifica que estés logueado como admin.')
+        } else if (!navigator.onLine || err?.code === 'ERR_NETWORK') {
+          setError('No se puede conectar al backend. ¿Está corriendo en localhost:3001?')
+        } else {
+          setError(err?.response?.data?.error ?? err?.message ?? 'Error desconocido')
+        }
+      })
       .finally(() => setLoading(false))
-  }, [])
+  }
+
+  useEffect(() => { load() }, [])
 
   if (loading) return <Loading text="Cargando estadísticas..." />
-  if (!stats) return <p style={{ color: 'var(--ink-soft)' }}>Error al cargar</p>
+
+  if (error || !stats) return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      justifyContent: 'center', minHeight: '50vh', gap: 16, textAlign: 'center',
+    }}>
+      <div style={{ fontSize: 48 }}>⚠️</div>
+      <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600, letterSpacing: '0.04em' }}>
+        No se pudieron cargar las estadísticas
+      </h2>
+      <p style={{
+        fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--ink-soft)',
+        maxWidth: 420, lineHeight: 1.6,
+        background: 'var(--surface-2)', border: '1px solid var(--glass-border)',
+        padding: '12px 20px', borderRadius: 'var(--radius)',
+      }}>
+        {error ?? 'Respuesta vacía del servidor'}
+      </p>
+      <button className="cp-btn cp-btn-secondary" onClick={load}>
+        Reintentar
+      </button>
+    </div>
+  )
 
   const maxRevenue = Math.max(...stats.revenueByDay.map((d) => d.amount), 1)
 

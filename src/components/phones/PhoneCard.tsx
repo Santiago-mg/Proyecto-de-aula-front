@@ -57,7 +57,10 @@ export function PhoneCard({ phone }: PhoneCardProps) {
         <div className="cp-phone-card-condition">
           {CONDITION_LABEL[phone.condition]}
         </div>
-        <div className="cp-phone-card-brand">{phone.brand}</div>
+        <div className="cp-phone-card-meta">
+          <span className="cp-phone-card-brand">{phone.brand}</span>
+          <span className="cp-phone-card-category">{phone.category}</span>
+        </div>
         <h3 className="cp-phone-card-name">{phone.name}</h3>
 
         {/* Specs rápidas */}

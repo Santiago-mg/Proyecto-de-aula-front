@@ -2380,3 +2380,52 @@ body > * { position: relative; z-index: 1; }
   .cp-sticky-cart-trust { display: none; }
   .cp-detail-trust-badges { grid-template-columns: 1fr; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   CONTAINER SCROLL ANIMATION
+   ═══════════════════════════════════════════════════════════════ */
+
+.cp-scroll-title {
+  max-width: 900px;
+  margin: 0 auto 0;
+  text-align: center;
+}
+
+.cp-scroll-card {
+  max-width: 1100px;
+  margin: -48px auto 0;
+  width: 100%;
+  height: 34rem;
+  border: 2px solid rgba(0, 229, 255, 0.25);
+  padding: 6px;
+  background: #0b1224;
+  border-radius: 24px;
+  transform-origin: top center;
+}
+
+.cp-scroll-card-inner {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--surface);
+  padding: 20px;
+}
+
+@media (min-width: 768px) {
+  .cp-scroll-card {
+    height: 42rem;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .cp-scroll-card {
+    height: 26rem;
+    border-radius: 16px;
+  }
+  .cp-scroll-card-inner {
+    padding: 12px;
+    border-radius: 12px;
+  }
+}

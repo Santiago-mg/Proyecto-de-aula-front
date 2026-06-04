@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { ErrorMessage } from '../components/ui/ErrorMessage'
 import { useState } from 'react'
@@ -39,6 +40,12 @@ export function Login() {
 
   return (
     <div className="cp-auth-page">
+      <motion.div
+        initial={{ opacity: 0, y: 32, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+        style={{ width: '100%', display: 'flex', justifyContent: 'center' }}
+      >
       <div className="cp-auth-card">
         <Link to="/" className="cp-logo" style={{ marginBottom: 32, display: 'block' }}>
           Celular<span>Pro</span>
@@ -98,6 +105,7 @@ export function Login() {
           </button>
         </form>
       </div>
+      </motion.div>
     </div>
   )
 }

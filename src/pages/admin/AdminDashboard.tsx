@@ -48,12 +48,14 @@ export function AdminDashboard() {
       .then(setStats)
       .catch((err) => {
         const status = err?.response?.status
+        const detail = err?.response?.data?.detail
+        const serverError = err?.response?.data?.error
         if (status === 401 || status === 403) {
           setError('Sin permisos. Verifica que estés logueado como admin.')
         } else if (!navigator.onLine || err?.code === 'ERR_NETWORK') {
           setError('No se puede conectar al backend. ¿Está corriendo en localhost:3001?')
         } else {
-          setError(err?.response?.data?.error ?? err?.message ?? 'Error desconocido')
+          setError(detail ?? serverError ?? err?.message ?? 'Error desconocido')
         }
       })
       .finally(() => setLoading(false))

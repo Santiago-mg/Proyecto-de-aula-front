@@ -2,6 +2,7 @@ import { Package, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Loading } from '../components/ui/Loading'
+import { RevealOnScroll } from '../components/ui/RevealOnScroll'
 import { useAuth } from '../context/AuthContext'
 import { ordersService } from '../services/orders.service'
 import type { Order } from '../types/order'
@@ -121,8 +122,9 @@ export function Dashboard() {
 
       {!loading && orders.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {orders.map((order) => (
-            <div key={order.id} className="cp-order-card">
+          {orders.map((order, i) => (
+            <RevealOnScroll key={order.id} delay={i * 0.06}>
+            <div className="cp-order-card">
               <div className="cp-order-card-header">
                 <div>
                   <div className="cp-order-ref">{order.orderRef}</div>
@@ -202,6 +204,7 @@ export function Dashboard() {
                 </span>
               </div>
             </div>
+            </RevealOnScroll>
           ))}
         </div>
       )}

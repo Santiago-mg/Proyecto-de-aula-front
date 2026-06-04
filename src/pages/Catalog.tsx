@@ -4,6 +4,7 @@ import { PhoneCard } from '../components/phones/PhoneCard'
 import { PhoneFilters } from '../components/phones/PhoneFilters'
 import { Loading } from '../components/ui/Loading'
 import { Pagination } from '../components/ui/Pagination'
+import { RevealOnScroll } from '../components/ui/RevealOnScroll'
 import { phonesService } from '../services/phones.service'
 import type { PhoneListItem, PhonesQuery } from '../types/phone'
 
@@ -88,8 +89,10 @@ export function Catalog() {
         {!loading && !error && phones.length > 0 && (
           <>
             <div className="cp-phones-grid">
-              {phones.map((p) => (
-                <PhoneCard key={p.id} phone={p} />
+              {phones.map((p, i) => (
+                <RevealOnScroll key={p.id} delay={(i % 3) * 0.07}>
+                  <PhoneCard phone={p} />
+                </RevealOnScroll>
               ))}
             </div>
             <Pagination

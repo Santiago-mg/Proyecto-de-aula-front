@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PhoneCard } from '../components/phones/PhoneCard'
 import { Loading } from '../components/ui/Loading'
+import { ContainerScroll } from '../components/ui/ContainerScrollAnimation'
+import { RevealOnScroll } from '../components/ui/RevealOnScroll'
 import { phonesService } from '../services/phones.service'
 import type { PhoneListItem } from '../types/phone'
 
@@ -79,30 +81,127 @@ export function Home() {
         </div>
       </section>
 
-      {/* ─── MANIFESTO ───────────────────────────────────────── */}
-      <section className="cp-section cp-manifesto">
-        <div className="cp-container">
-          <div className="cp-manifesto-header">
-            <span
+      {/* ─── CATÁLOGO CON SCROLL ANIMATION ────────────────────── */}
+      <section className="cp-section" style={{ background: 'var(--surface)', overflow: 'hidden' }}>
+        <ContainerScroll
+          titleComponent={
+            <div style={{ paddingBottom: 8 }}>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 12,
+                  color: 'var(--accent)',
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  marginBottom: 20,
+                }}
+              >
+                — Catálogo destacado
+              </div>
+              <h2
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 'clamp(32px, 5vw, 72px)',
+                  fontWeight: 700,
+                  letterSpacing: '0.02em',
+                  textTransform: 'uppercase',
+                  lineHeight: 1,
+                  marginBottom: 16,
+                }}
+              >
+                Celulares listos{' '}
+                <span style={{ color: 'var(--accent)', textShadow: '0 0 20px rgba(0,229,255,0.4)' }}>
+                  para hoy.
+                </span>
+              </h2>
+              <p
+                style={{
+                  color: 'var(--ink-soft)',
+                  fontSize: 16,
+                  maxWidth: 520,
+                  margin: '0 auto',
+                  lineHeight: 1.6,
+                }}
+              >
+                Nuevos, certificados y usados verificados. Todos con IMEI
+                limpio y garantía real.
+              </p>
+            </div>
+          }
+        >
+          {/* Contenido dentro de la tarjeta 3D */}
+          {loading ? (
+            <Loading />
+          ) : featured.length === 0 ? (
+            <div
               style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 12,
-                color: 'var(--accent)',
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100%',
+                color: 'var(--ink-soft)',
+                flexDirection: 'column',
+                gap: 12,
               }}
             >
-              — Por qué existimos
-            </span>
-            <h2 className="cp-manifesto-title">
-              El mercado de celulares usados
-              <br />
-              tiene un problema de{' '}
-              <em style={{ color: 'var(--accent)', fontWeight: 300 }}>
-                confianza.
-              </em>
-            </h2>
+              <span style={{ fontSize: 40 }}>📱</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>
+                Pronto habrá equipos disponibles.
+              </span>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: 14,
+                height: '100%',
+                overflow: 'hidden',
+              }}
+            >
+              {featured.slice(0, 6).map((p) => (
+                <PhoneCard key={p.id} phone={p} />
+              ))}
+            </div>
+          )}
+        </ContainerScroll>
+
+        {/* CTA debajo de la tarjeta */}
+        <RevealOnScroll>
+          <div style={{ textAlign: 'center', paddingBottom: 48 }}>
+            <Link to="/catalog" className="cp-btn cp-btn-primary cp-btn-lg">
+              Ver catálogo completo →
+            </Link>
           </div>
+        </RevealOnScroll>
+      </section>
+
+      {/* ─── MANIFIESTO ───────────────────────────────────────── */}
+      <section className="cp-section cp-manifesto">
+        <div className="cp-container">
+          <RevealOnScroll>
+            <div className="cp-manifesto-header">
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 12,
+                  color: 'var(--accent)',
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                — Por qué existimos
+              </span>
+              <h2 className="cp-manifesto-title">
+                El mercado de celulares usados
+                <br />
+                tiene un problema de{' '}
+                <em style={{ color: 'var(--accent)', fontWeight: 300 }}>
+                  confianza.
+                </em>
+              </h2>
+            </div>
+          </RevealOnScroll>
 
           {[
             {
@@ -125,41 +224,45 @@ export function Home() {
               title: 'IMEI limpio garantizado',
               desc: 'Verificamos que cada equipo esté libre de reportes, bloqueos de operador y deudas. Recibes el certificado con tu compra.',
             },
-          ].map((b) => (
-            <div key={b.n} className="cp-manifesto-row">
-              <span className="cp-manifesto-num">{b.n}</span>
-              <h3 className="cp-manifesto-item-title">{b.title}</h3>
-              <p className="cp-manifesto-item-desc">{b.desc}</p>
-            </div>
+          ].map((b, i) => (
+            <RevealOnScroll key={b.n} delay={i * 0.08}>
+              <div className="cp-manifesto-row">
+                <span className="cp-manifesto-num">{b.n}</span>
+                <h3 className="cp-manifesto-item-title">{b.title}</h3>
+                <p className="cp-manifesto-item-desc">{b.desc}</p>
+              </div>
+            </RevealOnScroll>
           ))}
         </div>
       </section>
 
-      {/* ─── CATEGORÍAS DESTACADAS ───────────────────────────── */}
+      {/* ─── CATEGORÍAS ───────────────────────────────────────── */}
       <section className="cp-section cp-categories-section">
         <div className="cp-container">
-          <div className="cp-section-header">
-            <div>
-              <div
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 12,
-                  color: 'var(--accent)',
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  marginBottom: 16,
-                }}
-              >
-                — Categorías más buscadas
+          <RevealOnScroll>
+            <div className="cp-section-header">
+              <div>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 12,
+                    color: 'var(--accent)',
+                    letterSpacing: '0.18em',
+                    textTransform: 'uppercase',
+                    marginBottom: 16,
+                  }}
+                >
+                  — Categorías más buscadas
+                </div>
+                <h2 className="cp-section-title">
+                  Encuentra tu próximo teléfono por categoría
+                </h2>
               </div>
-              <h2 className="cp-section-title">
-                Encuentra tu próximo teléfono por categoría
-              </h2>
+              <Link to="/catalog" className="cp-btn cp-btn-secondary">
+                Ver catálogo completo →
+              </Link>
             </div>
-            <Link to="/catalog" className="cp-btn cp-btn-secondary">
-              Ver catálogo completo →
-            </Link>
-          </div>
+          </RevealOnScroll>
 
           <div className="cp-category-grid">
             {[
@@ -167,111 +270,69 @@ export function Home() {
                 id: 'apple',
                 title: 'iPhone',
                 subtitle: 'Equipos premium certificados',
-                image:
-                  'https://1000logos.net/wp-content/uploads/2016/10/Apple-Logo.png',
+                image: 'https://1000logos.net/wp-content/uploads/2016/10/Apple-Logo.png',
               },
               {
                 id: 'samsung',
                 title: 'Samsung',
                 subtitle: 'Android potente y actualizado',
-                image:
-                  'https://images.samsung.com/is/image/samsung/assets/global/about-us/brand/logo/720_600_1.png?$720_N_PNG$',
+                image: 'https://images.samsung.com/is/image/samsung/assets/global/about-us/brand/logo/720_600_1.png?$720_N_PNG$',
               },
               {
                 id: 'xiaomi',
                 title: 'Xiaomi',
                 subtitle: 'Calidad y precio competitivo',
-                image:
-                  'https://1000logos.net/wp-content/uploads/2021/08/Xiaomi-logo-500x281.png',
+                image: 'https://1000logos.net/wp-content/uploads/2021/08/Xiaomi-logo-500x281.png',
               },
               {
                 id: 'motorola',
                 title: 'Motorola',
                 subtitle: 'Resistencia y duración comprobada',
-                image:
-                  'https://cdn.freebiesupply.com/logos/large/2x/motorola-2-logo-png-transparent.png',
+                image: 'https://cdn.freebiesupply.com/logos/large/2x/motorola-2-logo-png-transparent.png',
               },
-            ].map((category) => (
-              <Link
-                key={category.id}
-                to={`/catalog?category=${category.id}`}
-                className="cp-category-card"
-              >
-                <div className="cp-category-card-img">
-                  <img src={category.image} alt={category.title} loading="lazy" />
-                  <div className="cp-category-card-tag">
-                    <span>{category.title}</span>
+            ].map((category, i) => (
+              <RevealOnScroll key={category.id} delay={i * 0.08}>
+                <Link
+                  to={`/catalog?category=${category.id}`}
+                  className="cp-category-card"
+                >
+                  <div className="cp-category-card-img">
+                    <img
+                      src={category.image}
+                      alt={category.title}
+                      loading="lazy"
+                    />
                   </div>
-                </div>
-                <div className="cp-category-card-body">
-                  <p>{category.subtitle}</p>
-                </div>
-              </Link>
+                  <div className="cp-category-card-body">
+                    <span className="cp-category-card-label">{category.title}</span>
+                    <p style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 4 }}>
+                      {category.subtitle}
+                    </p>
+                  </div>
+                </Link>
+              </RevealOnScroll>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ─── PRODUCTOS DESTACADOS ─────────────────────────────── */}
-      <section className="cp-section" style={{ background: 'var(--surface)' }}>
-        <div className="cp-container">
-          <div className="cp-section-header">
-            <div>
-              <div
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 12,
-                  color: 'var(--accent)',
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  marginBottom: 16,
-                }}
-              >
-                — Catálogo
-              </div>
-              <h2 className="cp-section-title">
-                Celulares listos{' '}
-                <em style={{ color: 'var(--accent)', fontWeight: 300 }}>
-                  para hoy.
-                </em>
-              </h2>
-            </div>
-            <Link to="/catalog" className="cp-btn cp-btn-secondary">
-              Ver todos →
-            </Link>
-          </div>
-
-          {loading ? (
-            <Loading />
-          ) : featured.length === 0 ? (
-            <p style={{ color: 'var(--ink-soft)', textAlign: 'center', padding: '40px 0' }}>
-              Pronto habrá equipos disponibles.
-            </p>
-          ) : (
-            <div className="cp-phones-grid">
-              {featured.map((p) => (
-                <PhoneCard key={p.id} phone={p} />
-              ))}
-            </div>
-          )}
         </div>
       </section>
 
       {/* ─── TESTIMONIOS ──────────────────────────────────────── */}
       <section className="cp-section">
         <div className="cp-container">
-          <div
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 12,
-              color: 'var(--accent)',
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              marginBottom: 40,
-            }}
-          >
-            — Voces reales
-          </div>
+          <RevealOnScroll>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 12,
+                color: 'var(--accent)',
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                marginBottom: 40,
+              }}
+            >
+              — Voces reales
+            </div>
+          </RevealOnScroll>
           <div className="cp-testimonials-grid">
             {[
               {
@@ -289,18 +350,20 @@ export function Home() {
                 a: 'Carolina Ríos',
                 r: 'Contadora · Cali',
               },
-            ].map((t) => (
-              <figure key={t.a} className="cp-testimonial">
-                <blockquote className="cp-testimonial-quote">
-                  "{t.q}"
-                </blockquote>
-                <figcaption className="cp-testimonial-author">
-                  <div>{t.a}</div>
-                  <div style={{ color: 'var(--ink-soft)', fontSize: 12 }}>
-                    {t.r}
-                  </div>
-                </figcaption>
-              </figure>
+            ].map((t, i) => (
+              <RevealOnScroll key={t.a} delay={i * 0.12}>
+                <figure className="cp-testimonial">
+                  <blockquote className="cp-testimonial-quote">
+                    "{t.q}"
+                  </blockquote>
+                  <figcaption className="cp-testimonial-author">
+                    <div>{t.a}</div>
+                    <div style={{ color: 'var(--ink-soft)', fontSize: 12 }}>
+                      {t.r}
+                    </div>
+                  </figcaption>
+                </figure>
+              </RevealOnScroll>
             ))}
           </div>
         </div>
@@ -309,39 +372,44 @@ export function Home() {
       {/* ─── CTA FINAL ────────────────────────────────────────── */}
       <section className="cp-section">
         <div className="cp-container">
-          <div className="cp-cta-banner">
-            <div
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 11,
-                color: 'var(--accent)',
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                marginBottom: 16,
-              }}
-            >
-              — Empieza hoy
-            </div>
-            <h2 className="cp-cta-title">
-              Tu próximo celular,{' '}
-              <em style={{ fontWeight: 300 }}>sin riesgos.</em>
-            </h2>
-            <p className="cp-cta-desc">
-              Regístrate gratis. Compra con garantía real. Si no queda
-              satisfecho, te devolvemos el dinero.
-            </p>
-            <div className="cp-hero-actions">
-              <Link to="/register" className="cp-btn cp-btn-primary cp-btn-lg">
-                Crear cuenta gratis →
-              </Link>
-              <Link
-                to="/catalog"
-                className="cp-btn cp-btn-secondary cp-btn-lg"
+          <RevealOnScroll>
+            <div className="cp-cta-banner">
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 11,
+                  color: 'var(--accent)',
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  marginBottom: 16,
+                }}
               >
-                Ver catálogo
-              </Link>
+                — Empieza hoy
+              </div>
+              <h2 className="cp-cta-title">
+                Tu próximo celular,{' '}
+                <em style={{ fontWeight: 300 }}>sin riesgos.</em>
+              </h2>
+              <p className="cp-cta-desc">
+                Regístrate gratis. Compra con garantía real. Si no queda
+                satisfecho, te devolvemos el dinero.
+              </p>
+              <div className="cp-hero-actions">
+                <Link
+                  to="/register"
+                  className="cp-btn cp-btn-primary cp-btn-lg"
+                >
+                  Crear cuenta gratis →
+                </Link>
+                <Link
+                  to="/catalog"
+                  className="cp-btn cp-btn-secondary cp-btn-lg"
+                >
+                  Ver catálogo
+                </Link>
+              </div>
             </div>
-          </div>
+          </RevealOnScroll>
         </div>
       </section>
     </div>

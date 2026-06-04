@@ -6,6 +6,7 @@ import { Loading } from '../components/ui/Loading'
 import { ContainerScroll } from '../components/ui/ContainerScrollAnimation'
 import { RevealOnScroll } from '../components/ui/RevealOnScroll'
 import { ShaderBackground } from '../components/ui/ShaderBackground'
+import { HeroGeometric } from '../components/ui/shape-landing-hero'
 import { phonesService } from '../services/phones.service'
 import type { PhoneListItem } from '../types/phone'
 
@@ -23,49 +24,55 @@ export function Home() {
 
   return (
     <div>
-      {/* Shader WebGL como fondo animado — solo en Home */}
+      {/*
+       * ── FONDO SPLIT ──────────────────────────────────────────────────────
+       * Primera mitad (hero): ShaderBackground WebGL + elipses HeroGeometric
+       * Segunda mitad (catálogo en adelante): ShaderBackground plasma visible
+       */}
       <ShaderBackground />
 
-      {/* ─── HERO ─────────────────────────────────────────────── */}
-      <section className="cp-hero" style={{ background: 'transparent' }}>
-        {/* cp-hero-bg omitido: el ShaderBackground ya provee el fondo */}
-        <div className="cp-container cp-hero-content">
-          <div
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 11,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: 'var(--accent)',
-              marginBottom: 28,
-            }}
-          >
-            — Celulares certificados · Medellín, Colombia
-          </div>
-          <h1 className="cp-hero-title">
-            Compra un celular
-            <br />
-            en el que puedes{' '}
-            <em style={{ color: 'var(--accent)', fontWeight: 300 }}>
-              confiar.
-            </em>
-          </h1>
-          <p className="cp-hero-subtitle">
-            Cada equipo pasa por 32 puntos de inspección técnica. Recibes el
-            reporte completo antes de decidir. Sin sorpresas.
-          </p>
-          <div className="cp-hero-actions">
-            <Link to="/catalog" className="cp-btn cp-btn-primary cp-btn-lg">
-              Ver catálogo →
-            </Link>
-            <Link
-              to="/catalog?condition=CERTIFIED"
-              className="cp-btn cp-btn-secondary cp-btn-lg"
+      {/* ─── HERO — Primera mitad: elipses flotantes + texto ──── */}
+      <section className="cp-hero" style={{ background: 'transparent', padding: 0 }}>
+        <HeroGeometric>
+          {/* Contenido propio de CelularPro dentro del wrapper de formas */}
+          <div className="cp-container cp-hero-content">
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 11,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: 'var(--accent)',
+                marginBottom: 28,
+              }}
             >
-              Certificados
-            </Link>
+              — Celulares certificados · Medellín, Colombia
+            </div>
+            <h1 className="cp-hero-title">
+              Compra un celular
+              <br />
+              en el que puedes{' '}
+              <em style={{ color: 'var(--accent)', fontWeight: 300 }}>
+                confiar.
+              </em>
+            </h1>
+            <p className="cp-hero-subtitle">
+              Cada equipo pasa por 32 puntos de inspección técnica. Recibes el
+              reporte completo antes de decidir. Sin sorpresas.
+            </p>
+            <div className="cp-hero-actions">
+              <Link to="/catalog" className="cp-btn cp-btn-primary cp-btn-lg">
+                Ver catálogo →
+              </Link>
+              <Link
+                to="/catalog?condition=CERTIFIED"
+                className="cp-btn cp-btn-secondary cp-btn-lg"
+              >
+                Certificados
+              </Link>
+            </div>
           </div>
-        </div>
+        </HeroGeometric>
       </section>
 
       {/* ─── TRUST STRIP ──────────────────────────────────────── */}
@@ -85,8 +92,9 @@ export function Home() {
         </div>
       </section>
 
-      {/* ─── CATÁLOGO CON SCROLL ANIMATION ────────────────────── */}
-      <section className="cp-section" style={{ background: 'var(--surface)', overflow: 'hidden' }}>
+      {/* ─── CATÁLOGO CON SCROLL ANIMATION — Segunda mitad: plasma shader ── */}
+      {/* background: transparent → el ShaderBackground se ve directamente */}
+      <section className="cp-section" style={{ background: 'transparent', overflow: 'hidden' }}>
         <ContainerScroll
           titleComponent={
             <div style={{ paddingBottom: 8 }}>

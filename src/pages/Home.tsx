@@ -79,7 +79,7 @@ export function Home() {
         </div>
       </section>
 
-      {/* ─── MANIFIESTO ───────────────────────────────────────── */}
+      {/* ─── MANIFESTO ───────────────────────────────────────── */}
       <section className="cp-section cp-manifesto">
         <div className="cp-container">
           <div className="cp-manifesto-header">
@@ -132,6 +132,83 @@ export function Home() {
               <p className="cp-manifesto-item-desc">{b.desc}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ─── CATEGORÍAS DESTACADAS ───────────────────────────── */}
+      <section className="cp-section cp-categories-section">
+        <div className="cp-container">
+          <div className="cp-section-header">
+            <div>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 12,
+                  color: 'var(--accent)',
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  marginBottom: 16,
+                }}
+              >
+                — Categorías más buscadas
+              </div>
+              <h2 className="cp-section-title">
+                Encuentra tu próximo teléfono por categoría
+              </h2>
+            </div>
+            <Link to="/catalog" className="cp-btn cp-btn-secondary">
+              Ver catálogo completo →
+            </Link>
+          </div>
+
+          <div className="cp-category-grid">
+            {[
+              {
+                id: 'apple',
+                title: 'iPhone',
+                subtitle: 'Equipos premium certificados',
+                image:
+                  'https://1000logos.net/wp-content/uploads/2016/10/Apple-Logo.png',
+              },
+              {
+                id: 'samsung',
+                title: 'Samsung',
+                subtitle: 'Android potente y actualizado',
+                image:
+                  'https://images.samsung.com/is/image/samsung/assets/global/about-us/brand/logo/720_600_1.png?$720_N_PNG$',
+              },
+              {
+                id: 'xiaomi',
+                title: 'Xiaomi',
+                subtitle: 'Calidad y precio competitivo',
+                image:
+                  'https://1000logos.net/wp-content/uploads/2021/08/Xiaomi-logo-500x281.png',
+              },
+              {
+                id: 'motorola',
+                title: 'Motorola',
+                subtitle: 'Resistencia y duración comprobada',
+                image:
+                  'https://cdn.freebiesupply.com/logos/large/2x/motorola-2-logo-png-transparent.png',
+              },
+            ].map((category) => (
+              <Link
+                key={category.id}
+                to={`/catalog?category=${category.id}`}
+                className="cp-category-card"
+              >
+                <div className="cp-category-card-img">
+                  <img src={category.image} alt={category.title} loading="lazy" />
+                  <div className="cp-category-card-tag">
+                    <span>{category.title}</span>
+                  </div>
+                </div>
+                <div className="cp-category-card-body">
+                  <p>{category.subtitle}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 

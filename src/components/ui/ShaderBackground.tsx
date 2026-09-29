@@ -215,6 +215,7 @@ export function ShaderBackground() {
     <canvas
       ref={canvasRef}
       aria-hidden="true"
+      tabIndex={-1}
       style={{
         position: 'fixed',
         top: 0,

@@ -1,7 +1,9 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from 'react'
@@ -19,7 +21,7 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [user, setUser] = useState<User | null>(() => {
     try {
       const stored = localStorage.getItem('cp_user')
@@ -46,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, token])
 
-  async function login(email: string, password: string) {
+  const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true)
     try {
       const result = await authService.login({ email, password })
@@ -55,9 +57,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
-  async function register(email: string, name: string, password: string) {
+  const register = useCallback(async (email: string, name: string, password: string) => {
     setIsLoading(true)
     try {
       const result = await authService.register({ email, name, password })
@@ -66,17 +68,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
-  function logout() {
+  const logout = useCallback(() => {
     setUser(null)
     setToken(null)
-  }
+  }, [])
+
+  // Memorizado: si no cambia la sesión, los consumidores no se re-renderizan
+  const value = useMemo(
+    () => ({ user, token, isLoading, login, register, logout }),
+    [user, token, isLoading, login, register, logout],
+  )
 
   return (
-    <AuthContext.Provider
-      value={{ user, token, isLoading, login, register, logout }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   )

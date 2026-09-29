@@ -2,6 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useMemo,
   useState,
   type ReactNode,
 } from 'react'
@@ -12,7 +13,7 @@ interface ToastContextValue {
 
 const ToastContext = createContext<ToastContextValue | null>(null)
 
-export function ToastProvider({ children }: { children: ReactNode }) {
+export function ToastProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [message, setMessage] = useState<string | null>(null)
 
   const showToast = useCallback((msg: string) => {
@@ -20,8 +21,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setTimeout(() => setMessage(null), 2800)
   }, [])
 
+  const value = useMemo(() => ({ showToast }), [showToast])
+
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={value}>
       {children}
       {message && (
         <div

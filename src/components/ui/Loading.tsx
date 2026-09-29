@@ -1,4 +1,4 @@
-export function Loading({ text = 'Cargando...' }: { text?: string }) {
+export function Loading({ text = 'Cargando...' }: Readonly<{ text?: string }>) {
   return (
     <div
       style={{

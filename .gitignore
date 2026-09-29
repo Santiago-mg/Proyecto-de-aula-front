@@ -2,3 +2,14 @@ node_modules
 dist
 .env
 .env.local
+
+# Reportes que generan las pruebas y el analisis; se regeneran en cada corrida
+coverage
+reports
+.scannerwork
+
+# Configuracion local que crea `vercel link`
+.vercel
+
+# Archivos temporales que genera Vite al recargar una config en TypeScript
+vite.config.ts.timestamp-*

@@ -10,6 +10,48 @@ import { HeroGeometric } from '../components/ui/shape-landing-hero'
 import { phonesService } from '../services/phones.service'
 import type { PhoneListItem } from '../types/phone'
 
+// Contenido de la tarjeta 3D: cargando, sin equipos o la grilla de destacados
+function Destacados({ loading, featured }: Readonly<{ loading: boolean; featured: PhoneListItem[] }>) {
+  if (loading) return <Loading />
+
+  if (featured.length === 0) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          color: 'var(--ink-soft)',
+          flexDirection: 'column',
+          gap: 12,
+        }}
+      >
+        <span style={{ fontSize: 40 }}>📱</span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>
+          Pronto habrá equipos disponibles.
+        </span>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: 14,
+        height: '100%',
+        overflow: 'hidden',
+      }}
+    >
+      {featured.slice(0, 6).map((p) => (
+        <PhoneCard key={p.id} phone={p} />
+      ))}
+    </div>
+  )
+}
+
 export function Home() {
   const [featured, setFeatured] = useState<PhoneListItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -142,40 +184,7 @@ export function Home() {
           }
         >
           {/* Contenido dentro de la tarjeta 3D */}
-          {loading ? (
-            <Loading />
-          ) : featured.length === 0 ? (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
-                color: 'var(--ink-soft)',
-                flexDirection: 'column',
-                gap: 12,
-              }}
-            >
-              <span style={{ fontSize: 40 }}>📱</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>
-                Pronto habrá equipos disponibles.
-              </span>
-            </div>
-          ) : (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: 14,
-                height: '100%',
-                overflow: 'hidden',
-              }}
-            >
-              {featured.slice(0, 6).map((p) => (
-                <PhoneCard key={p.id} phone={p} />
-              ))}
-            </div>
-          )}
+          <Destacados loading={loading} featured={featured} />
         </ContainerScroll>
 
         {/* CTA debajo de la tarjeta */}
@@ -366,7 +375,7 @@ export function Home() {
               <RevealOnScroll key={t.a} delay={i * 0.12}>
                 <figure className="cp-testimonial">
                   <blockquote className="cp-testimonial-quote">
-                    "{t.q}"
+                    “{t.q}”
                   </blockquote>
                   <figcaption className="cp-testimonial-author">
                     <div>{t.a}</div>

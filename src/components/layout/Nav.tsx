@@ -8,7 +8,7 @@ interface NavProps {
   onOpenCart(): void
 }
 
-export function Nav({ onOpenCart }: NavProps) {
+export function Nav({ onOpenCart }: Readonly<NavProps>) {
   const { user, logout } = useAuth()
   const { totalItems } = useCart()
   const navigate = useNavigate()

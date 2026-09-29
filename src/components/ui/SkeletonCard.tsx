@@ -12,11 +12,12 @@ export function SkeletonCard() {
   )
 }
 
-export function SkeletonGrid({ count = 6 }: { count?: number }) {
+export function SkeletonGrid({ count = 6 }: Readonly<{ count?: number }>) {
+  const ids = Array.from({ length: count }, (_, n) => `skeleton-${n}`)
   return (
     <div className="cp-phones-grid">
-      {Array.from({ length: count }).map((_, i) => (
-        <SkeletonCard key={i} />
+      {ids.map((id) => (
+        <SkeletonCard key={id} />
       ))}
     </div>
   )

@@ -15,7 +15,7 @@ function getErrorText(error: Error | null): string {
   return error.message
 }
 
-export function ErrorMessage({ error }: ErrorMessageProps) {
+export function ErrorMessage({ error }: Readonly<ErrorMessageProps>) {
   return (
     <p
       style={{

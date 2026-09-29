@@ -16,11 +16,13 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Si el servidor responde 401, la sesión expiró → limpiar y redirigir
-    if (error.response?.status === 401) {
+    // 401 con una sesión guardada = token vencido o inválido → limpiar y redirigir.
+    // Sin sesión (p. ej. credenciales incorrectas en el login) solo se propaga el
+    // error, para que la pantalla muestre el mensaje del servidor.
+    if (error.response?.status === 401 && localStorage.getItem('cp_token')) {
       localStorage.removeItem('cp_token')
       localStorage.removeItem('cp_user')
-      window.location.href = '/login'
+      globalThis.location.href = '/login'
     }
     return Promise.reject(error)
   },

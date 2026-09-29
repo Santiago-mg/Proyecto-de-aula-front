@@ -7,12 +7,22 @@ function formatCOP(n: number) {
   return '$' + new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 }).format(n) + ' COP'
 }
 
+// "—" si no hubo ventas ese día, "1 venta" o "N ventas" si las hubo
+function etiquetaVentas(count: number) {
+  if (count <= 0) return '—'
+  return count === 1 ? '1 venta' : `${count} ventas`
+}
+
 export function AdminStats() {
   const [stats, setStats] = useState<StatsType | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    adminService.getStats().then(setStats).finally(() => setLoading(false))
+    adminService
+      .getStats()
+      .then(setStats)
+      .catch(() => setStats(null))
+      .finally(() => setLoading(false))
   }, [])
 
   if (loading) return <Loading text="Calculando estadísticas..." />
@@ -48,7 +58,7 @@ export function AdminStats() {
               </div>
               <div className="cp-revenue-bar-label">{day.date}</div>
               <div className="cp-revenue-bar-value">
-                {day.count > 0 ? `${day.count} venta${day.count > 1 ? 's' : ''}` : '—'}
+                {etiquetaVentas(day.count)}
               </div>
             </div>
           ))}

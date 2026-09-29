@@ -42,8 +42,9 @@ export interface CartItem {
   heroImage: string | null
   price: number
   qty: number
-  colorId: string
-  colorName: string
+  // null cuando el equipo no tiene variantes de color
+  colorId: string | null
+  colorName: string | null
 }
 
 export interface CheckoutFormData {

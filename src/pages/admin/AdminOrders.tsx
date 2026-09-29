@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
+import { ErrorMessage } from '../../components/ui/ErrorMessage'
 import { Loading } from '../../components/ui/Loading'
 import { Pagination } from '../../components/ui/Pagination'
 import { adminService } from '../../services/admin.service'
 import type { Order, OrderStatus } from '../../types/order'
+import { comoError } from '../../utils/errores'
 
 function formatCOP(n: number) {
   return '$' + new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 }).format(n)
@@ -31,15 +33,18 @@ export function AdminOrders() {
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
   const [updating, setUpdating] = useState<string | null>(null)
+  const [error, setError] = useState<Error | null>(null)
 
   function load(p: number) {
     setLoading(true)
+    setError(null)
     adminService
       .getAllOrders(p)
       .then((r) => {
         setOrders(r.data)
         setMeta(r.meta)
       })
+      .catch((err) => setError(comoError(err)))
       .finally(() => setLoading(false))
   }
 
@@ -47,9 +52,13 @@ export function AdminOrders() {
 
   async function handleStatus(orderId: string, status: string) {
     setUpdating(orderId)
+    setError(null)
     try {
       const updated = await adminService.updateOrderStatus(orderId, status)
       setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)))
+    } catch (err) {
+      // El select vuelve solo al estado anterior porque la orden no cambió
+      setError(comoError(err))
     } finally {
       setUpdating(null)
     }
@@ -66,6 +75,8 @@ export function AdminOrders() {
           {meta.total} órdenes totales
         </div>
       </div>
+
+      {error && <ErrorMessage error={error} />}
 
       {loading ? (
         <Loading text="Cargando órdenes..." />

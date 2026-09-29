@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { ErrorMessage } from '../components/ui/ErrorMessage'
 import { useState } from 'react'
+import { comoError } from '../utils/errores'
 
 const schema = z.object({
   email: z.string().email('Email inválido'),
@@ -34,7 +35,7 @@ export function Login() {
       await login(data.email, data.password)
       navigate('/dashboard')
     } catch (err) {
-      setServerError(err instanceof Error ? err : new Error(String(err)))
+      setServerError(comoError(err))
     }
   }
 

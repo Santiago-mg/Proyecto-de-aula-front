@@ -1,0 +1,171 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// ORQUESTADOR de CelularPro: el "trigger" que encadena todo
+//                                           (job en Jenkins: celularpro-orquestador)
+//
+//   0. Código      baja los dos repositorios (así el trigger vigila los dos)
+//   1. Backend     corre el job celularpro-backend  (pruebas + SonarQube + imagen)
+//   2. Frontend    corre el job celularpro-front    (pruebas + SonarQube + imagen)
+//   3. Docker      levanta la app completa: base de datos, API y front
+//   4. Vercel      publica la API y el front
+//
+// Cada etapa corre solo si la anterior pasó. Si el backend falla, el front ni
+// se prueba; si el front falla, no se despliega nada. Nunca se publica algo
+// que no pasó sus pruebas y su Quality Gate.
+//
+// Plugins: los mismos de los otros dos jobs (Pipeline, Git, Docker Pipeline,
+// SonarQube Scanner, JUnit, Timestamper) + Credentials Binding para Vercel.
+// ─────────────────────────────────────────────────────────────────────────────
+
+pipeline {
+    // Sin agente global: mientras espera a los otros jobs no ocupa un ejecutor.
+    agent none
+
+    triggers {
+        // Cada ~5 minutos revisa si hay commits nuevos en el back o en el front
+        // (los repositorios que se bajan en la etapa 0). Si los hay, arranca
+        // la cadena sola: así se verifica todo después de cada cambio.
+        pollSCM('H/5 * * * *')
+    }
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+        timeout(time: 60, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+    }
+
+    parameters {
+        string(
+            name: 'VITE_API_URL',
+            defaultValue: 'http://localhost:3001/api/v1',
+            description: 'URL de la API que queda grabada en el front de Docker.'
+        )
+        booleanParam(
+            name: 'DESPLEGAR_VERCEL',
+            defaultValue: true,
+            description: 'Publicar la API y el front en Vercel al final (necesita las credenciales de Vercel en Jenkins).'
+        )
+    }
+
+    environment {
+        REPO_BACKEND = 'https://github.com/Santiago-mg/Proyecto-de-aula.git'
+        RAMA_BACKEND = 'main'
+    }
+
+    stages {
+
+        stage('0. Código') {
+            agent any
+            steps {
+                // El front ya está en el workspace (aquí vive este archivo).
+                // El backend se baja para que el trigger también vea sus commits.
+                dir('backend') {
+                    git url: env.REPO_BACKEND, branch: env.RAMA_BACKEND
+                }
+            }
+        }
+
+        stage('1. Backend') {
+            steps {
+                // Espera a que termine; si falla, esta etapa falla y la cadena
+                // se detiene aquí.
+                build job: 'celularpro-backend'
+            }
+        }
+
+        stage('2. Frontend') {
+            steps {
+                build job: 'celularpro-front', parameters: [
+                    string(name: 'VITE_API_URL', value: params.VITE_API_URL)
+                ]
+            }
+        }
+
+        stage('3. Desplegar con Docker') {
+            agent {
+                dockerfile {
+                    filename 'Dockerfile.jenkins'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
+                }
+            }
+            steps {
+                sh '''
+                    # Se baja el despliegue anterior (si lo hay) junto con su
+                    # base (-v) y se levanta de nuevo desde cero:
+                    # base → migraciones + seed → API → front.
+                    docker compose -p celularpro down -v --remove-orphans
+                    docker compose -p celularpro up -d
+
+                    # Espera a que la API y el front estén sanos (HEALTHCHECK de
+                    # cada imagen). Máximo 60 segundos por servicio.
+                    for servicio in celularpro-api celularpro-front; do
+                        for intento in $(seq 1 30); do
+                            estado=$(docker inspect -f '{{.State.Health.Status}}' "$servicio")
+                            [ "$estado" = "healthy" ] && break
+                            sleep 2
+                        done
+                        echo "$servicio: $estado"
+                        if [ "$estado" != "healthy" ]; then
+                            docker logs --tail 50 "$servicio"
+                            exit 1
+                        fi
+                    done
+
+                    # Prueba de humo: la API responde con el catálogo que cargó el seed.
+                    docker exec celularpro-api node -e "
+                        fetch('http://127.0.0.1:3001/api/v1/phones')
+                            .then((r) => r.json())
+                            .then((j) => {
+                                console.log('Celulares en el catálogo:', j.meta.total)
+                                process.exit(j.meta.total > 0 ? 0 : 1)
+                            })
+                            .catch(() => process.exit(1))
+                    "
+                '''
+                echo 'App en Docker → front: http://localhost:8081 · API: http://localhost:3001/api/v1'
+            }
+        }
+
+        stage('4. Desplegar en Vercel') {
+            when {
+                beforeAgent true   // si no se pide Vercel, ni siquiera arma el agente
+                expression { params.DESPLEGAR_VERCEL }
+            }
+            agent {
+                dockerfile {
+                    filename 'Dockerfile.jenkins'
+                    args '-u root'
+                }
+            }
+            steps {
+                // Cuatro credenciales "Secret text" en Jenkins (ver DEVOPS.md).
+                // withCredentials las oculta en el log.
+                withCredentials([
+                    string(credentialsId: 'vercel-token', variable: 'VERCEL_TOKEN'),
+                    string(credentialsId: 'vercel-org-id', variable: 'VERCEL_ORG_ID'),
+                    string(credentialsId: 'vercel-project-backend', variable: 'PROYECTO_BACKEND'),
+                    string(credentialsId: 'vercel-project-front', variable: 'PROYECTO_FRONT')
+                ]) {
+                    // API: se clona el backend de main (el que se acaba de
+                    // probar) en /tmp del contenedor y se publica desde ahí.
+                    sh '''
+                        git clone --depth 1 --branch "$RAMA_BACKEND" "$REPO_BACKEND" /tmp/backend
+                        cd /tmp/backend
+                        VERCEL_PROJECT_ID="$PROYECTO_BACKEND" npx --yes vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
+                    '''
+                    // Front: el de este repositorio (el workspace del job).
+                    sh 'VERCEL_PROJECT_ID="$PROYECTO_FRONT" npx --yes vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"'
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Cadena completa: back y front probados y analizados, app desplegada en Docker y Vercel.'
+        }
+        failure {
+            echo 'La cadena se detuvo. Mira qué etapa quedó en rojo: las siguientes no corrieron.'
+        }
+    }
+}

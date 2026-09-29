@@ -29,7 +29,7 @@ export function RevealOnScroll({
   delay = 0,
   direction = 'up',
   className,
-}: RevealOnScrollProps) {
+}: Readonly<RevealOnScrollProps>) {
   return (
     <motion.div
       className={className}

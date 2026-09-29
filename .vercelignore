@@ -1,0 +1,9 @@
+# Lo que la CLI de Vercel NO sube al publicar el front desde Jenkins.
+# El orquestador baja el backend en la carpeta "backend/" del mismo workspace.
+backend
+node_modules
+dist
+coverage
+reports
+test
+.scannerwork

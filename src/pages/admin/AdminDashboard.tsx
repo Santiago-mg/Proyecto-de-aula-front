@@ -247,7 +247,7 @@ export function AdminDashboard() {
                     <div style={{ fontSize: 11, color: 'var(--ink-soft)' }}>{order.email}</div>
                   </td>
                   <td style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>
-                    {order.itemCount} ítem{order.itemCount !== 1 ? 's' : ''}
+                    {order.itemCount} ítem{order.itemCount === 1 ? '' : 's'}
                   </td>
                   <td style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600 }}>
                     {formatCOP(order.total)}

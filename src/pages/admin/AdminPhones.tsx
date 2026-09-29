@@ -1,9 +1,11 @@
 import { Pencil, Trash2, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ErrorMessage } from '../../components/ui/ErrorMessage'
 import { Loading } from '../../components/ui/Loading'
 import { phonesService } from '../../services/phones.service'
 import type { PhoneListItem } from '../../types/phone'
+import { comoError } from '../../utils/errores'
 
 function formatCOP(n: number) {
   return '$' + new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 }).format(n)
@@ -15,15 +17,24 @@ const CONDITION_LABEL: Record<string, string> = {
   USED: 'Usado',
 }
 
+// Rojo si está agotado, naranja si quedan 3 o menos
+function colorDeStock(stock: number) {
+  if (stock === 0) return '#e05252'
+  if (stock <= 3) return '#e09052'
+  return 'inherit'
+}
+
 export function AdminPhones() {
   const [phones, setPhones] = useState<PhoneListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
     phonesService
       .getAll({ limit: 50 })
       .then((r) => setPhones(r.data))
+      .catch((err) => setError(comoError(err)))
       .finally(() => setLoading(false))
   }, [])
 
@@ -82,6 +93,8 @@ export function AdminPhones() {
 
       {loading && <Loading />}
 
+      {error && <ErrorMessage error={error} />}
+
       {!loading && (
         <div className="cp-admin-table-wrap">
           <table className="cp-admin-table">
@@ -118,7 +131,7 @@ export function AdminPhones() {
                     </span>
                   </td>
                   <td>
-                    <span style={{ color: p.stock === 0 ? '#e05252' : p.stock <= 3 ? '#e09052' : 'inherit' }}>
+                    <span style={{ color: colorDeStock(p.stock) }}>
                       {p.stock}
                     </span>
                   </td>

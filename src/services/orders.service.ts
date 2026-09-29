@@ -8,8 +8,9 @@ export const ordersService = {
       items: cart.map((item) => ({
         phoneId: item.phoneId,
         qty: item.qty,
-        colorId: item.colorId,
-        colorName: item.colorName,
+        // El back acepta el color como opcional: sin color, no se manda.
+        colorId: item.colorId ?? undefined,
+        colorName: item.colorName ?? undefined,
       })),
     }
     const res = await api.post<{ data: Order }>('/orders', payload)

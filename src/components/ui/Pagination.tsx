@@ -4,7 +4,7 @@ interface PaginationProps {
   onPage(page: number): void
 }
 
-export function Pagination({ page, totalPages, onPage }: PaginationProps) {
+export function Pagination({ page, totalPages, onPage }: Readonly<PaginationProps>) {
   if (totalPages <= 1) return null
 
   return (

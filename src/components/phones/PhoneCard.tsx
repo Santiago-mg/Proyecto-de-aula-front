@@ -20,7 +20,7 @@ interface PhoneCardProps {
   phone: PhoneListItem
 }
 
-export function PhoneCard({ phone }: PhoneCardProps) {
+export function PhoneCard({ phone }: Readonly<PhoneCardProps>) {
   const hasDiscount = phone.compareAt && phone.compareAt > phone.price
   const discountPct = hasDiscount
     ? Math.round((1 - phone.price / phone.compareAt!) * 100)

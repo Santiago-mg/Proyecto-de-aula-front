@@ -43,6 +43,7 @@ export function AdminLayout() {
         <div
           className="cp-overlay"
           onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
           style={{ zIndex: 98 }}
         />
       )}

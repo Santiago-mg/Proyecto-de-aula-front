@@ -35,6 +35,12 @@ function formatCOP(n: number) {
   )
 }
 
+// Fotos de la galería: las del celular o, si no tiene, la imagen principal
+function imagenesDe(phone: Phone): string[] {
+  if (phone.images.length > 0) return phone.images.map((i) => i.url)
+  return phone.heroImage ? [phone.heroImage] : []
+}
+
 export function PhoneDetail() {
   const { slug } = useParams<{ slug: string }>()
   const [phone, setPhone] = useState<Phone | null>(null)
@@ -48,7 +54,7 @@ export function PhoneDetail() {
 
   // Simula "personas viendo ahora" — número fijo por slug para que sea consistente
   const viewersNow = useMemo(() => {
-    const seed = (slug ?? '').split('').reduce((a, c) => a + c.charCodeAt(0), 0)
+    const seed = (slug ?? '').split('').reduce((a, c) => a + (c.codePointAt(0) ?? 0), 0)
     return 3 + (seed % 14)
   }, [slug])
 
@@ -65,7 +71,10 @@ export function PhoneDetail() {
   }, [slug])
 
   function handleAddToCart() {
-    if (!phone || !selectedColor) return
+    // Si el equipo tiene colores hay que elegir uno; si no tiene, se agrega sin
+    // color. Antes se exigía color siempre y, en un equipo sin colores, el botón
+    // quedaba activo pero no hacía nada.
+    if (!phone || (phone.colors.length > 0 && !selectedColor)) return
     addToCart(phone, selectedColor, qty)
     showToast(`✓ ${phone.name} añadido al carrito`)
   }
@@ -82,11 +91,7 @@ export function PhoneDetail() {
       </div>
     )
 
-  const images = phone.images.length > 0
-    ? phone.images.map((i) => i.url)
-    : phone.heroImage
-    ? [phone.heroImage]
-    : []
+  const images = imagenesDe(phone)
 
   const specs = [
     phone.chip && { icon: <Cpu size={14} />, label: 'Procesador', value: phone.chip },
@@ -166,7 +171,7 @@ export function PhoneDetail() {
             <div className="cp-detail-thumbnails">
               {images.map((url, i) => (
                 <button
-                  key={i}
+                  key={url}
                   className={`cp-detail-thumb ${selectedImg === i ? 'active' : ''}`}
                   onClick={() => setSelectedImg(i)}
                 >

@@ -28,15 +28,16 @@ const CATEGORIES = [
   { value: 'motorola', label: 'Motorola' },
 ]
 
-export function PhoneFilters({ query, onChange }: PhoneFiltersProps) {
+export function PhoneFilters({ query, onChange }: Readonly<PhoneFiltersProps>) {
   return (
     <aside className="cp-filters">
       <div className="cp-filters-title">Filtros</div>
 
       {/* Búsqueda */}
       <div className="cp-filter-group">
-        <label className="cp-filter-label">Buscar</label>
+        <label className="cp-filter-label" htmlFor="filtro-buscar">Buscar</label>
         <input
+          id="filtro-buscar"
           className="cp-input"
           type="text"
           placeholder="iPhone 15, Samsung S24..."
@@ -47,7 +48,7 @@ export function PhoneFilters({ query, onChange }: PhoneFiltersProps) {
 
       {/* Condición */}
       <div className="cp-filter-group">
-        <label className="cp-filter-label">Condición</label>
+        <span className="cp-filter-label">Condición</span>
         <div className="cp-filter-pills">
           {CONDITIONS.map((c) => (
             <button
@@ -68,8 +69,9 @@ export function PhoneFilters({ query, onChange }: PhoneFiltersProps) {
 
       {/* Categoría */}
       <div className="cp-filter-group">
-        <label className="cp-filter-label">Categoría</label>
+        <label className="cp-filter-label" htmlFor="filtro-categoria">Categoría</label>
         <select
+          id="filtro-categoria"
           className="cp-select"
           value={query.category ?? ''}
           onChange={(e) =>
@@ -86,8 +88,9 @@ export function PhoneFilters({ query, onChange }: PhoneFiltersProps) {
 
       {/* Marca */}
       <div className="cp-filter-group">
-        <label className="cp-filter-label">Marca</label>
+        <label className="cp-filter-label" htmlFor="filtro-marca">Marca</label>
         <select
+          id="filtro-marca"
           className="cp-select"
           value={query.brand ?? ''}
           onChange={(e) =>
@@ -118,8 +121,9 @@ export function PhoneFilters({ query, onChange }: PhoneFiltersProps) {
 
       {/* Precio */}
       <div className="cp-filter-group">
-        <label className="cp-filter-label">Precio máximo (COP)</label>
+        <label className="cp-filter-label" htmlFor="filtro-precio-max">Precio máximo (COP)</label>
         <input
+          id="filtro-precio-max"
           className="cp-input"
           type="number"
           placeholder="Ej: 3000000"

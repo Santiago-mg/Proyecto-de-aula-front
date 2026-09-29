@@ -15,7 +15,7 @@ interface CartDrawerProps {
   onClose(): void
 }
 
-export function CartDrawer({ open, onClose }: CartDrawerProps) {
+export function CartDrawer({ open, onClose }: Readonly<CartDrawerProps>) {
   const { cart, removeFromCart, updateQty, clearCart } = useCart()
   const navigate = useNavigate()
 
@@ -78,9 +78,11 @@ export function CartDrawer({ open, onClose }: CartDrawerProps) {
                   )}
                   <div className="cp-drawer-item-info">
                     <div className="cp-drawer-item-name">{item.name}</div>
-                    <div className="cp-drawer-item-color">
-                      {item.colorName}
-                    </div>
+                    {item.colorName && (
+                      <div className="cp-drawer-item-color">
+                        {item.colorName}
+                      </div>
+                    )}
                     <div className="cp-drawer-item-price">
                       {formatCOP(item.price)}
                     </div>

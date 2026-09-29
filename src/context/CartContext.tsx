@@ -1,7 +1,9 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from 'react'
@@ -11,7 +13,7 @@ import type { PhoneColor, PhoneListItem } from '../types/phone'
 interface CartContextValue {
   cart: CartItem[]
   totalItems: number
-  addToCart(phone: PhoneListItem, color: PhoneColor, qty?: number): void
+  addToCart(phone: PhoneListItem, color: PhoneColor | null, qty?: number): void
   removeFromCart(key: string): void
   updateQty(key: string, qty: number): void
   clearCart(): void
@@ -19,7 +21,7 @@ interface CartContextValue {
 
 const CartContext = createContext<CartContextValue | null>(null)
 
-export function CartProvider({ children }: { children: ReactNode }) {
+export function CartProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
       const stored = localStorage.getItem('cp_cart')
@@ -33,11 +35,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('cp_cart', JSON.stringify(cart))
   }, [cart])
 
-  function addToCart(phone: PhoneListItem, color: PhoneColor, qty = 1) {
-    const key = `${phone.id}-${color.colorId}`
+  const addToCart = useCallback((phone: PhoneListItem, color: PhoneColor | null, qty = 1) => {
+    // Un equipo sin variantes de color se agrega igual, como una línea sin color.
+    const key = color ? `${phone.id}-${color.colorId}` : phone.id
     setCart((prev) => {
-      const existing = prev.find((i) => i.key === key)
-      if (existing) {
+      if (prev.some((i) => i.key === key)) {
         return prev.map((i) =>
           i.key === key ? { ...i, qty: i.qty + qty } : i,
         )
@@ -51,32 +53,41 @@ export function CartProvider({ children }: { children: ReactNode }) {
           heroImage: phone.heroImage,
           price: phone.price,
           qty,
-          colorId: color.colorId,
-          colorName: color.name,
+          colorId: color?.colorId ?? null,
+          colorName: color?.name ?? null,
         },
       ]
     })
-  }
+  }, [])
 
-  function removeFromCart(key: string) {
+  const removeFromCart = useCallback((key: string) => {
     setCart((prev) => prev.filter((i) => i.key !== key))
-  }
+  }, [])
 
-  function updateQty(key: string, qty: number) {
+  const updateQty = useCallback((key: string, qty: number) => {
     if (qty < 1) return
     setCart((prev) => prev.map((i) => (i.key === key ? { ...i, qty } : i)))
-  }
+  }, [])
 
-  function clearCart() {
+  const clearCart = useCallback(() => {
     setCart([])
-  }
+  }, [])
 
-  const totalItems = cart.reduce((sum, i) => sum + i.qty, 0)
+  // Memorizado: solo cambia cuando cambia el carrito
+  const value = useMemo(
+    () => ({
+      cart,
+      totalItems: cart.reduce((sum, i) => sum + i.qty, 0),
+      addToCart,
+      removeFromCart,
+      updateQty,
+      clearCart,
+    }),
+    [cart, addToCart, removeFromCart, updateQty, clearCart],
+  )
 
   return (
-    <CartContext.Provider
-      value={{ cart, totalItems, addToCart, removeFromCart, updateQty, clearCart }}
-    >
+    <CartContext.Provider value={value}>
       {children}
     </CartContext.Provider>
   )

@@ -20,8 +20,8 @@ export function PromoBar() {
       <div className="cp-promo-bar-track">
         {/* scrolling marquee */}
         <div className="cp-promo-marquee">
-          {[...MESSAGES, ...MESSAGES].map((msg, i) => (
-            <span key={i} className="cp-promo-marquee-item">
+          {['a', 'b'].flatMap((copia) => MESSAGES.map((msg) => ({ copia, msg }))).map(({ copia, msg }) => (
+            <span key={`${copia}-${msg}`} className="cp-promo-marquee-item">
               <Zap size={11} />
               {msg}
             </span>

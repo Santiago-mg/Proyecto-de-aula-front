@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext'
 import { ordersService } from '../services/orders.service'
 import { ErrorMessage } from '../components/ui/ErrorMessage'
 import type { CheckoutFormData } from '../types/order'
+import { comoError } from '../utils/errores'
 
 const schema = z.object({
   email: z.string().email('Email inválido'),
@@ -60,7 +61,7 @@ export function Checkout() {
       clearCart()
       navigate(`/dashboard?order=${order.orderRef}`)
     } catch (err) {
-      setServerError(err instanceof Error ? err : new Error(String(err)))
+      setServerError(comoError(err))
     } finally {
       setLoading(false)
     }
@@ -179,7 +180,7 @@ export function Checkout() {
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: 500 }}>{item.name}</div>
                 <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--ink-soft)' }}>
-                  {item.colorName} · ×{item.qty}
+                  {item.colorName ? `${item.colorName} · ` : ''}×{item.qty}
                 </div>
               </div>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13 }}>

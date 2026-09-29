@@ -27,7 +27,7 @@ function ElegantShape({
   rotate = 0,
   color = 'rgba(99,102,241,0.15)',
   style,
-}: ElegantShapeProps) {
+}: Readonly<ElegantShapeProps>) {
   return (
     <motion.div
       initial={{ opacity: 0, y: -150, rotate: rotate - 15 }}
@@ -82,7 +82,7 @@ export function HeroGeometric({
   title2 = 'en el que confiar.',
   description,
   children,
-}: HeroGeometricProps) {
+}: Readonly<HeroGeometricProps>) {
   const fadeUp: Variants = {
     hidden: { opacity: 0, y: 30 },
     visible: (i: number) => ({

@@ -7,6 +7,7 @@ import { Loading } from '../../components/ui/Loading'
 import { ErrorMessage } from '../../components/ui/ErrorMessage'
 import { phonesService } from '../../services/phones.service'
 import type { PhoneFormData } from '../../types/phone'
+import { comoError } from '../../utils/errores'
 
 const schema = z.object({
   slug: z.string().min(3, 'Mínimo 3 caracteres'),
@@ -14,12 +15,12 @@ const schema = z.object({
   brand: z.string().min(2, 'Requerido'),
   categoryId: z.string().min(1, 'Requerido'),
   price: z.coerce.number().int().positive('Debe ser positivo'),
-  compareAt: z.coerce.number().int().positive().optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
+  compareAt: z.coerce.number().int().positive('Debe ser positivo').optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
   badge: z.string().optional(),
   stock: z.coerce.number().int().nonnegative('No puede ser negativo'),
   condition: z.enum(['NEW', 'CERTIFIED', 'USED']),
   verified: z.boolean(),
-  batteryHealth: z.coerce.number().int().min(0).max(100).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
+  batteryHealth: z.coerce.number().int().min(0, 'Entre 0 y 100').max(100, 'Entre 0 y 100').optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
   ram: z.string().optional(),
   storage: z.string().optional(),
   camera: z.string().optional(),
@@ -33,6 +34,32 @@ const schema = z.object({
 })
 
 type FormFields = z.infer<typeof schema>
+
+// Etiqueta + control + mensaje de error de un campo del formulario
+function Field({
+  id,
+  label,
+  error,
+  children,
+}: Readonly<{
+  id: string
+  label: string
+  error?: string
+  children: ReactNode
+}>) {
+  return (
+    <div className="cp-field">
+      <label htmlFor={id} className="cp-label">{label}</label>
+      {children}
+      {error && <p className="cp-field-error">{error}</p>}
+    </div>
+  )
+}
+
+function textoDelBoton(isSubmitting: boolean, isEdit: boolean) {
+  if (isSubmitting) return 'Guardando...'
+  return isEdit ? 'Guardar cambios' : 'Crear celular'
+}
 
 export function PhoneForm() {
   const { id } = useParams<{ id?: string }>()
@@ -77,8 +104,9 @@ export function PhoneForm() {
           featuresText: phone.features.join('\n'),
         })
       })
-      .catch(() => {
-        // Si no se puede cargar, dejar el form vacío (el usuario verá el error del submit)
+      .catch((err) => {
+        // El formulario queda vacío y se explica por qué (p. ej. 404 Celular no encontrado)
+        setServerError(comoError(err))
       })
       .finally(() => setLoading(false))
   }, [id, isEdit, reset])
@@ -122,29 +150,11 @@ export function PhoneForm() {
       }
       navigate('/admin/phones')
     } catch (err) {
-      setServerError(err instanceof Error ? err : new Error(String(err)))
+      setServerError(comoError(err))
     }
   }
 
   if (loading) return <Loading />
-
-  const Field = ({
-    id,
-    label,
-    error,
-    children,
-  }: {
-    id: string
-    label: string
-    error?: string
-    children: ReactNode
-  }) => (
-    <div className="cp-field">
-      <label htmlFor={id} className="cp-label">{label}</label>
-      {children}
-      {error && <p className="cp-field-error">{error}</p>}
-    </div>
-  )
 
   return (
     <div className="cp-container" style={{ paddingTop: 48, paddingBottom: 80, maxWidth: 800 }}>
@@ -193,7 +203,7 @@ export function PhoneForm() {
             <input id="price" type="number" className={`cp-input ${errors.price ? 'error' : ''}`}
               placeholder="2500000" {...register('price')} />
           </Field>
-          <Field id="compareAt" label="Precio tachado (opcional)">
+          <Field id="compareAt" label="Precio tachado (opcional)" error={errors.compareAt?.message}>
             <input id="compareAt" type="number" className="cp-input"
               placeholder="3000000" {...register('compareAt')} />
           </Field>
@@ -214,11 +224,11 @@ export function PhoneForm() {
         </div>
 
         <div className="cp-field-row">
-          <Field id="batteryHealth" label="Salud de batería % (opcional)">
+          <Field id="batteryHealth" label="Salud de batería % (opcional)" error={errors.batteryHealth?.message}>
             <input id="batteryHealth" type="number" className="cp-input"
               placeholder="91" min="0" max="100" {...register('batteryHealth')} />
           </Field>
-          <Field id="heroImage" label="URL imagen principal">
+          <Field id="heroImage" label="URL imagen principal" error={errors.heroImage?.message}>
             <input id="heroImage" type="url" className="cp-input"
               placeholder="https://..." {...register('heroImage')} />
           </Field>
@@ -290,7 +300,7 @@ export function PhoneForm() {
             className="cp-btn cp-btn-primary"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear celular'}
+            {textoDelBoton(isSubmitting, isEdit)}
           </button>
           <button
             type="button"

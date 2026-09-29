@@ -8,11 +8,11 @@ import {
 } from 'framer-motion'
 
 interface ContainerScrollProps {
-  titleComponent: string | React.ReactNode
+  titleComponent: React.ReactNode
   children: React.ReactNode
 }
 
-export function ContainerScroll({ titleComponent, children }: ContainerScrollProps) {
+export function ContainerScroll({ titleComponent, children }: Readonly<ContainerScrollProps>) {
   const containerRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({ target: containerRef })
   const [isMobile, setIsMobile] = React.useState(false)
@@ -50,7 +50,7 @@ export function ContainerScroll({ titleComponent, children }: ContainerScrollPro
         }}
       >
         <ScrollTitle translate={translate} titleComponent={titleComponent} />
-        <ScrollCard rotate={rotate} translate={translate} scale={scale}>
+        <ScrollCard rotate={rotate} scale={scale}>
           {children}
         </ScrollCard>
       </div>
@@ -62,10 +62,10 @@ export function ContainerScroll({ titleComponent, children }: ContainerScrollPro
 function ScrollTitle({
   translate,
   titleComponent,
-}: {
+}: Readonly<{
   translate: MotionValue<number>
   titleComponent: React.ReactNode
-}) {
+}>) {
   return (
     <motion.div
       style={{ translateY: translate }}
@@ -85,12 +85,11 @@ function ScrollCard({
   rotate,
   scale,
   children,
-}: {
+}: Readonly<{
   rotate: MotionValue<number>
   scale: MotionValue<number>
-  translate: MotionValue<number>
   children: React.ReactNode
-}) {
+}>) {
   return (
     <motion.div
       style={{

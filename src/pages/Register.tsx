@@ -6,11 +6,24 @@ import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { ErrorMessage } from '../components/ui/ErrorMessage'
 import { useState } from 'react'
+import { comoError } from '../utils/errores'
+
+// Dominios de correo permitidos (misma regla que el backend: application/dtos/auth.dto.ts — emailSchema)
+const DOMINIOS_PERMITIDOS = new Set(['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com', 'icloud.com'])
+
+const emailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .email('Correo electrónico inválido')
+  .refine((email) => DOMINIOS_PERMITIDOS.has(email.split('@')[1] ?? ''), {
+    message: 'Correo inválido. Usa Gmail, Outlook, Hotmail, Yahoo o iCloud.',
+  })
 
 const schema = z
   .object({
     name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-    email: z.string().email('Email inválido'),
+    email: emailSchema,
     password: z
       .string()
       .min(8, 'La contraseña debe tener al menos 8 caracteres'),
@@ -42,7 +55,7 @@ export function Register() {
       await registerUser(data.email, data.name, data.password)
       navigate('/dashboard')
     } catch (err) {
-      setServerError(err instanceof Error ? err : new Error(String(err)))
+      setServerError(comoError(err))
     }
   }
 

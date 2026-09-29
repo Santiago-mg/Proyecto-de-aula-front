@@ -7,22 +7,24 @@ import {
   User,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { ErrorMessage } from '../../components/ui/ErrorMessage'
 import { Loading } from '../../components/ui/Loading'
 import { Pagination } from '../../components/ui/Pagination'
 import { useAuth } from '../../context/AuthContext'
 import { adminService } from '../../services/admin.service'
 import type { AdminUser } from '../../types/admin'
+import { comoError } from '../../utils/errores'
 
 // Modal sencillo de confirmación de ban
 function BanModal({
   user,
   onConfirm,
   onCancel,
-}: {
+}: Readonly<{
   user: AdminUser
   onConfirm(reason: string): void
   onCancel(): void
-}) {
+}>) {
   const [reason, setReason] = useState('')
 
   return (
@@ -38,8 +40,9 @@ function BanModal({
           iniciar sesión.
         </p>
         <div className="cp-field">
-          <label className="cp-label">Motivo del baneo</label>
+          <label className="cp-label" htmlFor="motivo-baneo">Motivo del baneo</label>
           <input
+            id="motivo-baneo"
             className="cp-input"
             placeholder="Ej: Comportamiento fraudulento, spam..."
             value={reason}
@@ -74,16 +77,19 @@ export function AdminUsers() {
   const [page, setPage] = useState(1)
   const [banTarget, setBanTarget] = useState<AdminUser | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [error, setError] = useState<Error | null>(null)
   const searchRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   function load(p: number, s: string) {
     setLoading(true)
+    setError(null)
     adminService
       .getUsers(p, s || undefined)
       .then((r) => {
         setUsers(r.data)
         setMeta(r.meta)
       })
+      .catch((err) => setError(comoError(err)))
       .finally(() => setLoading(false))
   }
 
@@ -101,36 +107,33 @@ export function AdminUsers() {
     }, 400)
   }
 
-  async function handleBan(user: AdminUser, reason: string) {
-    setBanTarget(null)
-    setActionLoading(user.id)
+  // Banear, desbanear y cambiar rol comparten el mismo flujo: bloquear la fila,
+  // reemplazarla con lo que devuelve el servidor o mostrar su error.
+  async function ejecutarAccion(userId: string, accion: () => Promise<AdminUser>) {
+    setActionLoading(userId)
+    setError(null)
     try {
-      const updated = await adminService.banUser(user.id, reason)
+      const updated = await accion()
       setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
+    } catch (err) {
+      setError(comoError(err))
     } finally {
       setActionLoading(null)
     }
   }
 
+  async function handleBan(user: AdminUser, reason: string) {
+    setBanTarget(null)
+    await ejecutarAccion(user.id, () => adminService.banUser(user.id, reason))
+  }
+
   async function handleUnban(user: AdminUser) {
-    setActionLoading(user.id)
-    try {
-      const updated = await adminService.unbanUser(user.id)
-      setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
-    } finally {
-      setActionLoading(null)
-    }
+    await ejecutarAccion(user.id, () => adminService.unbanUser(user.id))
   }
 
   async function handleRoleChange(user: AdminUser, role: 'USER' | 'ADMIN') {
     if (user.id === me?.id) return
-    setActionLoading(user.id)
-    try {
-      const updated = await adminService.changeRole(user.id, role)
-      setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
-    } finally {
-      setActionLoading(null)
-    }
+    await ejecutarAccion(user.id, () => adminService.changeRole(user.id, role))
   }
 
   return (
@@ -179,6 +182,8 @@ export function AdminUsers() {
           style={{ paddingLeft: 38 }}
         />
       </div>
+
+      {error && <ErrorMessage error={error} />}
 
       {loading ? (
         <Loading text="Cargando usuarios..." />

@@ -13,7 +13,7 @@ interface StickyAddToCartProps {
   onAdd(): void
 }
 
-export function StickyAddToCart({ phone, selectedColor, qty, onAdd }: StickyAddToCartProps) {
+export function StickyAddToCart({ phone, selectedColor, qty, onAdd }: Readonly<StickyAddToCartProps>) {
   const [visible, setVisible] = useState(false)
 
   // Aparece cuando se hace scroll hacia abajo > 500px

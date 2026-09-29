@@ -42,10 +42,12 @@ export function Catalog() {
   function updateQuery(changes: Partial<PhonesQuery>) {
     const next = new URLSearchParams(searchParams)
     for (const [k, v] of Object.entries(changes)) {
-      if (v === undefined || v === '') {
+      // undefined o '' borran el filtro de la URL
+      const valor = String(v ?? '')
+      if (valor === '') {
         next.delete(k)
       } else {
-        next.set(k, String(v))
+        next.set(k, valor)
       }
     }
     setSearchParams(next)
@@ -66,7 +68,7 @@ export function Catalog() {
                 color: 'var(--ink-soft)',
               }}
             >
-              {meta.total} equipo{meta.total !== 1 ? 's' : ''}
+              {meta.total} equipo{meta.total === 1 ? '' : 's'}
             </span>
           )}
         </div>

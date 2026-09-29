@@ -1,0 +1,44 @@
+# Se reinstalan dentro de la imagen con npm ci; copiarlos desde el host ademas
+# de ser lento puede meter binarios compilados para otro sistema operativo.
+node_modules
+dist
+
+# Las pruebas no se ejecutan dentro de la imagen: corren en su propia etapa del
+# pipeline, antes del build. Mandarlas al contexto solo lo hace mas pesado.
+test
+coverage
+reports
+vitest.config.ts
+tsconfig.test.json
+sonar-project.properties
+.scannerwork
+
+.git
+.gitignore
+.github
+
+# Nunca dentro de la imagen: VITE_API_URL entra como build arg.
+.env
+.env.*
+!.env.example
+
+Dockerfile
+Dockerfile.jenkins
+.dockerignore
+docker-compose.yml
+Jenkinsfile
+Jenkinsfile.orquestador
+.vercelignore
+
+# El orquestador baja el backend en esta carpeta del workspace
+backend
+
+README.md
+*.md
+
+.vscode
+.idea
+.DS_Store
+.nvmrc
+.vercel
+npm-debug.log*

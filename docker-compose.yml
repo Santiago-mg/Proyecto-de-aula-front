@@ -1,0 +1,73 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# CelularPro completo en Docker: base de datos + API + front
+#
+# Lo levanta el orquestador (Jenkinsfile.orquestador, etapa "3. Desplegar con
+# Docker") con las imágenes que construyeron los jobs:
+#   celularpro-api:latest    ← job celularpro-backend
+#   celularpro-front:latest  ← job celularpro-front
+#
+# A mano, con las dos imágenes ya construidas:
+#   docker compose -p celularpro up -d
+#
+#   Front → http://localhost:8081
+#   API   → http://localhost:3001/api/v1
+#   Admin → admin@celularpro.co / admin1234
+#
+# Cada despliegue arranca la base desde cero y la llena con los datos de
+# ejemplo del seed: siempre se prueba sobre el mismo estado conocido.
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # PostgreSQL. Sin "ports": solo se ve dentro de la red de Docker, así no
+  # choca con un Postgres que ya esté corriendo en el computador (puerto 5432).
+  db:
+    image: postgres:16-alpine
+    container_name: celularpro-db
+    environment:
+      POSTGRES_USER: celularpro
+      POSTGRES_PASSWORD: celularpro
+      POSTGRES_DB: celularpro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U celularpro -d celularpro"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  # Contenedor de un solo uso: crea las tablas y carga los datos de ejemplo.
+  # Hace lo que en el pipeline de Andrés eran "Deploy Database" y "Apply
+  # Migrations". Cuando termina bien, recién ahí arranca la API.
+  migraciones:
+    image: celularpro-api:latest
+    container_name: celularpro-migraciones
+    command: ["sh", "-c", "prisma migrate deploy && node dist/infrastructure/database/seed.js"]
+    environment:
+      DATABASE_URL: postgresql://celularpro:celularpro@db:5432/celularpro
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    image: celularpro-api:latest
+    container_name: celularpro-api
+    environment:
+      DATABASE_URL: postgresql://celularpro:celularpro@db:5432/celularpro
+      JWT_SECRET: ${JWT_SECRET:-cambia-este-secreto-en-produccion}
+      JWT_EXPIRES_IN: 7d
+      # Origen que la API acepta por CORS: el front de este mismo compose.
+      FRONTEND_URL: http://localhost:8081
+    ports:
+      - "3001:3001"
+    depends_on:
+      migraciones:
+        condition: service_completed_successfully
+
+  # nginx sirviendo el build de Vite. La URL de la API quedó grabada al
+  # construir la imagen (VITE_API_URL, por defecto http://localhost:3001/api/v1).
+  front:
+    image: celularpro-front:latest
+    container_name: celularpro-front
+    ports:
+      - "8081:80"
+    depends_on:
+      - api

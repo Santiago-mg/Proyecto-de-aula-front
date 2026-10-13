@@ -1,0 +1,26 @@
+{
+  "name": "celularpro-e2e-companero-test",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pruebas E2E de un compañero (archivo test.zip): Serenity/JS con Playwright Test",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "playwright test",
+    "test:pendiente": "playwright test --config playwright.pendiente.config.ts",
+    "test:report": "playwright show-report"
+  },
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@serenity-js/assertions": "3.48.0",
+    "@serenity-js/console-reporter": "3.48.0",
+    "@serenity-js/core": "3.48.0",
+    "@serenity-js/playwright": "3.48.0",
+    "@serenity-js/playwright-test": "3.48.0",
+    "@serenity-js/web": "3.48.0",
+    "@types/node": "24.10.0",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "lib": ["ES2022", "DOM"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["*.ts", "support/**/*.ts", "tasks/**/*.ts", "ui/**/*.ts", "pendiente-codigo-del-companero/**/*.ts"]
+}

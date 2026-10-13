@@ -1,6 +1,6 @@
 # Suite de pruebas — CelularPro Front
 
-235 pruebas en 37 archivos. **No necesita el backend encendido**: la red se
+401 pruebas en 61 archivos. **No necesita el backend encendido**: la red se
 sustituye por un doble, así que corre igual en tu máquina que en Jenkins.
 
 ```bash
@@ -8,7 +8,16 @@ npm test              # toda la suite
 npm run test:watch    # en modo watch
 npm run test:coverage # + reporte en coverage/ (incluye lcov.info para SonarQube)
 npm run typecheck     # tipos de src/ y de test/
+npm run test:regresion          # regresión de todos los autores (Santiago, luego Mario)
+npm run test:regresion:santiago # solo la de Santiago (ESC-13 y 26-30), con resumen
+npm run test:regresion:mario    # solo la de Mario
 ```
+
+De esas, 164 son la suite de regresión de las funcionalidades 13, 26, 27, 28,
+29 y 30 (`test/regresion/santiago/`), organizada en las cuatro categorías del
+repositorio del curso: regresión funcional, API, performance y seguridad. Cómo
+se corre y qué revisa cada categoría está en
+[`regresion/README.md`](regresion/README.md).
 
 Todas las aserciones son fluidas con Chai, como en el ejemplo del profesor:
 `expect` se importa de `chai` (`import { expect } from 'chai'`), así que solo
@@ -61,6 +70,9 @@ test/
 │   ├── catalogo-publico.test.tsx       listado, filtros, detalle, inicio y 404
 │   ├── ramas-de-error.test.tsx         cambio de rol, 500 y edición con relaciones
 │   └── ramas-restantes.test.tsx        listados que fallan, detalle del error, estados terminales
+├── regresion/                  Suite de regresión de ESC-13 y 26-30 (ver su README)
+│   ├── regression-testing/  api-testing/  performance-testing/  security-testing/
+│   └── ejecutar.mjs           Corre las 4 categorías y muestra el resumen
 └── unit/                       Pruebas por componente, contexto, servicio y hook
     ├── catalogo/ control-roles/ errores/ estadisticas/ gestion-perfil/
     ├── gestion-usuarios/ interfaz/ login/ pedidos/ registro/ validacion-credenciales/
@@ -71,8 +83,10 @@ Camino 2 de ESC-26 (`1-3-4-14`, token con firma inválida → 401) en el front
 es: la petición sale con el token guardado, el backend responde 401, se borra
 la sesión y se redirige a `/login`.
 
-Quedan fuera ESC-13 (recomendaciones), ESC-31 (alertas de stock) y ESC-32
-(favoritos): el front todavía no tiene esas pantallas.
+ESC-13 (recomendaciones) ya tiene pantalla —la sección "También te puede
+interesar" de la ficha— y sus pruebas están en `regresion/`. Quedan fuera ESC-31
+(alertas de stock) y ESC-32 (favoritos): el front todavía no tiene esas
+pantallas.
 
 ## Fixtures
 

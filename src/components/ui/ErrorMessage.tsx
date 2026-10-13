@@ -18,6 +18,8 @@ function getErrorText(error: Error | null): string {
 export function ErrorMessage({ error }: Readonly<ErrorMessageProps>) {
   return (
     <p
+      // role="alert": el lector de pantalla anuncia el error en cuanto aparece.
+      role="alert"
       style={{
         color: '#e05252',
         fontSize: 13,

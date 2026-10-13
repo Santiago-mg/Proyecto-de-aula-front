@@ -60,7 +60,7 @@ export function Register() {
   }
 
   return (
-    <div className="cp-auth-page">
+    <main className="cp-auth-page">
       <motion.div
         initial={{ opacity: 0, y: 32, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -159,6 +159,6 @@ export function Register() {
         </form>
       </div>
       </motion.div>
-    </div>
+    </main>
   )
 }

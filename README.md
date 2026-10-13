@@ -28,7 +28,13 @@ test/
   setup.ts     → Doble de red, polyfills de jsdom y limpieza entre pruebas
   helpers/     → Doble de red, fixtures y montaje de la app
   escenarios/  → Los casos de los escenarios del back, desde la interfaz
+  regresion/   → Regresión de las funcionalidades 13 y 26-30
   unit/        → Pruebas por componente, contexto, servicio y hook
+
+e2e/                        (una carpeta por autor)
+  santiago/serenityjs/  → E2E con Serenity/JS + Playwright + Cucumber (Screenplay)
+  mario/                → E2E de Mario: Serenity/JS + Cucumber, y casos de Katalon Recorder
+  companero-test/       → E2E de otro compañero: Serenity/JS con Playwright Test
 ```
 
 ## Configuración
@@ -73,9 +79,10 @@ npm run test:coverage   # suite + reporte de cobertura en coverage/
 npm run typecheck       # tipos de src/ y tambien de test/
 ```
 
-La suite tiene 235 pruebas en 37 archivos: `test/escenarios/` repite los casos
+La suite tiene 401 pruebas en 61 archivos: `test/escenarios/` repite los casos
 de los escenarios del back (ESC-26 a ESC-30, autenticación, pedidos, catálogo y
-ramas de error) desde la interfaz, y `test/unit/` prueba cada pieza por separado.
+ramas de error) desde la interfaz, `test/regresion/` es la suite de regresión (una carpeta por autor)
+de las funcionalidades 13 y 26 a 30, y `test/unit/` prueba cada pieza por separado.
 Corren sobre jsdom, sin backend: solo se sustituye la red. Las aserciones son
 fluidas (Chai) y cada prueba sigue el patrón AAA. El detalle está en
 [`test/README.md`](test/README.md).
@@ -94,6 +101,15 @@ prueba toca, así que el porcentaje global es el real. Solo se excluyen
 
 Con `CI=true` (como en Jenkins) se genera además `reports/junit.xml`, que es lo
 que Jenkins lee para mostrar cada prueba en la pestaña *Test Result*.
+
+### Pruebas E2E
+
+`e2e/` tiene pruebas de extremo a extremo con el patrón Screenplay, una
+carpeta por autor. Las de Santiago (funcionalidades 13, 26, 27, 28, 29 y 30)
+están en `e2e/santiago/serenityjs` (Serenity/JS). A diferencia de las de `test/`,
+corren contra la app completa encendida (front, API y base de datos), así que
+no forman parte de `npm test`. Cómo levantar la app y correrlas:
+[`e2e/README.md`](e2e/README.md).
 
 ### SonarQube
 

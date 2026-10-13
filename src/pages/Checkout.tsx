@@ -10,6 +10,7 @@ import { ordersService } from '../services/orders.service'
 import { ErrorMessage } from '../components/ui/ErrorMessage'
 import type { CheckoutFormData } from '../types/order'
 import { comoError } from '../utils/errores'
+import { calcularTotales } from '../utils/pricing'
 
 const schema = z.object({
   email: z.string().email('Email inválido'),
@@ -49,9 +50,7 @@ export function Checkout() {
 
   if (cart.length === 0) return <Navigate to="/catalog" replace />
 
-  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0)
-  const shipping = subtotal > 500000 ? 0 : 20000
-  const total = subtotal + shipping
+  const { subtotal, shipping, total } = calcularTotales(cart)
 
   async function onSubmit(data: CheckoutFormData) {
     setServerError(null)

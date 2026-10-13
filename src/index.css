@@ -10,7 +10,7 @@
   --surface-2:   #111d35;
   --ink:         #e4eaf5;
   --ink-soft:    #7d8ba3;
-  --ink-faint:   #3f4f6a;
+  --ink-faint:   #7686a3;
   --line:        #152040;
   --line-strong: #1e2d50;
 
@@ -926,8 +926,8 @@ body > * { position: relative; z-index: 1; }
   margin-top: 2px;
   text-shadow: 0 0 6px rgba(255,56,96,0.2);
 }
-.cp-link { color: var(--accent); text-decoration: none; transition: all 0.2s; }
-.cp-link:hover { text-shadow: 0 0 8px rgba(0,229,255,0.4); text-decoration: none; }
+.cp-link { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; transition: all 0.2s; }
+.cp-link:hover { text-shadow: 0 0 8px rgba(0,229,255,0.4); }
 
 /* ─── Auth ───────────────────────────────────────────────────── */
 .cp-auth-page {

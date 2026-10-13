@@ -1,0 +1,27 @@
+default:
+  # Lo que depende de código que este proyecto no tiene va marcado con
+  # @pendiente-codigo-de-mario y no entra en la corrida normal.
+  tags: 'not @pendiente-codigo-de-mario'
+  requireModule:
+    - ts-node/register
+  require:
+    - features/**/*.steps.ts
+    - features/**/*.config.ts
+  format:
+    - '@serenity-js/cucumber'
+  paths:
+    - features/**/*.feature
+
+# npm run test:pendiente — solo los escenarios que esperan código de Mario.
+# Fallan a propósito hasta que ese código exista (ver README).
+pendiente:
+  tags: '@pendiente-codigo-de-mario'
+  requireModule:
+    - ts-node/register
+  require:
+    - features/**/*.steps.ts
+    - features/**/*.config.ts
+  format:
+    - '@serenity-js/cucumber'
+  paths:
+    - features/**/*.feature

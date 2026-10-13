@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { SimilarPhones } from '../components/phones/SimilarPhones'
 import { Loading } from '../components/ui/Loading'
 import { StickyAddToCart } from '../components/ui/StickyAddToCart'
 import { useCart } from '../context/CartContext'
@@ -41,8 +42,30 @@ function imagenesDe(phone: Phone): string[] {
   return phone.heroImage ? [phone.heroImage] : []
 }
 
+/**
+ * Ficha del celular de la URL.
+ *
+ * Cada celular monta su propia ficha (key = slug): al pasar de uno a otro
+ * desde "También te puede interesar" (funcionalidad 13), React descarta el
+ * estado del anterior (color, cantidad, foto elegida, "no encontrado") en
+ * lugar de reutilizarlo. Antes se arrastraba y, por ejemplo, un iPhone en
+ * Azul x3 hacía que el siguiente equipo, sin colores y con 1 en stock, se
+ * agregara al carrito en Azul x3 (DEF-13-01, tests/regresion del front).
+ *
+ * Además vuelve al inicio de la página: las recomendaciones están al final de
+ * la ficha y, sin esto, el cliente quedaba mirando el pie de la nueva.
+ */
 export function PhoneDetail() {
-  const { slug } = useParams<{ slug: string }>()
+  const { slug = '' } = useParams<{ slug: string }>()
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [slug])
+
+  return <FichaDelCelular key={slug} slug={slug} />
+}
+
+function FichaDelCelular({ slug }: Readonly<{ slug: string }>) {
   const [phone, setPhone] = useState<Phone | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
@@ -54,7 +77,7 @@ export function PhoneDetail() {
 
   // Simula "personas viendo ahora" — número fijo por slug para que sea consistente
   const viewersNow = useMemo(() => {
-    const seed = (slug ?? '').split('').reduce((a, c) => a + (c.codePointAt(0) ?? 0), 0)
+    const seed = slug.split('').reduce((a, c) => a + (c.codePointAt(0) ?? 0), 0)
     return 3 + (seed % 14)
   }, [slug])
 
@@ -174,6 +197,8 @@ export function PhoneDetail() {
                   key={url}
                   className={`cp-detail-thumb ${selectedImg === i ? 'active' : ''}`}
                   onClick={() => setSelectedImg(i)}
+                  aria-label={`Ver imagen ${i + 1} de ${images.length}`}
+                  aria-pressed={selectedImg === i}
                 >
                   <img src={url} alt="" />
                 </button>
@@ -439,6 +464,9 @@ export function PhoneDetail() {
           <p style={{ color: 'var(--ink-soft)', lineHeight: 1.7 }}>{phone.longDesc}</p>
         </div>
       )}
+
+      {/* Funcionalidad 13 — recomendaciones */}
+      <SimilarPhones slug={phone.slug} />
     </div>
     </>
   )

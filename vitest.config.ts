@@ -10,7 +10,19 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
-    include: ['test/unit/**/*.test.{ts,tsx}', 'test/escenarios/**/*.test.{ts,tsx}'],
+    // test/regresion: suite de regresión de las funcionalidades 13 y 26-30
+    // (api, seguridad, performance y regresión funcional). También corre en
+    // `npm test`, así que Jenkins la ejecuta completa en cada cambio.
+    include: [
+      'test/unit/**/*.test.{ts,tsx}',
+      'test/escenarios/**/*.test.{ts,tsx}',
+      'test/regresion/**/*.test.{ts,tsx}',
+    ],
+
+    // Pruebas de un compañero que verifican código que este front todavía no
+    // tiene (ver test/regresion/mario/README.md). Se corren a propósito con
+    // vitest.pendiente.config.ts, no dentro de `npm test`.
+    exclude: ['**/node_modules/**', 'test/regresion/mario/pendiente-codigo-de-mario/**'],
     globals: true,
     setupFiles: ['./test/setup.ts'],
 

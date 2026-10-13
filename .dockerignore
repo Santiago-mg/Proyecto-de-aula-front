@@ -6,6 +6,7 @@ dist
 # Las pruebas no se ejecutan dentro de la imagen: corren en su propia etapa del
 # pipeline, antes del build. Mandarlas al contexto solo lo hace mas pesado.
 test
+e2e
 coverage
 reports
 vitest.config.ts

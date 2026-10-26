@@ -1,36 +1,30 @@
+import { Lock } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { EmptyState } from '../components/ui/EmptyState'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 export function Unauthorized() {
+  useDocumentTitle('Acceso no autorizado')
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '60vh',
-        textAlign: 'center',
-        padding: '40px 20px',
-      }}
-    >
-      <div style={{ fontSize: 64, marginBottom: 16 }}>🔒</div>
-      <h1
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 32,
-          fontWeight: 400,
-          letterSpacing: '-0.02em',
-          marginBottom: 12,
-        }}
+    <div className="cp-container cp-status-page">
+      <EmptyState
+        nivel={1}
+        icono={<Lock size={40} />}
+        titulo="Acceso no autorizado"
+        acciones={
+          <>
+            <Link to="/" className="cp-btn cp-btn-primary">
+              Volver al inicio
+            </Link>
+            <Link to="/catalog" className="cp-btn cp-btn-secondary">
+              Ver el catálogo
+            </Link>
+          </>
+        }
       >
-        Acceso no autorizado
-      </h1>
-      <p style={{ color: 'var(--ink-soft)', marginBottom: 32 }}>
-        No tienes permisos para ver esta página.
-      </p>
-      <Link to="/" className="cp-btn cp-btn-primary">
-        Volver al inicio
-      </Link>
+        No tienes permisos para ver esta página. Si crees que deberías tenerlos, pídele acceso a un administrador.
+      </EmptyState>
     </div>
   )
 }

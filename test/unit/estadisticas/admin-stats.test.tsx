@@ -63,7 +63,8 @@ describe('AdminStats — carga y render de estadísticas', () => {
     render(<AdminStats />)
 
     // Assert
-    expect(await screen.findByText('Error')).to.exist
+    expect(await screen.findByText('No se pudieron cargar las estadísticas')).to.exist
+    expect(screen.queryByRole('button', { name: 'Reintentar' })).to.exist
   })
 
   // Camino 1,3,5,6,F — getStats() resuelve; el cálculo de maxRevenue no rompe con revenueByDay en cero

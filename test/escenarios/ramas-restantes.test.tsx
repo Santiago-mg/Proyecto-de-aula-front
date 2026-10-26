@@ -17,8 +17,10 @@ async function ingresar(user: Usuario) {
 }
 
 describe('Fallos al consultar listados', () => {
-  it('si falla la consulta de mis pedidos → 500: el panel queda vacío en vez de romperse', async () => {
+  it('si falla la consulta de mis pedidos → 500: avisa del fallo y deja reintentar, sin decir que no hay pedidos', async () => {
     // Arrange
+    // Antes el panel mostraba "Todavía no tienes pedidos", que a quien sí los
+    // tiene le hace creer que los perdió. Un fallo del servidor no es una lista vacía.
     sesionIniciada()
     servidor.responder('GET', '/orders/my', fallo(500, 'Error interno del servidor'))
 
@@ -26,7 +28,26 @@ describe('Fallos al consultar listados', () => {
     abrirApp('/dashboard')
 
     // Assert
-    expect(await screen.findByText('Todavía no tienes pedidos')).to.exist
+    expect(await screen.findByText('No pudimos cargar tus pedidos')).to.exist
+    expect(screen.queryByText('Todavía no tienes pedidos')).to.be.null
+    expect(screen.queryByRole('button', { name: 'Reintentar' })).to.exist
+  })
+
+  it('"Reintentar" vuelve a pedir los pedidos y los muestra cuando el servidor ya responde', async () => {
+    // Arrange
+    sesionIniciada()
+    servidor.responder('GET', '/orders/my', fallo(500, 'Error interno del servidor'))
+    const user = abrirApp('/dashboard')
+    await screen.findByText('No pudimos cargar tus pedidos')
+    servidor.responder('GET', '/orders/my', ok([pedido({ orderRef: 'CP-0077' })]))
+
+    // Act
+    await user.click(screen.getByRole('button', { name: 'Reintentar' }))
+
+    // Assert
+    expect(await screen.findByText('CP-0077')).to.exist
+    expect(screen.queryByText('No pudimos cargar tus pedidos')).to.be.null
+    expect(servidor.peticiones('GET', '/orders/my')).to.have.lengthOf(2)
   })
 
   it('si falla el conteo del catálogo → 500: el catálogo avisa', async () => {

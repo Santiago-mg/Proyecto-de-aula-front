@@ -1,0 +1,219 @@
+/* ═══════════════════════════════════════════════════════════════
+   CELULARPRO — PANEL DE ADMINISTRACIÓN
+   Lo que se agregó al panel: menú que se cierra de verdad en el celular,
+   buscador, tablas más legibles, estados con palabras y formulario de equipos.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Menú lateral ───────────────────────────────────────────── */
+/* En rem para que crezca junto con el texto cuando se agranda. */
+.cp-admin-sidebar { width: 16.25rem; overflow-y: auto; }
+.cp-admin-sidebar-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.cp-admin-close { margin-left: auto; }
+
+@media (min-width: 769px) {
+  .cp-admin-content { margin-left: 16.25rem; }
+  .cp-admin-overlay { display: none; }
+}
+
+@media (max-width: 768px) {
+  /* El telón queda debajo del menú (el telón del carrito está por encima). */
+  .cp-admin-overlay { z-index: 98; }
+  /* Cerrado, el menú sale de la vista y también del orden de tabulación. */
+  .cp-admin-sidebar:not(.open) {
+    visibility: hidden;
+    transition: transform 0.3s cubic-bezier(.2, .8, .2, 1), visibility 0s linear 0.3s;
+  }
+  .cp-admin-sidebar.open { box-shadow: 10px 0 40px rgb(0 0 0 / 0.5); }
+  .cp-admin-sidebar { width: min(16.25rem, 86vw); }
+}
+
+/* ─── Que el contenido pueda encogerse ───────────────────────── */
+/* Sin "min-width: 0" una tabla ancha estiraba toda la página (más de 800 px en
+   un teléfono de 390) en vez de desplazarse dentro de su propio recuadro. Las
+   columnas pasan a "minmax(0, 1fr)" por lo mismo. */
+.cp-admin-content, .cp-admin-main, .cp-admin-page { min-width: 0; }
+.cp-admin-kpi-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.cp-admin-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cp-admin-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 1024px) {
+  .cp-admin-kpi-grid, .cp-admin-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 768px) {
+  .cp-admin-grid-2, .cp-admin-grid-3 { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 420px) {
+  .cp-admin-kpi-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ─── Cabecera de página ─────────────────────────────────────── */
+.cp-admin-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.cp-admin-count { padding-top: 6px; color: var(--ink-soft); font-family: var(--font-mono); font-size: 0.8125rem; }
+.cp-admin-count-left { margin-top: 6px; padding-top: 0; }
+
+.cp-admin-card-gap { margin-bottom: 16px; }
+.cp-admin-card-spaced { margin-top: 16px; }
+.cp-admin-card-title { font-size: 0.8125rem; }
+
+/* ─── Buscador ───────────────────────────────────────────────── */
+.cp-admin-search { position: relative; max-width: 420px; margin-bottom: 24px; }
+.cp-admin-search-icon { position: absolute; top: 50%; left: 14px; transform: translateY(-50%); color: var(--ink-soft); pointer-events: none; }
+.cp-admin-search .cp-input { padding-left: 2.5rem; }
+
+/* ─── Tablas ─────────────────────────────────────────────────── */
+.cp-admin-table-flush { border: 0; border-radius: 0; background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.cp-admin-table caption { padding: 0; }
+.cp-admin-table th, .cp-admin-table td { vertical-align: middle; }
+.cp-admin-table th { white-space: nowrap; }
+
+.cp-admin-user-cell { display: flex; align-items: center; gap: 12px; }
+.cp-admin-user-title { font-size: 0.875rem; font-weight: 500; }
+.cp-admin-you { margin-left: 6px; color: var(--accent); font-family: var(--font-mono); font-size: 0.75rem; }
+.cp-admin-email { color: var(--ink-soft); font-size: 0.75rem; }
+.cp-admin-place { color: var(--ink-faint); font-size: 0.75rem; }
+.cp-admin-mono { font-family: var(--font-mono); font-size: 0.8125rem; }
+.cp-admin-soft { color: var(--ink-soft); }
+.cp-admin-mono.cp-admin-soft { white-space: nowrap; }
+.cp-admin-money { font-family: var(--font-mono); font-size: 0.8125rem; font-weight: 600; white-space: nowrap; color: var(--accent); }
+.cp-admin-ref { color: var(--accent); font-family: var(--font-mono); font-size: 0.8125rem; }
+.cp-admin-phone-name { font-weight: 500; }
+.cp-admin-verified { color: var(--ok); font-weight: 700; }
+
+.cp-admin-thumb { flex-shrink: 0; width: 36px; height: 36px; border-radius: 6px; object-fit: cover; }
+.cp-admin-thumb-sm { width: 28px; height: 28px; border-radius: 4px; }
+.cp-admin-items { display: flex; flex-direction: column; gap: 4px; }
+.cp-admin-item { display: flex; align-items: center; gap: 8px; font-size: 0.8125rem; }
+
+.cp-admin-mini-stat-icon { display: inline-flex; align-items: center; gap: 8px; }
+.cp-stats-total { color: var(--accent); font-family: var(--font-mono); font-size: 1.125rem; font-weight: 700; }
+.cp-stats-money { font-size: 0.9375rem; }
+
+/* Usuario baneado: ya no se atenúa la fila entera (el texto quedaba bajo el
+   contraste mínimo); se marca con una franja y con la etiqueta "Baneado". */
+.cp-row-baneado td { background: rgb(var(--bad-rgb) / 0.06); }
+.cp-row-baneado td:first-child { box-shadow: inset 4px 0 0 var(--bad); }
+.cp-ban-reason { max-width: 14rem; margin-top: 4px; color: var(--ink-soft); font-size: 0.75rem; line-height: 1.4; }
+
+/* Stock con palabras: el color solo no alcanza para distinguir "poco" de "nada". */
+.cp-stock { font-family: var(--font-mono); font-weight: 700; }
+.cp-stock-note { color: var(--ink-soft); font-size: 0.75rem; }
+/* Los colores de stock vienen fijos en el código; en los temas claro y de alto
+   contraste se reemplazan por los del tema para que se lean. */
+html[data-tema="claro"] .cp-stock-agotado { color: var(--bad) !important; }
+html[data-tema="claro"] .cp-stock-poco { color: var(--warn) !important; }
+html[data-tema="contraste"] .cp-stock-agotado { color: var(--bad) !important; }
+html[data-tema="contraste"] .cp-stock-poco { color: var(--warn) !important; }
+
+/* ─── Formulario de equipos ──────────────────────────────────── */
+.cp-admin-form { max-width: 800px; }
+.cp-admin-form-title { margin: 16px 0 12px; }
+.cp-admin-form .cp-form-note { margin-bottom: 24px; }
+
+/* ─── Móvil ──────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .cp-admin-page-header { margin-bottom: 24px; }
+  .cp-admin-search { max-width: none; }
+  .cp-admin-table th, .cp-admin-table td { padding: 12px; }
+  .cp-form-actions .cp-btn { flex: 1 1 auto; }
+}
+
+/* ─── Tablas en el celular: cada fila pasa a ser una tarjeta ──── */
+/* Con 6 o 7 columnas la tabla obligaba a deslizar de lado y las acciones
+   quedaban fuera de la pantalla. Cada celda trae su título en "data-label";
+   el encabezado real se queda en el documento solo para los lectores de
+   pantalla. */
+@media (max-width: 640px) {
+  .cp-admin-table-wrap {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .cp-admin-table,
+  .cp-admin-table tbody,
+  .cp-admin-table tr,
+  .cp-admin-table td { display: block; }
+  .cp-admin-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .cp-admin-table tr {
+    margin-bottom: 12px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    background: var(--glass-bg);
+    overflow: hidden;
+  }
+  .cp-admin-table td {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px 16px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    text-align: right;
+  }
+  .cp-admin-table tr:last-child td { border-bottom: 1px solid var(--line); }
+  .cp-admin-table td:last-child { border-bottom: 0; }
+  .cp-admin-table td::before {
+    content: attr(data-label);
+    flex: none;
+    color: var(--ink-soft);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-align: left;
+    text-shadow: none;
+    text-transform: uppercase;
+  }
+  /* La primera celda hace de título de la tarjeta y no necesita rótulo. */
+  .cp-admin-table td:first-child {
+    justify-content: flex-start;
+    background: rgb(var(--accent-rgb) / 0.05);
+    text-align: left;
+  }
+  .cp-admin-table td:first-child::before { display: none; }
+  .cp-admin-items { align-items: flex-end; }
+  /* El número de stock y su nota quedan juntos, pegados a la derecha. */
+  .cp-admin-table td[data-label="Stock"] .cp-stock { margin-left: auto; }
+  .cp-admin-actions { justify-content: flex-end; }
+  .cp-admin-table-flush .cp-admin-table tr {
+    margin: 0;
+    border: 0;
+    border-bottom: 1px solid var(--glass-border);
+    border-radius: 0;
+    background: transparent;
+  }
+  .cp-admin-table-flush .cp-admin-table tr:last-child { border-bottom: 0; }
+  /* El usuario baneado se marca con el borde de la tarjeta, no con la franja. */
+  .cp-admin-table .cp-row-baneado { border-color: rgb(var(--bad-rgb) / 0.55); }
+  .cp-row-baneado td:first-child { background: rgb(var(--bad-rgb) / 0.1); box-shadow: none; }
+  .cp-ban-reason { max-width: none; }
+}
+
+/* ─── Gráfica de ventas de la semana ─────────────────────────── */
+/* Los rótulos pueden bajar de línea: con "nowrap" siete barras con fecha no
+   cabían en el celular y la gráfica quedaba cortada a la derecha. */
+.cp-revenue-bar-wrap { min-width: 0; }
+.cp-revenue-bar-label, .cp-revenue-bar-value {
+  max-width: 100%;
+  line-height: 1.25;
+  hyphens: auto;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+@media (max-width: 480px) {
+  .cp-revenue-chart { gap: 2px; padding-inline: 8px; height: 200px; }
+  .cp-revenue-chart-lg { height: 260px; padding-inline: 8px; }
+  .cp-revenue-bar-label, .cp-revenue-bar-value { letter-spacing: 0; }
+}

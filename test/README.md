@@ -69,12 +69,13 @@ test/
 │   ├── pedidos.test.tsx                crear, consultar, cambiar estado y carrito
 │   ├── catalogo-publico.test.tsx       listado, filtros, detalle, inicio y 404
 │   ├── ramas-de-error.test.tsx         cambio de rol, 500 y edición con relaciones
-│   └── ramas-restantes.test.tsx        listados que fallan, detalle del error, estados terminales
+│   ├── ramas-restantes.test.tsx        listados que fallan, detalle del error, estados terminales
+│   └── experiencia-de-uso.test.tsx     volver tras ingresar, deshacer, ayuda, atajos y títulos
 ├── regresion/                  Suite de regresión de ESC-13 y 26-30 (ver su README)
 │   ├── regression-testing/  api-testing/  performance-testing/  security-testing/
 │   └── ejecutar.mjs           Corre las 4 categorías y muestra el resumen
 └── unit/                       Pruebas por componente, contexto, servicio y hook
-    ├── catalogo/ control-roles/ errores/ estadisticas/ gestion-perfil/
+    ├── catalogo/ control-roles/ errores/ estadisticas/ experiencia/ gestion-perfil/
     ├── gestion-usuarios/ interfaz/ login/ pedidos/ registro/ validacion-credenciales/
 ```
 

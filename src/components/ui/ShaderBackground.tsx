@@ -1,6 +1,7 @@
 // WebGL plasma shader background — sin dependencias externas
 // Adaptado para Vite + React + TypeScript estricto (sin any, sin console.log)
 import { useEffect, useRef } from 'react'
+import { usePreferencias } from '../../context/PreferencesContext'
 
 // ─── Shaders fuera del componente para evitar recreación en renders ──────────
 
@@ -145,10 +146,19 @@ function initShaderProgram(
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 
+/**
+ * Fondo animado de la portada. Solo se dibuja cuando aporta: en el tema oscuro y
+ * sin que la persona o su dispositivo hayan pedido menos movimiento. En los demás
+ * casos no se monta (no gasta batería ni compite con el texto) y el fondo es el
+ * color liso del tema. Además se detiene mientras la pestaña está oculta.
+ */
 export function ShaderBackground() {
+  const { movimientoReducido, temaAplicado } = usePreferencias()
+  const activo = !movimientoReducido && temaAplicado === 'oscuro'
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
+    if (!activo) return
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -202,29 +212,31 @@ export function ShaderBackground() {
       animId = requestAnimationFrame(render)
     }
 
+    // Con la pestaña oculta no hay nadie mirando: se pausa y se retoma al volver.
+    const alCambiarVisibilidad = () => {
+      cancelAnimationFrame(animId)
+      if (!document.hidden) animId = requestAnimationFrame(render)
+    }
+    document.addEventListener('visibilitychange', alCambiarVisibilidad)
+
     animId = requestAnimationFrame(render)
 
-    // Limpieza al desmontar: cancela el loop y libera el event listener
+    // Limpieza al desmontar: cancela el loop y libera los listeners
     return () => {
       cancelAnimationFrame(animId)
       window.removeEventListener('resize', resize)
+      document.removeEventListener('visibilitychange', alCambiarVisibilidad)
     }
-  }, [])
+  }, [activo])
+
+  if (!activo) return null
 
   return (
     <canvas
       ref={canvasRef}
       aria-hidden="true"
       tabIndex={-1}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        zIndex: -1,
-        pointerEvents: 'none',
-      }}
+      className="cp-shader"
     />
   )
 }

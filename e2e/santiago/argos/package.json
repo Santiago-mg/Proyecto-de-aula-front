@@ -1,0 +1,14 @@
+{
+  "name": "celularpro-argos",
+  "private": true,
+  "description": "Regresión visual de CelularPro con Argos CI y Playwright",
+  "scripts": {
+    "test": "playwright test",
+    "test:subir": "CI=true playwright test"
+  },
+  "devDependencies": {
+    "@argos-ci/playwright": "^6.0.0",
+    "@playwright/test": "1.63.0",
+    "@types/node": "^22.0.0"
+  }
+}

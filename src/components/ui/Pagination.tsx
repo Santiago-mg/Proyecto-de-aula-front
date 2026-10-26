@@ -2,21 +2,15 @@ interface PaginationProps {
   page: number
   totalPages: number
   onPage(page: number): void
+  /** Nombre de la región para el lector de pantalla ("Páginas de pedidos"). */
+  etiqueta?: string
 }
 
-export function Pagination({ page, totalPages, onPage }: Readonly<PaginationProps>) {
+export function Pagination({ page, totalPages, onPage, etiqueta = 'Paginación' }: Readonly<PaginationProps>) {
   if (totalPages <= 1) return null
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-        marginTop: 48,
-      }}
-    >
+    <nav className="cp-pagination" aria-label={etiqueta}>
       <button
         className="cp-btn cp-btn-secondary"
         disabled={page <= 1}
@@ -25,15 +19,8 @@ export function Pagination({ page, totalPages, onPage }: Readonly<PaginationProp
         ← Anterior
       </button>
 
-      <span
-        style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: 12,
-          color: 'var(--ink-soft)',
-          padding: '0 16px',
-          letterSpacing: '0.1em',
-        }}
-      >
+      <span className="cp-pagination-count" aria-current="page">
+        <span className="cp-sr-only">Página </span>
         {page} / {totalPages}
       </span>
 
@@ -44,6 +31,6 @@ export function Pagination({ page, totalPages, onPage }: Readonly<PaginationProp
       >
         Siguiente →
       </button>
-    </div>
+    </nav>
   )
 }

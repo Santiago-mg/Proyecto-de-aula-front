@@ -1,0 +1,27 @@
+{
+  "name": "celularpro-e2e-cypress",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pruebas E2E de CelularPro (funcionalidades 13, 26, 27, 28, 29 y 30) con Cypress y estructura Screenplay",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "cy:open": "cypress open",
+    "test": "cypress run",
+    "test:web": "cypress run --spec \"cypress/e2e/**/*.web.cy.ts\"",
+    "test:api": "cypress run --spec \"cypress/e2e/**/*.api.cy.ts\"",
+    "test:esc-13": "cypress run --spec \"cypress/e2e/esc-13-*.cy.ts\"",
+    "test:esc-26": "cypress run --spec \"cypress/e2e/esc-26-*.cy.ts\"",
+    "test:esc-27": "cypress run --spec \"cypress/e2e/esc-27-*.cy.ts\"",
+    "test:esc-28": "cypress run --spec \"cypress/e2e/esc-28-*.cy.ts\"",
+    "test:esc-29": "cypress run --spec \"cypress/e2e/esc-29-*.cy.ts\"",
+    "test:esc-30": "cypress run --spec \"cypress/e2e/esc-30-*.cy.ts\""
+  },
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.5",
+    "cypress": "13.17.0",
+    "typescript": "5.7.3"
+  }
+}

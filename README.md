@@ -14,6 +14,8 @@ Tienda de celulares certificados. Compra equipos nuevos, reacondicionados y usad
 
 ## Estructura
 
+> Las mejoras de experiencia de uso (heurísticas, accesibilidad, ayuda) están explicadas en [`docs/mejoras-ux.md`](docs/mejoras-ux.md).
+
 ```
 src/
   services/    → Llamadas a la API (cliente HTTP centralizado)
@@ -23,6 +25,8 @@ src/
   pages/       → Composición de vistas
   types/       → Interfaces TypeScript
   routes/      → AppRouter con rutas protegidas
+  styles/      → ux.css, componentes.css, tienda.css y admin.css (se suman a index.css)
+  utils/       → Formatos, estados, búsqueda, errores, filtros y sesión
 
 test/
   setup.ts     → Doble de red, polyfills de jsdom y limpieza entre pruebas
@@ -33,6 +37,7 @@ test/
 
 e2e/                        (una carpeta por autor)
   santiago/serenityjs/  → E2E con Serenity/JS + Playwright + Cucumber (Screenplay)
+  santiago/cypress/     → Los mismos casos con Cypress (estructura tipo Screenplay)
   mario/                → E2E de Mario: Serenity/JS + Cucumber, y casos de Katalon Recorder
   companero-test/       → E2E de otro compañero: Serenity/JS con Playwright Test
 ```
@@ -106,7 +111,8 @@ que Jenkins lee para mostrar cada prueba en la pestaña *Test Result*.
 
 `e2e/` tiene pruebas de extremo a extremo con el patrón Screenplay, una
 carpeta por autor. Las de Santiago (funcionalidades 13, 26, 27, 28, 29 y 30)
-están en `e2e/santiago/serenityjs` (Serenity/JS). A diferencia de las de `test/`,
+están en `e2e/santiago/serenityjs` (Serenity/JS) y, con los mismos casos, en
+`e2e/santiago/cypress` (Cypress). A diferencia de las de `test/`,
 corren contra la app completa encendida (front, API y base de datos), así que
 no forman parte de `npm test`. Cómo levantar la app y correrlas:
 [`e2e/README.md`](e2e/README.md).

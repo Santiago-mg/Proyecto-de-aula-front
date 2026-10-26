@@ -9,6 +9,7 @@ import {
 } from 'react'
 import type { User } from '../types/auth'
 import { authService } from '../services/auth.service'
+import { borrarBorrador } from '../utils/borrador'
 
 interface AuthContextValue {
   user: User | null
@@ -73,6 +74,9 @@ export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const logout = useCallback(() => {
     setUser(null)
     setToken(null)
+    // Los datos de entrega a medio escribir son de esta persona, no del próximo
+    // que use el computador.
+    borrarBorrador()
   }, [])
 
   // Memorizado: si no cambia la sesión, los consumidores no se re-renderizan

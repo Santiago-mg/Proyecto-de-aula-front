@@ -1,99 +1,94 @@
 import { Package, ShieldCheck } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+import { Aviso } from '../components/ui/Aviso'
+import { Breadcrumbs } from '../components/ui/Breadcrumbs'
+import { EmptyState } from '../components/ui/EmptyState'
+import { ErrorState } from '../components/ui/ErrorState'
 import { Loading } from '../components/ui/Loading'
 import { RevealOnScroll } from '../components/ui/RevealOnScroll'
 import { useAuth } from '../context/AuthContext'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { ordersService } from '../services/orders.service'
 import type { Order } from '../types/order'
+import { comoError } from '../utils/errores'
+import { infoEstado, PASOS_PEDIDO } from '../utils/estados'
+import { formatCOP, formatFecha } from '../utils/formato'
 
-const STATUS_LABEL: Record<string, string> = {
-  PENDING: 'Pendiente',
-  CONFIRMED: 'Confirmado',
-  SHIPPED: 'En camino',
-  DELIVERED: 'Entregado',
-  CANCELLED: 'Cancelado',
-}
-
-const STATUS_COLOR: Record<string, string> = {
-  PENDING: '#e09052',
-  CONFIRMED: 'var(--accent)',
-  SHIPPED: '#52a8e0',
-  DELIVERED: '#52c96e',
-  CANCELLED: '#e05252',
-}
-
-function formatCOP(n: number) {
+/** Barra de avance del pedido. Es un dibujo: el estado ya está escrito en la etiqueta. */
+function Avance({ paso, etiqueta }: Readonly<{ paso: number; etiqueta: string }>) {
+  if (paso === 0) return null
   return (
-    '$' +
-    new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 }).format(n) +
-    ' COP'
+    <div
+      className="cp-progress"
+      role="img"
+      aria-label={`Paso ${paso} de ${PASOS_PEDIDO}: ${etiqueta}`}
+    >
+      {Array.from({ length: PASOS_PEDIDO }, (_, i) => (
+        <span key={i} className={`cp-progress-step ${i < paso ? 'hecho' : ''}`} />
+      ))}
+    </div>
   )
 }
 
 export function Dashboard() {
+  useDocumentTitle('Mi cuenta')
   const { user } = useAuth()
+  const [searchParams] = useSearchParams()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
 
-  useEffect(() => {
+  const cargar = useCallback(() => {
+    let vigente = true
+    setLoading(true)
+    setError(null)
     ordersService
       .getMyOrders()
-      .then(setOrders)
-      .catch(() => setOrders([]))
-      .finally(() => setLoading(false))
+      .then((r) => {
+        if (vigente) setOrders(r)
+      })
+      // Fallar no es lo mismo que no tener pedidos: antes un error del servidor
+      // mostraba "Todavía no tienes pedidos" a gente que sí los tiene.
+      .catch((e: unknown) => {
+        if (vigente) setError(comoError(e))
+      })
+      .finally(() => {
+        if (vigente) setLoading(false)
+      })
+    return () => {
+      vigente = false
+    }
   }, [])
 
+  useEffect(() => cargar(), [cargar])
+
+  // Al confirmar un pedido el checkout deja aquí su número (?order=CP-0042).
+  // Solo se celebra si ese pedido existe en la lista del servidor: así un
+  // enlace armado a mano no puede poner texto cualquiera en el aviso.
+  const recien = searchParams.get('order')
+  const pedidoNuevo = recien ? orders.find((o) => o.orderRef === recien) : undefined
+
   return (
-    <div className="cp-container" style={{ paddingTop: 48, paddingBottom: 80 }}>
+    <div className="cp-container cp-dashboard">
+      <Breadcrumbs migas={[{ etiqueta: 'Inicio', to: '/' }, { etiqueta: 'Mi cuenta' }]} />
+
       {/* Cabecera */}
-      <div style={{ marginBottom: 48 }}>
-        <div
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: 11,
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-            color: 'var(--accent)',
-            marginBottom: 12,
-          }}
-        >
-          — Mi cuenta
-        </div>
-        <h1
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 40,
-            fontWeight: 400,
-            letterSpacing: '-0.02em',
-            margin: 0,
-          }}
-        >
-          Hola, {user?.name.split(' ')[0]}
-        </h1>
-        <p style={{ color: 'var(--ink-soft)', marginTop: 8 }}>{user?.email}</p>
+      <div className="cp-dashboard-head">
+        <div className="cp-eyebrow">— Mi cuenta</div>
+        <h1 className="cp-page-title">Hola, {user?.name.split(' ')[0]}</h1>
+        <p className="cp-dashboard-email">{user?.email}</p>
       </div>
 
+      {pedidoNuevo && (
+        <Aviso tono="ok">
+          {`¡Gracias por tu compra! Recibimos tu pedido ${pedidoNuevo.orderRef}. Aquí abajo puedes seguir su estado.`}
+        </Aviso>
+      )}
+
       {/* Mis pedidos */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 24,
-        }}
-      >
-        <h2
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 26,
-            fontWeight: 400,
-            letterSpacing: '-0.02em',
-            margin: 0,
-          }}
-        >
-          Mis pedidos
-        </h2>
+      <div className="cp-dashboard-orders-head">
+        <h2 className="cp-dashboard-h2">Mis pedidos</h2>
         <Link to="/catalog" className="cp-btn cp-btn-secondary">
           Seguir comprando
         </Link>
@@ -101,111 +96,90 @@ export function Dashboard() {
 
       {loading && <Loading text="Cargando pedidos..." />}
 
-      {!loading && orders.length === 0 && (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '60px 20px',
-            border: '1px solid var(--line)',
-            borderRadius: 16,
-          }}
-        >
-          <Package size={48} style={{ color: 'var(--ink-faint)', marginBottom: 16 }} />
-          <p style={{ color: 'var(--ink-soft)', marginBottom: 24 }}>
-            Todavía no tienes pedidos
-          </p>
-          <Link to="/catalog" className="cp-btn cp-btn-primary">
-            Ver catálogo →
-          </Link>
-        </div>
+      {!loading && error && (
+        <ErrorState
+          titulo="No pudimos cargar tus pedidos"
+          error={error}
+          detalle="Tus pedidos están a salvo; solo no pudimos mostrarlos ahora. Vuelve a intentarlo."
+          onReintentar={cargar}
+        />
       )}
 
-      {!loading && orders.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {orders.map((order, i) => (
-            <RevealOnScroll key={order.id} delay={i * 0.06}>
-            <div className="cp-order-card">
-              <div className="cp-order-card-header">
-                <div>
-                  <div className="cp-order-ref">{order.orderRef}</div>
-                  <div className="cp-order-date">
-                    {new Date(order.createdAt).toLocaleDateString('es-CO', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </div>
-                </div>
-                <span
-                  className="cp-badge"
-                  style={{
-                    background: STATUS_COLOR[order.status] + '22',
-                    color: STATUS_COLOR[order.status],
-                    border: `1px solid ${STATUS_COLOR[order.status]}44`,
-                  }}
+      {!loading && !error && orders.length === 0 && (
+        <EmptyState
+          icono={<Package size={48} />}
+          titulo="Todavía no tienes pedidos"
+          acciones={
+            <Link to="/catalog" className="cp-btn cp-btn-primary">
+              Ver catálogo →
+            </Link>
+          }
+        >
+          Cuando compres, aquí verás cada pedido con su estado.
+        </EmptyState>
+      )}
+
+      {!loading && !error && orders.length > 0 && (
+        <div className="cp-order-list">
+          {orders.map((order, i) => {
+            const estado = infoEstado(order.status)
+            return (
+              <RevealOnScroll key={order.id} delay={i * 0.06}>
+                <article
+                  className={`cp-order-card ${pedidoNuevo?.id === order.id ? 'nuevo' : ''}`}
+                  aria-labelledby={`pedido-${order.id}`}
                 >
-                  {STATUS_LABEL[order.status]}
-                </span>
-              </div>
-
-              <div className="cp-order-items">
-                {order.items.map((item) => (
-                  <div key={item.id} className="cp-order-item">
-                    {item.heroImage && (
-                      <img
-                        src={item.heroImage}
-                        alt={item.name}
-                        className="cp-order-item-img"
-                      />
-                    )}
+                  <div className="cp-order-card-header">
                     <div>
-                      <div className="cp-order-item-name">{item.name}</div>
-                      {item.colorName && (
-                        <div
-                          style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: 11,
-                            color: 'var(--ink-soft)',
-                          }}
-                        >
-                          {item.colorName}
-                        </div>
-                      )}
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: 12,
-                          color: 'var(--ink-soft)',
-                        }}
-                      >
-                        ×{item.qty}
-                      </div>
+                      <h3 className="cp-order-ref" id={`pedido-${order.id}`}>{order.orderRef}</h3>
+                      <div className="cp-order-date">{formatFecha(order.createdAt)}</div>
                     </div>
-                    <div
-                      style={{
-                        marginLeft: 'auto',
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: 13,
-                      }}
+                    <span
+                      className="cp-badge cp-status"
+                      style={{ '--estado': estado.color } as CSSProperties}
                     >
-                      {formatCOP(item.price * item.qty)}
-                    </div>
+                      {estado.etiqueta}
+                    </span>
                   </div>
-                ))}
-              </div>
 
-              <div className="cp-order-total">
-                <ShieldCheck size={14} style={{ color: 'var(--accent)' }} />
-                <span style={{ color: 'var(--ink-soft)', fontSize: 13 }}>
-                  Total:
-                </span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
-                  {formatCOP(order.total)}
-                </span>
-              </div>
-            </div>
-            </RevealOnScroll>
-          ))}
+                  <div className="cp-order-status-note">
+                    <Avance paso={estado.paso} etiqueta={estado.etiqueta} />
+                    {estado.ayuda && <p>{estado.ayuda}</p>}
+                  </div>
+
+                  <div className="cp-order-items">
+                    {order.items.map((item) => (
+                      <div key={item.id} className="cp-order-item">
+                        {item.heroImage && (
+                          <img src={item.heroImage} alt="" className="cp-order-item-img" />
+                        )}
+                        <div>
+                          <div className="cp-order-item-name">{item.name}</div>
+                          {item.colorName && (
+                            <div className="cp-order-item-color">{item.colorName}</div>
+                          )}
+                          <div className="cp-order-item-qty">×{item.qty}</div>
+                        </div>
+                        <div className="cp-order-item-price">
+                          {formatCOP(item.price * item.qty)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="cp-order-delivery">
+                    {`Entrega en ${order.address}, ${order.city}`}
+                  </div>
+
+                  <div className="cp-order-total">
+                    <ShieldCheck size={14} aria-hidden="true" className="cp-accent-icon" />
+                    <span className="cp-order-total-label">Total:</span>
+                    <span className="cp-order-total-value">{formatCOP(order.total)}</span>
+                  </div>
+                </article>
+              </RevealOnScroll>
+            )
+          })}
         </div>
       )}
     </div>

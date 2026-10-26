@@ -1,52 +1,92 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Navigate, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import { ShieldCheck } from 'lucide-react'
 import { useCart } from '../context/CartContext'
+import { useCartDrawer } from '../context/CartDrawerContext'
 import { useAuth } from '../context/AuthContext'
 import { ordersService } from '../services/orders.service'
+import { Aviso } from '../components/ui/Aviso'
+import { Breadcrumbs } from '../components/ui/Breadcrumbs'
+import { Campo } from '../components/ui/Campo'
 import { ErrorMessage } from '../components/ui/ErrorMessage'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import type { CheckoutFormData } from '../types/order'
+import {
+  borrarBorrador,
+  guardarBorrador,
+  leerBorrador,
+  tieneDatosDeEntrega,
+} from '../utils/borrador'
 import { comoError } from '../utils/errores'
+import { formatCOP } from '../utils/formato'
 import { calcularTotales } from '../utils/pricing'
 
+// Se aceptan los separadores que la gente escribe sin pensar ("300 123 4567",
+// "(300) 123-4567", "+57 300 123 4567"); lo que viaja al servidor son solo dígitos.
+const SEPARADORES_DE_TELEFONO = /[\s().-]/g
+
 const schema = z.object({
-  email: z.string().email('Email inválido'),
-  name: z.string().min(2, 'Nombre requerido'),
-  phone: z.string().min(7, 'Teléfono inválido'),
-  address: z.string().min(5, 'Dirección requerida'),
-  city: z.string().min(2, 'Ciudad requerida'),
-  dept: z.string().min(2, 'Departamento requerido'),
+  email: z.string().trim().email('Email inválido'),
+  name: z.string().trim().min(2, 'Nombre requerido'),
+  phone: z
+    .string()
+    .transform((v) => v.replace(SEPARADORES_DE_TELEFONO, ''))
+    .refine((v) => /^\+?\d{7,15}$/.test(v), 'Teléfono inválido'),
+  address: z.string().trim().min(5, 'Dirección requerida'),
+  city: z.string().trim().min(2, 'Ciudad requerida'),
+  dept: z.string().trim().min(2, 'Departamento requerido'),
 })
 
-function formatCOP(n: number) {
-  return (
-    '$' +
-    new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 }).format(n) +
-    ' COP'
-  )
-}
+// Para que el campo sugiera mientras se escribe (no obliga a escoger uno).
+const DEPARTAMENTOS = [
+  'Amazonas', 'Antioquia', 'Arauca', 'Atlántico', 'Bogotá D.C.', 'Bolívar', 'Boyacá', 'Caldas',
+  'Caquetá', 'Casanare', 'Cauca', 'Cesar', 'Chocó', 'Córdoba', 'Cundinamarca', 'Guainía',
+  'Guaviare', 'Huila', 'La Guajira', 'Magdalena', 'Meta', 'Nariño', 'Norte de Santander',
+  'Putumayo', 'Quindío', 'Risaralda', 'San Andrés y Providencia', 'Santander', 'Sucre',
+  'Tolima', 'Valle del Cauca', 'Vaupés', 'Vichada',
+]
 
 export function Checkout() {
+  useDocumentTitle('Finalizar compra')
   const { cart, clearCart } = useCart()
   const { user } = useAuth()
+  const { abrir: abrirCarrito, disponible: hayCarrito } = useCartDrawer()
   const navigate = useNavigate()
   const [serverError, setServerError] = useState<Error | null>(null)
   const [loading, setLoading] = useState(false)
 
+  // Lo que la persona dejó escrito la última vez (si lo hay) se recupera.
+  const [borrador] = useState(leerBorrador)
+  const [recuperado, setRecuperado] = useState(() => tieneDatosDeEntrega(borrador))
+
   const {
     register,
     handleSubmit,
+    watch,
+    reset,
     formState: { errors },
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(schema),
+    // Valida al salir de cada campo, no solo al final: el error aparece donde se cometió.
+    mode: 'onTouched',
     defaultValues: {
-      email: user?.email ?? '',
-      name: user?.name ?? '',
+      email: borrador.email || (user?.email ?? ''),
+      name: borrador.name || (user?.name ?? ''),
+      phone: borrador.phone ?? '',
+      address: borrador.address ?? '',
+      city: borrador.city ?? '',
+      dept: borrador.dept ?? '',
     },
   })
+
+  // Cada cambio se guarda como borrador.
+  useEffect(() => {
+    const suscripcion = watch((valores) => guardarBorrador(valores as Partial<CheckoutFormData>))
+    return () => suscripcion.unsubscribe()
+  }, [watch])
 
   if (cart.length === 0) return <Navigate to="/catalog" replace />
 
@@ -58,6 +98,7 @@ export function Checkout() {
     try {
       const order = await ordersService.create(data, cart)
       clearCart()
+      borrarBorrador()
       navigate(`/dashboard?order=${order.orderRef}`)
     } catch (err) {
       setServerError(comoError(err))
@@ -66,160 +107,178 @@ export function Checkout() {
     }
   }
 
+  function descartarBorrador() {
+    borrarBorrador()
+    reset({ email: user?.email ?? '', name: user?.name ?? '', phone: '', address: '', city: '', dept: '' })
+    setRecuperado(false)
+  }
+
   return (
-    <div className="cp-container cp-checkout-layout" style={{ paddingTop: 48, paddingBottom: 80 }}>
-      {/* Formulario */}
-      <div>
-        <h1
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 36,
-            fontWeight: 400,
-            letterSpacing: '-0.02em',
-            marginBottom: 32,
-          }}
-        >
-          Finalizar compra
-        </h1>
+    <div className="cp-container cp-checkout-page">
+      <Breadcrumbs
+        migas={[
+          { etiqueta: 'Inicio', to: '/' },
+          { etiqueta: 'Catálogo', to: '/catalog' },
+          { etiqueta: 'Finalizar compra' },
+        ]}
+      />
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          <h3 className="cp-checkout-section-title">Datos de entrega</h3>
+      <div className="cp-checkout-layout">
+        {/* Formulario */}
+        <div>
+          <h1 className="cp-page-title cp-checkout-title">Finalizar compra</h1>
 
-          <div className="cp-field-row">
-            <div className="cp-field">
-              <label htmlFor="name" className="cp-label">Nombre completo</label>
-              <input
+          {recuperado && (
+            <Aviso
+              acciones={
+                <button type="button" className="cp-link-btn" onClick={descartarBorrador}>
+                  Empezar de cero
+                </button>
+              }
+            >
+              Recuperamos los datos de entrega que habías escrito.
+            </Aviso>
+          )}
+
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+            <h2 className="cp-checkout-section-title">Datos de entrega</h2>
+            <p className="cp-form-note">
+              Todos los campos son obligatorios. Usamos estos datos solo para entregar tu pedido y contactarte si hay un problema con él.
+            </p>
+
+            <div className="cp-field-row">
+              <Campo
                 id="name"
-                className={`cp-input ${errors.name ? 'error' : ''}`}
+                etiqueta="Nombre completo"
                 placeholder="Tu nombre"
-                {...register('name')}
+                autoComplete="name"
+                registro={register('name')}
+                error={errors.name?.message}
               />
-              {errors.name && <p className="cp-field-error">{errors.name.message}</p>}
-            </div>
-            <div className="cp-field">
-              <label htmlFor="email" className="cp-label">Email</label>
-              <input
+              <Campo
                 id="email"
                 type="email"
-                className={`cp-input ${errors.email ? 'error' : ''}`}
+                etiqueta="Email"
                 placeholder="tu@correo.com"
-                {...register('email')}
+                autoComplete="email"
+                registro={register('email')}
+                error={errors.email?.message}
               />
-              {errors.email && <p className="cp-field-error">{errors.email.message}</p>}
             </div>
-          </div>
 
-          <div className="cp-field">
-            <label htmlFor="phone" className="cp-label">Teléfono</label>
-            <input
+            <Campo
               id="phone"
-              className={`cp-input ${errors.phone ? 'error' : ''}`}
+              type="tel"
+              etiqueta="Teléfono"
               placeholder="3001234567"
-              {...register('phone')}
+              autoComplete="tel"
+              inputMode="tel"
+              ayuda="Un celular donde podamos contactarte. Puedes escribirlo con espacios."
+              registro={register('phone')}
+              error={errors.phone?.message}
             />
-            {errors.phone && <p className="cp-field-error">{errors.phone.message}</p>}
-          </div>
 
-          <div className="cp-field">
-            <label htmlFor="address" className="cp-label">Dirección</label>
-            <input
+            <Campo
               id="address"
-              className={`cp-input ${errors.address ? 'error' : ''}`}
+              etiqueta="Dirección"
               placeholder="Calle 10 # 43-25, Apto 301"
-              {...register('address')}
+              autoComplete="street-address"
+              ayuda="Calle o carrera, número y, si aplica, apartamento o torre."
+              registro={register('address')}
+              error={errors.address?.message}
             />
-            {errors.address && <p className="cp-field-error">{errors.address.message}</p>}
-          </div>
 
-          <div className="cp-field-row">
-            <div className="cp-field">
-              <label htmlFor="city" className="cp-label">Ciudad</label>
-              <input
+            <div className="cp-field-row">
+              <Campo
                 id="city"
-                className={`cp-input ${errors.city ? 'error' : ''}`}
+                etiqueta="Ciudad"
                 placeholder="Medellín"
-                {...register('city')}
+                autoComplete="address-level2"
+                registro={register('city')}
+                error={errors.city?.message}
               />
-              {errors.city && <p className="cp-field-error">{errors.city.message}</p>}
-            </div>
-            <div className="cp-field">
-              <label htmlFor="dept" className="cp-label">Departamento</label>
-              <input
+              <Campo
                 id="dept"
-                className={`cp-input ${errors.dept ? 'error' : ''}`}
+                etiqueta="Departamento"
                 placeholder="Antioquia"
-                {...register('dept')}
+                autoComplete="address-level1"
+                list="lista-departamentos"
+                registro={register('dept')}
+                error={errors.dept?.message}
               />
-              {errors.dept && <p className="cp-field-error">{errors.dept.message}</p>}
             </div>
-          </div>
+            <datalist id="lista-departamentos">
+              {DEPARTAMENTOS.map((d) => (
+                <option key={d} value={d} />
+              ))}
+            </datalist>
 
-          {serverError && <ErrorMessage error={serverError} />}
+            {serverError && <ErrorMessage error={serverError} />}
 
-          <button
-            type="submit"
-            className="cp-btn cp-btn-primary"
-            style={{ width: '100%', fontSize: 15, padding: '16px', marginTop: 16 }}
-            disabled={loading}
-          >
-            {loading ? 'Procesando...' : `Confirmar pedido — ${formatCOP(total)}`}
-          </button>
-        </form>
-      </div>
+            <button
+              type="submit"
+              className="cp-btn cp-btn-primary cp-btn-block cp-btn-confirm"
+              disabled={loading}
+            >
+              {loading ? 'Procesando...' : `Confirmar pedido — ${formatCOP(total)}`}
+            </button>
+            <p className="cp-form-note cp-form-note-center">
+              Después de confirmar verás tu pedido en «Mis pedidos», con su estado.
+            </p>
+          </form>
+        </div>
 
-      {/* Resumen */}
-      <div>
-        <h3 className="cp-checkout-section-title">Resumen</h3>
-        <div className="cp-checkout-summary">
-          {cart.map((item) => (
-            <div key={item.key} className="cp-checkout-item">
-              {item.heroImage && (
-                <img src={item.heroImage} alt={item.name} className="cp-checkout-item-img" />
-              )}
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 500 }}>{item.name}</div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--ink-soft)' }}>
-                  {item.colorName ? `${item.colorName} · ` : ''}×{item.qty}
+        {/* Resumen */}
+        <section aria-labelledby="resumen-titulo">
+          <h2 className="cp-checkout-section-title" id="resumen-titulo">Resumen</h2>
+          <div className="cp-checkout-summary">
+            {cart.map((item) => (
+              <div key={item.key} className="cp-checkout-item">
+                {item.heroImage && (
+                  <img src={item.heroImage} alt="" className="cp-checkout-item-img" />
+                )}
+                <div className="cp-checkout-item-info">
+                  <div className="cp-checkout-item-name">{item.name}</div>
+                  <div className="cp-checkout-item-meta">
+                    {item.colorName ? `${item.colorName} · ` : ''}×{item.qty}
+                  </div>
+                </div>
+                <div className="cp-checkout-item-price">
+                  {formatCOP(item.price * item.qty)}
                 </div>
               </div>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13 }}>
-                {formatCOP(item.price * item.qty)}
+            ))}
+
+            <div className="cp-checkout-totals">
+              <div className="cp-checkout-row">
+                <span>Subtotal</span>
+                <span>{formatCOP(subtotal)}</span>
+              </div>
+              <div className="cp-checkout-row">
+                <span>Envío</span>
+                <span>{shipping === 0 ? '¡Gratis!' : formatCOP(shipping)}</span>
+              </div>
+              <div className="cp-checkout-row cp-checkout-total">
+                <span>Total</span>
+                <span>{formatCOP(total)}</span>
               </div>
             </div>
-          ))}
 
-          <div className="cp-checkout-totals">
-            <div className="cp-checkout-row">
-              <span>Subtotal</span>
-              <span>{formatCOP(subtotal)}</span>
-            </div>
-            <div className="cp-checkout-row">
-              <span>Envío</span>
-              <span>{shipping === 0 ? '¡Gratis!' : formatCOP(shipping)}</span>
-            </div>
-            <div className="cp-checkout-row cp-checkout-total">
-              <span>Total</span>
-              <span>{formatCOP(total)}</span>
+            {hayCarrito && (
+              <button type="button" className="cp-btn cp-btn-ghost cp-btn-block cp-checkout-edit" onClick={abrirCarrito}>
+                Cambiar cantidades o quitar equipos
+              </button>
+            )}
+
+            <div className="cp-checkout-trust">
+              <ShieldCheck size={16} aria-hidden="true" className="cp-accent-icon" />
+              Pago seguro · Garantía incluida en cada equipo
             </div>
           </div>
-
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              marginTop: 16,
-              padding: 12,
-              background: 'color-mix(in oklab, var(--accent) 10%, transparent)',
-              borderRadius: 8,
-              fontSize: 12,
-              color: 'var(--ink-soft)',
-            }}
-          >
-            <ShieldCheck size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-            Pago seguro · Garantía incluida en cada equipo
-          </div>
-        </div>
+          <p className="cp-form-note">
+            ¿Dudas? Mira el <Link className="cp-link" to="/ayuda">centro de ayuda</Link>.
+          </p>
+        </section>
       </div>
     </div>
   )

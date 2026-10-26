@@ -5,6 +5,9 @@ Pruebas de extremo a extremo con el **patrón Screenplay**, hechas con
 TypeScript), adaptadas del repositorio del curso
 [serenityjs-e2e-testing](https://github.com/mauricioramirezv/serenityjs-e2e-testing).
 
+Los mismos 32 casos también están escritos con Cypress, con una estructura
+parecida a Screenplay, en [`cypress/`](cypress/README.md).
+
 Prueban los casos contra la aplicación real: el front, la
 API y la base de datos encendidos, y un navegador que hace lo que haría una
 persona. No hay dobles ni datos simulados.

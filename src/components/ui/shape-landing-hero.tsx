@@ -174,7 +174,7 @@ export function HeroGeometric({
               size={8}
               style={{ fill: 'rgba(244,63,94,0.8)', color: 'rgba(244,63,94,0.8)' }}
             />
-            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', letterSpacing: '0.06em' }}>
+            <span style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.75)', letterSpacing: '0.06em' }}>
               {badge}
             </span>
           </motion.div>
@@ -186,7 +186,7 @@ export function HeroGeometric({
             initial="hidden"
             animate="visible"
             style={{
-              fontSize: 'clamp(40px, 8vw, 88px)',
+              fontSize: 'clamp(2.5rem, 8vw, 5.5rem)',
               fontWeight: 700,
               lineHeight: 1.05,
               marginBottom: 24,
@@ -215,8 +215,8 @@ export function HeroGeometric({
               initial="hidden"
               animate="visible"
               style={{
-                fontSize: 'clamp(15px, 2vw, 19px)',
-                color: 'rgba(255,255,255,0.4)',
+                fontSize: 'clamp(0.9375rem, 2vw, 1.1875rem)',
+                color: 'rgba(255,255,255,0.7)',
                 lineHeight: 1.7,
                 fontWeight: 300,
                 letterSpacing: '0.02em',

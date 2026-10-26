@@ -3,8 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { Breadcrumbs } from '../../components/ui/Breadcrumbs'
 import { Loading } from '../../components/ui/Loading'
 import { ErrorMessage } from '../../components/ui/ErrorMessage'
+import { useToastOpcional } from '../../context/ToastContext'
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 import { phonesService } from '../../services/phones.service'
 import type { PhoneFormData } from '../../types/phone'
 import { comoError } from '../../utils/errores'
@@ -35,25 +38,41 @@ const schema = z.object({
 
 type FormFields = z.infer<typeof schema>
 
-// Etiqueta + control + mensaje de error de un campo del formulario
+// Etiqueta + control + ayuda + mensaje de error de un campo del formulario
 function Field({
   id,
   label,
   error,
+  ayuda,
+  requerido = false,
   children,
 }: Readonly<{
   id: string
   label: string
   error?: string
+  /** Qué escribir aquí, visible siempre (el placeholder desaparece al teclear). */
+  ayuda?: string
+  requerido?: boolean
   children: ReactNode
 }>) {
   return (
     <div className="cp-field">
-      <label htmlFor={id} className="cp-label">{label}</label>
+      <label htmlFor={id} className={requerido ? 'cp-label requerido' : 'cp-label'}>{label}</label>
       {children}
-      {error && <p className="cp-field-error">{error}</p>}
+      {ayuda && <p id={`${id}-ayuda`} className="cp-field-hint">{ayuda}</p>}
+      {error && <p id={`${id}-error`} className="cp-field-error">{error}</p>}
     </div>
   )
+}
+
+// Enlaza el control con su ayuda y su error para el lector de pantalla.
+function enlazar(id: string, error?: string, conAyuda = false, requerido = false) {
+  const descrito = [conAyuda ? `${id}-ayuda` : null, error ? `${id}-error` : null].filter(Boolean).join(' ')
+  return {
+    'aria-invalid': error ? (true as const) : undefined,
+    'aria-describedby': descrito || undefined,
+    'aria-required': requerido ? (true as const) : undefined,
+  }
 }
 
 function textoDelBoton(isSubmitting: boolean, isEdit: boolean) {
@@ -64,7 +83,9 @@ function textoDelBoton(isSubmitting: boolean, isEdit: boolean) {
 export function PhoneForm() {
   const { id } = useParams<{ id?: string }>()
   const isEdit = Boolean(id)
+  useDocumentTitle(isEdit ? 'Administración · Editar celular' : 'Administración · Nuevo celular')
   const navigate = useNavigate()
+  const avisar = useToastOpcional()
   const [loading, setLoading] = useState(isEdit)
   const [serverError, setServerError] = useState<Error | null>(null)
 
@@ -148,6 +169,7 @@ export function PhoneForm() {
       } else {
         await phonesService.create(data)
       }
+      avisar.showToast(isEdit ? `Guardamos los cambios de «${data.name}».` : `Creamos «${data.name}» en el catálogo.`)
       navigate('/admin/phones')
     } catch (err) {
       setServerError(comoError(err))
@@ -157,38 +179,50 @@ export function PhoneForm() {
   if (loading) return <Loading />
 
   return (
-    <div className="cp-container" style={{ paddingTop: 48, paddingBottom: 80, maxWidth: 800 }}>
-      <h1
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 36,
-          fontWeight: 400,
-          letterSpacing: '-0.02em',
-          marginBottom: 32,
-        }}
-      >
+    <div className="cp-admin-page cp-admin-form">
+      <Breadcrumbs
+        migas={[
+          { etiqueta: 'Panel', to: '/admin' },
+          { etiqueta: 'Celulares', to: '/admin/phones' },
+          { etiqueta: isEdit ? 'Editar celular' : 'Nuevo celular' },
+        ]}
+      />
+
+      <h1 className="cp-admin-page-title cp-admin-form-title">
         {isEdit ? 'Editar celular' : 'Nuevo celular'}
       </h1>
+      <p className="cp-form-note">Los campos marcados con * son obligatorios.</p>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="cp-field-row">
-          <Field id="name" label="Nombre" error={errors.name?.message}>
+          <Field id="name" label="Nombre" error={errors.name?.message} requerido>
             <input id="name" className={`cp-input ${errors.name ? 'error' : ''}`}
-              placeholder="iPhone 15 Pro 256GB" {...register('name')} />
+              placeholder="iPhone 15 Pro 256GB"
+              {...enlazar('name', errors.name?.message, false, true)} {...register('name')} />
           </Field>
-          <Field id="slug" label="Slug (URL)" error={errors.slug?.message}>
+          <Field
+            id="slug"
+            label="Slug (URL)"
+            error={errors.slug?.message}
+            ayuda="Va en la dirección web del celular, por ejemplo /phones/iphone-15-pro-256gb."
+            requerido
+          >
             <input id="slug" className={`cp-input ${errors.slug ? 'error' : ''}`}
-              placeholder="iphone-15-pro-256gb" {...register('slug')} />
+              placeholder="iphone-15-pro-256gb"
+              autoCapitalize="none" spellCheck={false}
+              {...enlazar('slug', errors.slug?.message, true, true)} {...register('slug')} />
           </Field>
         </div>
 
         <div className="cp-field-row">
-          <Field id="brand" label="Marca" error={errors.brand?.message}>
+          <Field id="brand" label="Marca" error={errors.brand?.message} requerido>
             <input id="brand" className={`cp-input ${errors.brand ? 'error' : ''}`}
-              placeholder="Apple" {...register('brand')} />
+              placeholder="Apple"
+              {...enlazar('brand', errors.brand?.message, false, true)} {...register('brand')} />
           </Field>
-          <Field id="categoryId" label="Categoría" error={errors.categoryId?.message}>
-            <select id="categoryId" className="cp-select" {...register('categoryId')}>
+          <Field id="categoryId" label="Categoría" error={errors.categoryId?.message} requerido>
+            <select id="categoryId" className={`cp-select ${errors.categoryId ? 'error' : ''}`}
+              {...enlazar('categoryId', errors.categoryId?.message, false, true)} {...register('categoryId')}>
               <option value="">Seleccionar...</option>
               <option value="apple">iPhone (Apple)</option>
               <option value="samsung">Samsung</option>
@@ -199,23 +233,44 @@ export function PhoneForm() {
         </div>
 
         <div className="cp-field-row">
-          <Field id="price" label="Precio (COP)" error={errors.price?.message}>
-            <input id="price" type="number" className={`cp-input ${errors.price ? 'error' : ''}`}
-              placeholder="2500000" {...register('price')} />
+          <Field
+            id="price"
+            label="Precio (COP)"
+            error={errors.price?.message}
+            ayuda="En pesos colombianos, solo números."
+            requerido
+          >
+            <input id="price" type="number" inputMode="numeric" className={`cp-input ${errors.price ? 'error' : ''}`}
+              placeholder="2500000"
+              {...enlazar('price', errors.price?.message, true, true)} {...register('price')} />
           </Field>
-          <Field id="compareAt" label="Precio tachado (opcional)" error={errors.compareAt?.message}>
-            <input id="compareAt" type="number" className="cp-input"
-              placeholder="3000000" {...register('compareAt')} />
+          <Field
+            id="compareAt"
+            label="Precio tachado (opcional)"
+            error={errors.compareAt?.message}
+            ayuda="El precio anterior: se muestra tachado junto al actual."
+          >
+            <input id="compareAt" type="number" inputMode="numeric" className={`cp-input ${errors.compareAt ? 'error' : ''}`}
+              placeholder="3000000"
+              {...enlazar('compareAt', errors.compareAt?.message, true)} {...register('compareAt')} />
           </Field>
         </div>
 
         <div className="cp-field-row">
-          <Field id="stock" label="Stock" error={errors.stock?.message}>
-            <input id="stock" type="number" className={`cp-input ${errors.stock ? 'error' : ''}`}
-              placeholder="5" {...register('stock')} />
+          <Field
+            id="stock"
+            label="Stock"
+            error={errors.stock?.message}
+            ayuda="Unidades disponibles. Con 0 el celular aparece como agotado."
+            requerido
+          >
+            <input id="stock" type="number" inputMode="numeric" className={`cp-input ${errors.stock ? 'error' : ''}`}
+              placeholder="5"
+              {...enlazar('stock', errors.stock?.message, true, true)} {...register('stock')} />
           </Field>
           <Field id="condition" label="Condición" error={errors.condition?.message}>
-            <select id="condition" className="cp-select" {...register('condition')}>
+            <select id="condition" className="cp-select"
+              {...enlazar('condition', errors.condition?.message)} {...register('condition')}>
               <option value="NEW">Nuevo</option>
               <option value="CERTIFIED">Certificado</option>
               <option value="USED">Usado verificado</option>
@@ -224,13 +279,25 @@ export function PhoneForm() {
         </div>
 
         <div className="cp-field-row">
-          <Field id="batteryHealth" label="Salud de batería % (opcional)" error={errors.batteryHealth?.message}>
-            <input id="batteryHealth" type="number" className="cp-input"
-              placeholder="91" min="0" max="100" {...register('batteryHealth')} />
+          <Field
+            id="batteryHealth"
+            label="Salud de batería % (opcional)"
+            error={errors.batteryHealth?.message}
+            ayuda="Porcentaje de 0 a 100."
+          >
+            <input id="batteryHealth" type="number" inputMode="numeric" className={`cp-input ${errors.batteryHealth ? 'error' : ''}`}
+              placeholder="91" min="0" max="100"
+              {...enlazar('batteryHealth', errors.batteryHealth?.message, true)} {...register('batteryHealth')} />
           </Field>
-          <Field id="heroImage" label="URL imagen principal" error={errors.heroImage?.message}>
-            <input id="heroImage" type="url" className="cp-input"
-              placeholder="https://..." {...register('heroImage')} />
+          <Field
+            id="heroImage"
+            label="URL imagen principal"
+            error={errors.heroImage?.message}
+            ayuda="Dirección completa de la imagen, empezando por https://"
+          >
+            <input id="heroImage" type="url" className={`cp-input ${errors.heroImage ? 'error' : ''}`}
+              placeholder="https://..." autoCapitalize="none" spellCheck={false}
+              {...enlazar('heroImage', errors.heroImage?.message, true)} {...register('heroImage')} />
           </Field>
         </div>
 
@@ -262,39 +329,41 @@ export function PhoneForm() {
         </div>
 
         <div className="cp-field-row">
-          <Field id="badge" label="Badge (opcional)">
-            <input id="badge" className="cp-input" placeholder="Oferta, Nuevo, etc." {...register('badge')} />
+          <Field
+            id="badge"
+            label="Badge (opcional)"
+            ayuda="Etiqueta corta sobre la tarjeta, como Oferta o Nuevo."
+          >
+            <input id="badge" className="cp-input" placeholder="Oferta, Nuevo, etc."
+              {...enlazar('badge', undefined, true)} {...register('badge')} />
           </Field>
-          <div className="cp-field" style={{ display: 'flex', alignItems: 'center', gap: 10, paddingTop: 28 }}>
-            <input id="verified" type="checkbox" {...register('verified')} />
-            <label htmlFor="verified" className="cp-label" style={{ margin: 0 }}>
+          <div className="cp-field cp-check-field">
+            <input id="verified" type="checkbox" className="cp-check" {...register('verified')} />
+            <label htmlFor="verified" className="cp-label cp-label-inline">
               Equipo verificado ✓
             </label>
           </div>
         </div>
 
         <Field id="shortDesc" label="Descripción corta">
-          <textarea id="shortDesc" className="cp-input" rows={2}
-            placeholder="Descripción breve para el catálogo..." {...register('shortDesc')}
-            style={{ resize: 'vertical' }} />
+          <textarea id="shortDesc" className="cp-input cp-textarea" rows={2}
+            placeholder="Descripción breve para el catálogo..." {...register('shortDesc')} />
         </Field>
 
         <Field id="longDesc" label="Descripción larga">
-          <textarea id="longDesc" className="cp-input" rows={4}
-            placeholder="Descripción completa..." {...register('longDesc')}
-            style={{ resize: 'vertical' }} />
+          <textarea id="longDesc" className="cp-input cp-textarea" rows={4}
+            placeholder="Descripción completa..." {...register('longDesc')} />
         </Field>
 
         <Field id="featuresText" label="Características (una por línea)">
-          <textarea id="featuresText" className="cp-input" rows={5}
+          <textarea id="featuresText" className="cp-input cp-textarea cp-textarea-mono" rows={5}
             placeholder={"Chip A17 Pro\nCámara 48MP\nBluetooth 5.3"}
-            {...register('featuresText')}
-            style={{ resize: 'vertical', fontFamily: 'var(--font-mono)', fontSize: 13 }} />
+            {...register('featuresText')} />
         </Field>
 
         {serverError && <ErrorMessage error={serverError} />}
 
-        <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
+        <div className="cp-form-actions">
           <button
             type="submit"
             className="cp-btn cp-btn-primary"

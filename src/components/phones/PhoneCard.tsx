@@ -1,19 +1,12 @@
 import { ShieldCheck, Battery } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { PhoneListItem } from '../../types/phone'
+import { formatCOP } from '../../utils/formato'
 
 const CONDITION_LABEL: Record<string, string> = {
   NEW: 'Nuevo',
   CERTIFIED: 'Certificado',
   USED: 'Usado verificado',
-}
-
-function formatCOP(n: number) {
-  return (
-    '$' +
-    new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 }).format(n) +
-    ' COP'
-  )
 }
 
 interface PhoneCardProps {
@@ -25,15 +18,20 @@ export function PhoneCard({ phone }: Readonly<PhoneCardProps>) {
   const discountPct = hasDiscount
     ? Math.round((1 - phone.price / phone.compareAt!) * 100)
     : 0
+  // "Apple · apple" parece un error: la categoría solo se muestra si aporta algo.
+  const mostrarCategoria = phone.category.toLowerCase() !== phone.brand.toLowerCase()
 
   return (
-    <Link to={`/phones/${phone.slug}`} className="cp-phone-card">
+    <Link
+      to={`/phones/${phone.slug}`}
+      className={`cp-phone-card ${phone.stock === 0 ? 'agotado' : ''}`}
+    >
       {/* Imagen */}
       <div className="cp-phone-card-img">
         {phone.heroImage ? (
-          <img src={phone.heroImage} alt={phone.name} loading="lazy" />
+          <img src={phone.heroImage} alt={phone.name} loading="lazy" decoding="async" />
         ) : (
-          <div className="cp-phone-card-placeholder">📱</div>
+          <div className="cp-phone-card-placeholder" aria-hidden="true">📱</div>
         )}
 
         {/* Badges */}
@@ -43,7 +41,7 @@ export function PhoneCard({ phone }: Readonly<PhoneCardProps>) {
           )}
           {phone.verified && (
             <span className="cp-badge cp-badge-verified">
-              <ShieldCheck size={10} /> Verificado
+              <ShieldCheck size={12} aria-hidden="true" /> Verificado
             </span>
           )}
           {hasDiscount && (
@@ -59,7 +57,7 @@ export function PhoneCard({ phone }: Readonly<PhoneCardProps>) {
         </div>
         <div className="cp-phone-card-meta">
           <span className="cp-phone-card-brand">{phone.brand}</span>
-          <span className="cp-phone-card-category">{phone.category}</span>
+          {mostrarCategoria && <span className="cp-phone-card-category">{phone.category}</span>}
         </div>
         <h3 className="cp-phone-card-name">{phone.name}</h3>
 
@@ -69,7 +67,9 @@ export function PhoneCard({ phone }: Readonly<PhoneCardProps>) {
           {phone.ram && <span>{phone.ram} RAM</span>}
           {phone.batteryHealth !== null && phone.condition !== 'NEW' && (
             <span>
-              <Battery size={11} /> {phone.batteryHealth}%
+              <Battery size={12} aria-hidden="true" />
+              <span className="cp-sr-only">Salud de batería </span>
+              {phone.batteryHealth}%
             </span>
           )}
         </div>
@@ -79,6 +79,7 @@ export function PhoneCard({ phone }: Readonly<PhoneCardProps>) {
           <span className="cp-phone-card-price">{formatCOP(phone.price)}</span>
           {hasDiscount && (
             <span className="cp-phone-card-compare">
+              <span className="cp-sr-only">Antes </span>
               {formatCOP(phone.compareAt!)}
             </span>
           )}

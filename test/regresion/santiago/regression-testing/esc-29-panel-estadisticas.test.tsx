@@ -102,7 +102,7 @@ describe('ESC-29 · Regresión (front) — panel de estadísticas', () => {
       abrirApp('/admin/stats')
 
       // Assert
-      expect(await screen.findByText('Error')).to.exist
+      expect(await screen.findByText('No se pudieron cargar las estadísticas')).to.exist
       expect(screen.queryByText('Calculando estadísticas...')).to.equal(null)
     })
   })

@@ -1,12 +1,15 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { AuthLayout } from '../components/layout/AuthLayout'
+import { BotonMostrar } from '../components/ui/BotonMostrar'
+import { Campo } from '../components/ui/Campo'
 import { ErrorMessage } from '../components/ui/ErrorMessage'
 import { useState } from 'react'
 import { comoError } from '../utils/errores'
+import { rutaDesde } from '../utils/sesion'
 
 // Dominios de correo permitidos (misma regla que el backend: application/dtos/auth.dto.ts — emailSchema)
 const DOMINIOS_PERMITIDOS = new Set(['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com', 'icloud.com'])
@@ -36,129 +39,115 @@ const schema = z
 
 type FormData = z.infer<typeof schema>
 
+const LARGO_MINIMO = 8
+
 export function Register() {
   const { user, register: registerUser, isLoading } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [serverError, setServerError] = useState<Error | null>(null)
+  const [verClave, setVerClave] = useState(false)
+
+  // Si venía de una página protegida (por ejemplo el checkout), vuelve ahí.
+  const destino = rutaDesde((location.state as { from?: unknown } | null)?.from) ?? '/dashboard'
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) })
 
-  if (user) return <Navigate to="/dashboard" replace />
+  if (user) return <Navigate to={destino} replace />
 
   async function onSubmit(data: FormData) {
     setServerError(null)
     try {
       await registerUser(data.email, data.name, data.password)
-      navigate('/dashboard')
+      navigate(destino)
     } catch (err) {
       setServerError(comoError(err))
     }
   }
 
-  return (
-    <main className="cp-auth-page">
-      <motion.div
-        initial={{ opacity: 0, y: 32, scale: 0.97 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-        style={{ width: '100%', display: 'flex', justifyContent: 'center' }}
-      >
-      <div className="cp-auth-card">
-        <Link to="/" className="cp-logo" style={{ marginBottom: 32, display: 'block' }}>
-          Celular<span>Pro</span>
-          <span className="cp-logo-badge">✓</span>
-        </Link>
+  // Cuánto falta, a medida que escribe (en vez de enterarse al enviar)
+  const largo = (watch('password') ?? '').length
+  let ayudaClave = `Al menos ${LARGO_MINIMO} caracteres.`
+  if (largo > 0 && largo < LARGO_MINIMO) {
+    const faltan = LARGO_MINIMO - largo
+    ayudaClave = `Te ${faltan === 1 ? 'falta 1 carácter' : `faltan ${faltan} caracteres`}.`
+  } else if (largo >= LARGO_MINIMO) {
+    ayudaClave = 'Con eso alcanza.'
+  }
 
-        <h1 className="cp-auth-title">Crear cuenta</h1>
-        <p className="cp-auth-sub">
+  return (
+    <AuthLayout
+      titulo="Crear cuenta"
+      subtitulo={
+        <>
           ¿Ya tienes cuenta?{' '}
-          <Link to="/login" className="cp-link">
+          <Link to="/login" state={location.state} className="cp-link">
             Ingresar
           </Link>
-        </p>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <Campo
+          id="name"
+          type="text"
+          etiqueta="Nombre completo"
+          placeholder="Tu nombre"
+          autoComplete="name"
+          registro={register('name')}
+          error={errors.name?.message}
+        />
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          <div className="cp-field">
-            <label htmlFor="name" className="cp-label">
-              Nombre completo
-            </label>
-            <input
-              id="name"
-              type="text"
-              className={`cp-input ${errors.name ? 'error' : ''}`}
-              placeholder="Tu nombre"
-              {...register('name')}
-            />
-            {errors.name && (
-              <p className="cp-field-error">{errors.name.message}</p>
-            )}
-          </div>
+        <Campo
+          id="email"
+          type="email"
+          etiqueta="Email"
+          placeholder="tu@correo.com"
+          autoComplete="email"
+          autoCapitalize="none"
+          spellCheck={false}
+          ayuda="Aceptamos Gmail, Outlook, Hotmail, Yahoo o iCloud."
+          registro={register('email')}
+          error={errors.email?.message}
+        />
 
-          <div className="cp-field">
-            <label htmlFor="email" className="cp-label">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              className={`cp-input ${errors.email ? 'error' : ''}`}
-              placeholder="tu@correo.com"
-              {...register('email')}
-            />
-            {errors.email && (
-              <p className="cp-field-error">{errors.email.message}</p>
-            )}
-          </div>
+        <Campo
+          id="password"
+          type={verClave ? 'text' : 'password'}
+          etiqueta="Contraseña"
+          placeholder="Mínimo 8 caracteres"
+          autoComplete="new-password"
+          ayuda={ayudaClave}
+          registro={register('password')}
+          error={errors.password?.message}
+          accion={<BotonMostrar visible={verClave} alternar={() => setVerClave((v) => !v)} controla="password" />}
+        />
 
-          <div className="cp-field">
-            <label htmlFor="password" className="cp-label">
-              Contraseña
-            </label>
-            <input
-              id="password"
-              type="password"
-              className={`cp-input ${errors.password ? 'error' : ''}`}
-              placeholder="Mínimo 8 caracteres"
-              {...register('password')}
-            />
-            {errors.password && (
-              <p className="cp-field-error">{errors.password.message}</p>
-            )}
-          </div>
+        <Campo
+          id="confirmPassword"
+          type={verClave ? 'text' : 'password'}
+          etiqueta="Confirmar contraseña"
+          placeholder="Repite tu contraseña"
+          autoComplete="new-password"
+          registro={register('confirmPassword')}
+          error={errors.confirmPassword?.message}
+        />
 
-          <div className="cp-field">
-            <label htmlFor="confirmPassword" className="cp-label">
-              Confirmar contraseña
-            </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              className={`cp-input ${errors.confirmPassword ? 'error' : ''}`}
-              placeholder="Repite tu contraseña"
-              {...register('confirmPassword')}
-            />
-            {errors.confirmPassword && (
-              <p className="cp-field-error">{errors.confirmPassword.message}</p>
-            )}
-          </div>
+        {serverError && <ErrorMessage error={serverError} />}
 
-          {serverError && <ErrorMessage error={serverError} />}
-
-          <button
-            type="submit"
-            className="cp-btn cp-btn-primary"
-            style={{ width: '100%', marginTop: 24 }}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Creando cuenta...' : 'Crear cuenta gratis'}
-          </button>
-        </form>
-      </div>
-      </motion.div>
-    </main>
+        <button
+          type="submit"
+          className="cp-btn cp-btn-primary cp-btn-block cp-auth-submit"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Creando cuenta...' : 'Crear cuenta gratis'}
+        </button>
+      </form>
+    </AuthLayout>
   )
 }

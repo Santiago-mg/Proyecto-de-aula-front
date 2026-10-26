@@ -11,14 +11,18 @@ sección 1. Por defecto esperan el front en <http://localhost:8081> y la API en
 | Carpeta | Autor | Herramientas | Qué cubre | Resultado contra esta app |
 |---|---|---|---|---|
 | [`santiago/serenityjs/`](santiago/serenityjs/README.md) | Santiago | Serenity/JS + Playwright + Cucumber | Funcionalidades 13, 26–30 (web y API) | 32 de 32 |
+| [`santiago/cypress/`](santiago/cypress/README.md) | Santiago | Cypress + TypeScript (estructura Screenplay) | Las mismas 13, 26–30 (web y API) | 32 de 32 |
 | [`mario/`](mario/README.md) | Mario | Serenity/JS + Cucumber (Gherkin) y Katalon Recorder | Registro, inicio de sesión, credenciales, roles (+ perfil y alertas de stock, pendientes) | 13 de 13 activos; 13 pendientes; Katalon 3 de 3 activos |
 | [`companero-test/`](companero-test/README.md) | Compañero sin identificar (archivo `test.zip`) | Serenity/JS con Playwright Test | Login, catálogo, banear, desbanear, cancelar pedido (+ favoritos, pendiente) | 6 de 6 activos; 1 pendiente |
 
 ## Comandos
 
 ```bash
-# Santiago
+# Santiago (Serenity/JS)
 cd e2e/santiago/serenityjs && npm install && npx playwright install chromium && npm test
+
+# Santiago (Cypress)
+cd e2e/santiago/cypress && npm install && npm test
 
 # Mario
 cd e2e/mario && npm ci && npx playwright install chromium

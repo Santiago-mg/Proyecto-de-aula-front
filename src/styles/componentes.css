@@ -1,0 +1,589 @@
+/* ═══════════════════════════════════════════════════════════════
+   CELULARPRO — COMPONENTES COMPARTIDOS
+   Lo que usan varias pantallas: botones, formularios, avisos, estados
+   vacíos y de error, migas de pan, paginación, filtros activos...
+   Va después de index.css y ux.css; todo sale de las variables del tema,
+   así que funciona igual en oscuro, claro y alto contraste.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Base ───────────────────────────────────────────────────── */
+/* `hidden` tiene que ganarle a cualquier display que se declare después. */
+[hidden] { display: none !important; }
+
+/* Cuando el teclado lleva el foco a algo, la barra de navegación (arriba) y la
+   barra de compra (abajo) no deben taparlo. */
+html {
+  scroll-padding-top: calc(var(--nav-h) + 16px);
+  scroll-padding-bottom: 96px;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  padding: 1px 6px;
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* ─── Texto de página ────────────────────────────────────────── */
+.cp-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.cp-eyebrow-hero { letter-spacing: 0.22em; margin-bottom: 28px; }
+.cp-eyebrow-mb16 { margin-bottom: 16px; }
+.cp-eyebrow-mb20 { margin-bottom: 20px; }
+.cp-eyebrow-mb40 { margin-bottom: 40px; }
+
+.cp-page-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.cp-page-lead {
+  max-width: 62ch;
+  margin-top: 12px;
+  color: var(--ink-soft);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+.cp-em-accent { font-style: normal; font-weight: 300; color: var(--accent); }
+.cp-em-light { font-style: normal; font-weight: 300; }
+
+/* Colores con significado para cifras, íconos y botones. Siempre van junto a
+   un texto: el color refuerza, no sustituye. */
+.cp-tone-accent { color: var(--accent); }
+.cp-tone-ok { color: var(--ok); }
+.cp-tone-violet { color: var(--violet); }
+.cp-tone-bad { color: var(--bad); }
+.cp-tone-warn { color: var(--warn); }
+.cp-tone-ink { color: var(--ink); }
+.cp-accent-icon { color: var(--accent); flex-shrink: 0; }
+.cp-ok-icon { color: var(--ok); flex-shrink: 0; }
+
+/* ─── Botones ────────────────────────────────────────────────── */
+.cp-btn { justify-content: center; }
+/* En pantallas angostas el texto largo de un botón pasa a otra línea en vez de
+   salirse de la pantalla (el original lo dejaba siempre en una sola línea). */
+@media (max-width: 480px) {
+  .cp-btn { max-width: 100%; white-space: normal; text-align: center; line-height: 1.35; }
+}
+.cp-btn-sm {
+  min-height: 32px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+}
+.cp-btn-block { display: flex; width: 100%; }
+.cp-btn-confirm { margin-top: 16px; padding: 16px; font-size: 0.9375rem; }
+
+/* Sin stock: sigue siendo legible (un botón apagado al 40 % no se lee). */
+.cp-btn-soldout,
+.cp-btn-soldout:disabled {
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  border-color: var(--line-strong);
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+/* Botones de acción con tono (panel de administración) */
+.cp-btn.cp-tone-ok, .cp-btn.cp-tone-ok:hover:not(:disabled) { color: var(--ok); }
+.cp-btn.cp-tone-bad, .cp-btn.cp-tone-bad:hover:not(:disabled) { color: var(--bad); }
+.cp-btn.cp-tone-violet, .cp-btn.cp-tone-violet:hover:not(:disabled) { color: var(--violet); }
+.cp-btn.cp-tone-ok { border-color: rgb(var(--ok-rgb) / 0.4); }
+.cp-btn.cp-tone-bad { border-color: rgb(var(--bad-rgb) / 0.4); }
+.cp-btn.cp-tone-violet { border-color: rgb(var(--violet-rgb) / 0.4); }
+.cp-btn.cp-tone-ok:hover:not(:disabled) { background: rgb(var(--ok-rgb) / 0.1); border-color: var(--ok); }
+.cp-btn.cp-tone-bad:hover:not(:disabled) { background: rgb(var(--bad-rgb) / 0.1); border-color: var(--bad); }
+.cp-btn.cp-tone-violet:hover:not(:disabled) { background: rgb(var(--violet-rgb) / 0.1); border-color: var(--violet); }
+
+/* Un botón que se lee como enlace: para acciones que van dentro de una frase. */
+.cp-link-btn {
+  display: inline;
+  min-height: 24px;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.cp-link-btn:hover { text-shadow: 0 0 8px rgb(var(--accent-rgb) / 0.4); }
+
+.cp-icon-btn-danger { color: var(--bad); }
+.cp-icon-btn-danger:hover { border-color: var(--bad); color: var(--bad); box-shadow: 0 0 0 1px var(--bad); }
+.cp-icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ─── Insignias ──────────────────────────────────────────────── */
+.cp-badge-ok { background: rgb(var(--ok-rgb) / 0.1); color: var(--ok); border-color: rgb(var(--ok-rgb) / 0.3); }
+.cp-badge-bad { background: rgb(var(--bad-rgb) / 0.12); color: var(--bad); border-color: rgb(var(--bad-rgb) / 0.35); }
+.cp-badge-violet { background: rgb(var(--violet-rgb) / 0.12); color: var(--violet); border-color: rgb(var(--violet-rgb) / 0.35); }
+.cp-badge-muted { background: rgb(var(--ink-rgb) / 0.06); color: var(--ink-soft); border-color: var(--line-strong); }
+
+/* Estado de un pedido: el color llega en --estado (ver utils/estados.ts) y
+   siempre va acompañado de su nombre escrito. */
+.cp-status {
+  color: var(--estado, var(--ink-soft));
+  border-color: var(--estado, var(--line-strong));
+  background: rgb(var(--ink-rgb) / 0.05);
+  font-weight: 600;
+}
+@supports (background: color-mix(in srgb, red 10%, transparent)) {
+  .cp-status {
+    background: color-mix(in srgb, var(--estado, var(--ink-soft)) 14%, transparent);
+    border-color: color-mix(in srgb, var(--estado, var(--ink-soft)) 50%, transparent);
+  }
+}
+
+/* ─── Formularios ────────────────────────────────────────────── */
+.cp-input:disabled, .cp-select:disabled { opacity: 0.6; cursor: not-allowed; }
+.cp-input[aria-invalid="true"] { border-color: var(--bad); box-shadow: 0 0 10px rgb(var(--bad-rgb) / 0.1); }
+/* El borde de un campo de texto es lo que lo distingue del fondo: debe verse con
+   al menos 3:1 (el gris azulado de antes llegaba a 1.9:1). El foco y el error
+   siguen mandando por tener más especificidad. */
+.cp-input, .cp-select, .cp-textarea { border-color: var(--control-border); }
+
+.cp-select-sm { width: auto; min-height: 36px; padding: 6px 10px; font-size: 0.8125rem; }
+.cp-textarea { min-height: 72px; resize: vertical; line-height: 1.5; }
+.cp-textarea-mono { font-family: var(--font-mono); font-size: 0.8125rem; }
+
+/* El asterisco de "obligatorio" lo pone el CSS; la nota del formulario lo explica. */
+.cp-label.requerido::after {
+  content: ' *';
+  content: ' *' / '';   /* el lector de pantalla ya sabe que es obligatorio por el campo */
+  color: var(--bad);
+  font-weight: 700;
+}
+
+.cp-field-hint { color: var(--ink-soft); font-size: 0.8125rem; line-height: 1.5; }
+.cp-field-error::before {
+  content: '⚠ ';
+  content: '⚠ ' / '';
+}
+
+.cp-form-note { margin: 0 0 16px; color: var(--ink-soft); font-size: 0.8125rem; line-height: 1.6; }
+.cp-form-note-center { margin: 12px 0 0; text-align: center; }
+
+.cp-form-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+
+.cp-check-field { flex-direction: row; align-items: center; gap: 10px; padding-top: 28px; }
+.cp-check { flex-shrink: 0; }
+
+/* Casillas de verificación: la nativa se veía como un cuadro gris ya relleno en
+   los temas oscuros, y no se notaba si estaba marcada o no. Esta tiene borde
+   claro, se llena con el color de acento y dibuja la palomita. */
+.cp-filter-checkbox input[type="checkbox"],
+.cp-prefs-opcion input[type="checkbox"],
+.cp-check {
+  -webkit-appearance: none;
+  appearance: none;
+  display: inline-grid;
+  place-content: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--ink-soft);
+  border-radius: 5px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.cp-filter-checkbox input[type="checkbox"]::before,
+.cp-prefs-opcion input[type="checkbox"]::before,
+.cp-check::before {
+  content: '';
+  width: 11px;
+  height: 11px;
+  background: var(--accent-ink);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  transform: scale(0);
+  transition: transform 0.12s ease;
+}
+.cp-filter-checkbox input[type="checkbox"]:checked,
+.cp-prefs-opcion input[type="checkbox"]:checked,
+.cp-check:checked {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.cp-filter-checkbox input[type="checkbox"]:checked::before,
+.cp-prefs-opcion input[type="checkbox"]:checked::before,
+.cp-check:checked::before { transform: scale(1); }
+.cp-filter-checkbox input[type="checkbox"]:focus-visible,
+.cp-prefs-opcion input[type="checkbox"]:focus-visible,
+.cp-check:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.cp-filter-checkbox input[type="checkbox"]:disabled,
+.cp-prefs-opcion input[type="checkbox"]:disabled,
+.cp-check:disabled { opacity: 0.5; cursor: not-allowed; }
+.cp-label-inline { text-transform: none; letter-spacing: normal; font-size: 0.875rem; color: var(--ink); }
+
+/* Campo con un botón pegado a la derecha ("Mostrar" en la contraseña) */
+.cp-input-wrap { position: relative; display: flex; }
+.cp-input-wrap .cp-input { flex: 1; }
+.cp-input-wrap.con-accion .cp-input { padding-right: 5.5rem; }
+.cp-input-action {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  min-width: 24px;
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.cp-input-action:hover { background: rgb(var(--accent-rgb) / 0.1); }
+
+/* ─── Estados: cargando, vacío, error ────────────────────────── */
+.cp-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 64px 24px;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+}
+
+/* Mientras llega una lista nueva se atenúa la anterior en vez de vaciarla. */
+.cp-recargando { opacity: 0.55; transition: opacity 0.2s ease; cursor: progress; }
+.cp-actualizando {
+  margin: 0 0 12px;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.cp-empty,
+.cp-errorstate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 56px 24px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+.cp-empty-icon { color: var(--ink-soft); }
+.cp-empty-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.cp-empty-body, .cp-errorstate-body {
+  max-width: 46ch;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+.cp-empty-body p + p { margin-top: 8px; }
+.cp-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 10px; }
+
+.cp-errorstate { border-style: solid; border-color: rgb(var(--bad-rgb) / 0.4); background: rgb(var(--bad-rgb) / 0.05); }
+.cp-errorstate-icon { color: var(--bad); }
+.cp-errorstate-title { font-family: var(--font-display); font-size: 1.25rem; font-weight: 400; }
+
+/* Error dentro de un formulario o una tabla */
+.cp-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 16px 0;
+  padding: 12px 14px;
+  border: 1px solid rgb(var(--bad-rgb) / 0.4);
+  border-left-width: 4px;
+  border-radius: var(--radius);
+  background: rgb(var(--bad-rgb) / 0.08);
+  font-size: 0.875rem;
+}
+/* El aviso vacío existe para que el lector de pantalla anuncie lo que llegue después. */
+.cp-error:empty { margin: 0; padding: 0; border: 0; background: none; }
+.cp-error-icon { flex-shrink: 0; margin-top: 3px; color: var(--bad); }
+.cp-error-msg { font-weight: 600; color: var(--ink); }
+.cp-error-hint { margin-top: 2px; color: var(--ink-soft); }
+.cp-error-code { margin-top: 6px; color: var(--ink-soft); font-family: var(--font-mono); font-size: 0.75rem; }
+.cp-error-retry { margin-top: 10px; }
+
+/* Aviso que se queda en la página (sesión vencida, borrador recuperado...) */
+.cp-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0 0 20px;
+  padding: 12px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.cp-notice-icon { flex-shrink: 0; margin-top: 2px; }
+.cp-notice-body { flex: 1; min-width: 0; }
+.cp-notice-actions { flex-shrink: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.cp-notice-info { border-color: rgb(var(--accent-rgb) / 0.45); background: rgb(var(--accent-rgb) / 0.07); }
+.cp-notice-info .cp-notice-icon { color: var(--accent); }
+.cp-notice-ok { border-color: rgb(var(--ok-rgb) / 0.45); background: rgb(var(--ok-rgb) / 0.07); }
+.cp-notice-ok .cp-notice-icon { color: var(--ok); }
+.cp-notice-warn { border-color: rgb(var(--warn-rgb) / 0.55); background: rgb(var(--warn-rgb) / 0.09); }
+.cp-notice-warn .cp-notice-icon { color: var(--warn); }
+
+/* Sin internet: ocupa todo el ancho, debajo de la barra de navegación. */
+.cp-connection-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 24px;
+  border-bottom: 2px solid var(--warn);
+  background: rgb(var(--warn-rgb) / 0.16);
+  color: var(--ink);
+  font-size: 0.875rem;
+  text-align: center;
+}
+.cp-connection-banner svg { flex-shrink: 0; color: var(--warn); }
+
+/* Esqueleto de la ficha */
+.cp-skeleton-detail-img { width: 100%; aspect-ratio: 4 / 3; border-radius: var(--radius-lg); }
+
+/* ─── Migas de pan ───────────────────────────────────────────── */
+.cp-breadcrumbs { margin: 20px 0 8px; font-size: 0.8125rem; }
+.cp-breadcrumbs ol { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; list-style: none; }
+.cp-breadcrumbs li { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-soft); }
+.cp-breadcrumbs a {
+  padding: 4px 2px;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.cp-breadcrumbs a:hover { color: var(--accent); }
+.cp-breadcrumbs [aria-current="page"] { color: var(--ink); font-weight: 500; }
+
+/* ─── Paginación ─────────────────────────────────────────────── */
+.cp-pagination { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 32px; }
+.cp-pagination-count {
+  min-width: 4.5rem;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+/* ─── Filtros activos ────────────────────────────────────────── */
+.cp-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 20px; list-style: none; }
+.cp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: rgb(var(--accent-rgb) / 0.08);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+.cp-chip:hover { background: rgb(var(--accent-rgb) / 0.18); }
+.cp-suggestion { font-weight: 700; }
+
+/* ─── Guía de bienvenida ─────────────────────────────────────── */
+.cp-onboarding {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px 32px;
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  border: 1px solid rgb(var(--accent-rgb) / 0.4);
+  border-radius: var(--radius-lg);
+  background: rgb(var(--accent-rgb) / 0.06);
+}
+.cp-onboarding-body { flex: 1 1 320px; }
+.cp-onboarding-title {
+  margin-bottom: 10px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.cp-onboarding-list { display: flex; flex-direction: column; gap: 6px; list-style: none; color: var(--ink-soft); font-size: 0.875rem; line-height: 1.5; }
+.cp-onboarding-list strong { color: var(--ink); }
+.cp-onboarding-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* ─── Cierre del diálogo de preferencias ─────────────────────── */
+.cp-prefs-close { margin-left: auto; }
+
+/* ─── Enlaces con aspecto de píldora (temas de ayuda) ────────── */
+a.cp-pill { text-decoration: none; }
+
+/* ─── Pie de página ──────────────────────────────────────────── */
+.cp-footer-links a, .cp-footer-link-btn { padding-block: 2px; }
+.cp-footer-link-btn {
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  transition: all 0.25s ease;
+}
+.cp-footer-link-btn:hover { color: var(--accent); text-shadow: 0 0 8px rgb(var(--accent-rgb) / 0.3); padding-left: 4px; }
+
+/* ─── Barra de promociones y navegación ──────────────────────── */
+/* Con el texto agrandado la barra crece en vez de recortar el mensaje. */
+.cp-promo-bar { height: auto; min-height: 36px; }
+.cp-promo-bar-close { justify-content: center; min-width: 28px; min-height: 28px; border-radius: 6px; }
+.cp-promo-bar-link { padding-block: 4px; }
+
+/* Si la barra no cabe en una línea (pantalla angosta o texto grande), los
+   elementos pasan a la siguiente fila en vez de salirse de la pantalla. */
+.cp-nav-inner { height: auto; min-height: var(--nav-h); flex-wrap: wrap; gap: 8px 24px; padding-block: 6px; }
+.cp-nav-links { flex-wrap: wrap; gap: 4px 24px; }
+.cp-nav-link { display: inline-flex; align-items: center; min-height: 32px; }
+.cp-nav .cp-logo { min-height: 32px; }
+@media (max-width: 768px) {
+  /* Con el menú de hamburguesa estos accesos viven dentro del menú. */
+  .cp-nav .cp-hide-mobile { display: none; }
+}
+
+/* ─── Tarjetas de equipo agotado ─────────────────────────────── */
+.cp-phone-card.agotado .cp-phone-card-img img { filter: grayscale(0.85); opacity: 0.7; }
+.cp-phone-card.agotado .cp-phone-card-name { color: var(--ink-soft); }
+
+/* ─── Productos recientes ────────────────────────────────────── */
+.cp-recent { margin-top: 56px; }
+.cp-recent-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; margin-bottom: 16px; }
+.cp-recent-title { font-family: var(--font-display); font-size: 1rem; letter-spacing: 0.04em; text-transform: uppercase; }
+.cp-recent-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 16px; list-style: none; }
+.cp-recent-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  padding: 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  background: var(--glass-bg);
+  color: var(--ink);
+  text-decoration: none;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.cp-recent-item:hover { border-color: rgb(var(--accent-rgb) / 0.4); box-shadow: 0 0 16px rgb(var(--accent-rgb) / 0.1); }
+.cp-recent-item img, .cp-recent-ph { width: 100%; aspect-ratio: 4 / 3; border-radius: 8px; object-fit: cover; }
+.cp-recent-ph { display: grid; place-items: center; background: var(--surface-2); font-size: 2rem; }
+.cp-recent-name { font-size: 0.875rem; font-weight: 500; line-height: 1.35; }
+.cp-recent-price { margin-top: auto; color: var(--accent); font-family: var(--font-mono); font-size: 0.8125rem; }
+
+/* ─── Filtros del catálogo ───────────────────────────────────── */
+.cp-filters-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.cp-filters-head .cp-filters-title { margin-bottom: 0; }
+.cp-filters-toggle {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+.cp-filters-body { display: flex; flex-direction: column; gap: 20px; }
+.cp-filter-label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+@media (max-width: 768px) {
+  /* En pantallas angostas el panel ocupaba toda la primera pantalla: se pliega. */
+  .cp-filters { gap: 0; padding: 16px; }
+  .cp-filters-toggle { display: inline-flex; }
+  .cp-filters-body { padding-top: 16px; }
+  .cp-filters:not(.abierto) .cp-filters-body { display: none; }
+}
+
+/* ─── Carrito: aviso de envío gratis, cantidades, quitar ─────── */
+.cp-drawer-count { color: var(--accent); }
+.cp-drawer-empty-icon { font-size: 3rem; }
+.cp-drawer-remove { align-self: flex-start; color: var(--ink-soft); }
+.cp-drawer-remove:hover { color: var(--bad); border-color: var(--bad); }
+
+.cp-qty-btn[aria-disabled="true"] { opacity: 0.35; cursor: not-allowed; }
+.cp-qty-btn[aria-disabled="true"]:hover { border-color: var(--line-strong); color: var(--ink); box-shadow: none; }
+.cp-qty-note { color: var(--warn); font-family: var(--font-mono); font-size: 0.75rem; }
+
+.cp-shipbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgb(var(--accent-rgb) / 0.05);
+}
+.cp-shipbar-text { color: var(--ink-soft); font-size: 0.8125rem; line-height: 1.4; }
+.cp-shipbar-text strong { color: var(--ink); }
+.cp-shipbar-track { height: 6px; overflow: hidden; border-radius: 3px; background: var(--line-strong); }
+.cp-shipbar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--ok)); transition: width 0.4s ease; }
+
+/* ─── Barra de compra fija (ficha) ───────────────────────────── */
+.cp-sticky-cart-btn { padding: 10px 18px; }
+.cp-sticky-cart-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgb(var(--ink-rgb) / 0.45);
+}
+.cp-sticky-cart-trust svg { flex-shrink: 0; }
+/* Al final de la página la barra no debe tapar el pie. */
+body:has(.cp-sticky-cart.visible) .cp-footer { padding-bottom: 104px; }
+
+/* ─── Movimiento reducido: las barras de avance no se animan ──── */
+html[data-movimiento="reducido"] .cp-shipbar-fill,
+html[data-movimiento="reducido"] .cp-order-status-bar-fill,
+html[data-movimiento="reducido"] .cp-battery-fill { transition: none; }
+
+/* ─── Windows en alto contraste: los fondos desaparecen, los bordes quedan ── */
+@media (forced-colors: active) {
+  .cp-chip, .cp-badge, .cp-notice, .cp-error, .cp-errorstate, .cp-connection-banner, .cp-onboarding { border: 1px solid CanvasText; }
+  .cp-shipbar-track, .cp-battery-bar, .cp-order-status-bar { border: 1px solid CanvasText; }
+  .cp-shipbar-fill, .cp-battery-fill, .cp-order-status-bar-fill, .cp-progress-step.hecho { background: Highlight; forced-color-adjust: none; }
+  .cp-progress-step { border: 1px solid CanvasText; }
+  .cp-sticky-cart-dot { forced-color-adjust: none; }
+  .cp-filter-checkbox input[type="checkbox"],
+  .cp-prefs-opcion input[type="checkbox"],
+  .cp-check { forced-color-adjust: none; border-color: ButtonText; background: Field; }
+  .cp-filter-checkbox input[type="checkbox"]:checked,
+  .cp-prefs-opcion input[type="checkbox"]:checked,
+  .cp-check:checked { border-color: Highlight; background: Highlight; }
+  .cp-filter-checkbox input[type="checkbox"]::before,
+  .cp-prefs-opcion input[type="checkbox"]::before,
+  .cp-check::before { background: HighlightText; }
+}

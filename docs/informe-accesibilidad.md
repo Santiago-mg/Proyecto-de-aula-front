@@ -56,3 +56,8 @@ estos resultados automáticos.
    Playwright, o abrir la extensión **axe DevTools** en Chrome.
 3. Alternativa sin código: Chrome → DevTools → Lighthouse → categoría
    *Accessibility*.
+
+
+## Actualización (octubre 2026)
+
+Tras la refactorización de experiencia de uso se repitió la auditoría con axe-core 4.10 sobre 19 pantallas (públicas, sesión de usuario y panel) en los tres temas: **0 violaciones** en oscuro, claro y alto contraste. Además, no hay desbordes horizontales entre 320 y 1280 px. El detalle de cambios está en [`mejoras-ux.md`](mejoras-ux.md).

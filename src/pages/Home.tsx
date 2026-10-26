@@ -16,35 +16,15 @@ function Destacados({ loading, featured }: Readonly<{ loading: boolean; featured
 
   if (featured.length === 0) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100%',
-          color: 'var(--ink-soft)',
-          flexDirection: 'column',
-          gap: 12,
-        }}
-      >
-        <span style={{ fontSize: 40 }}>📱</span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>
-          Pronto habrá equipos disponibles.
-        </span>
+      <div className="cp-featured-empty">
+        <span className="cp-featured-empty-icon" aria-hidden="true">📱</span>
+        <span className="cp-featured-empty-text">Pronto habrá equipos disponibles.</span>
       </div>
     )
   }
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: 14,
-        height: '100%',
-        overflow: 'hidden',
-      }}
-    >
+    <div className="cp-featured-grid">
       {featured.slice(0, 6).map((p) => (
         <PhoneCard key={p.id} phone={p} />
       ))}
@@ -74,27 +54,18 @@ export function Home() {
       <ShaderBackground />
 
       {/* ─── HERO — Primera mitad: elipses flotantes + texto ──── */}
-      <section className="cp-hero" style={{ background: 'transparent', padding: 0 }}>
+      <section className="cp-hero cp-hero-open">
         <HeroGeometric>
           {/* Contenido propio de CelularPro dentro del wrapper de formas */}
           <div className="cp-container cp-hero-content">
-            <div
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 11,
-                letterSpacing: '0.22em',
-                textTransform: 'uppercase',
-                color: 'var(--accent)',
-                marginBottom: 28,
-              }}
-            >
+            <div className="cp-eyebrow cp-eyebrow-hero">
               — Celulares certificados · Medellín, Colombia
             </div>
             <h1 className="cp-hero-title">
               Compra un celular
               <br />
               en el que puedes{' '}
-              <em style={{ color: 'var(--accent)', fontWeight: 300 }}>
+              <em className="cp-em-accent">
                 confiar.
               </em>
             </h1>
@@ -136,47 +107,18 @@ export function Home() {
 
       {/* ─── CATÁLOGO CON SCROLL ANIMATION — Segunda mitad: plasma shader ── */}
       {/* background: transparent → el ShaderBackground se ve directamente */}
-      <section className="cp-section" style={{ background: 'transparent', overflow: 'hidden' }}>
+      <section className="cp-section cp-section-open">
         <ContainerScroll
           titleComponent={
-            <div style={{ paddingBottom: 8 }}>
-              <div
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 12,
-                  color: 'var(--accent)',
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  marginBottom: 20,
-                }}
-              >
+            <div className="cp-showcase-head">
+              <div className="cp-eyebrow cp-eyebrow-mb20">
                 — Catálogo destacado
               </div>
-              <h2
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: 'clamp(32px, 5vw, 72px)',
-                  fontWeight: 700,
-                  letterSpacing: '0.02em',
-                  textTransform: 'uppercase',
-                  lineHeight: 1,
-                  marginBottom: 16,
-                }}
-              >
+              <h2 className="cp-showcase-title">
                 Celulares listos{' '}
-                <span style={{ color: 'var(--accent)', textShadow: '0 0 20px rgba(0,229,255,0.4)' }}>
-                  para hoy.
-                </span>
+                <span className="cp-showcase-glow">para hoy.</span>
               </h2>
-              <p
-                style={{
-                  color: 'var(--ink-soft)',
-                  fontSize: 16,
-                  maxWidth: 520,
-                  margin: '0 auto',
-                  lineHeight: 1.6,
-                }}
-              >
+              <p className="cp-showcase-desc">
                 Nuevos, certificados y usados verificados. Todos con IMEI
                 limpio y garantía real.
               </p>
@@ -189,7 +131,7 @@ export function Home() {
 
         {/* CTA debajo de la tarjeta */}
         <RevealOnScroll>
-          <div style={{ textAlign: 'center', paddingBottom: 48 }}>
+          <div className="cp-center-cta">
             <Link to="/catalog" className="cp-btn cp-btn-primary cp-btn-lg">
               Ver catálogo completo →
             </Link>
@@ -202,22 +144,12 @@ export function Home() {
         <div className="cp-container">
           <RevealOnScroll>
             <div className="cp-manifesto-header">
-              <span
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 12,
-                  color: 'var(--accent)',
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                — Por qué existimos
-              </span>
+              <span className="cp-eyebrow">— Por qué existimos</span>
               <h2 className="cp-manifesto-title">
                 El mercado de celulares usados
                 <br />
                 tiene un problema de{' '}
-                <em style={{ color: 'var(--accent)', fontWeight: 300 }}>
+                <em className="cp-em-accent">
                   confianza.
                 </em>
               </h2>
@@ -263,16 +195,7 @@ export function Home() {
           <RevealOnScroll>
             <div className="cp-section-header">
               <div>
-                <div
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 12,
-                    color: 'var(--accent)',
-                    letterSpacing: '0.18em',
-                    textTransform: 'uppercase',
-                    marginBottom: 16,
-                  }}
-                >
+                <div className="cp-eyebrow cp-eyebrow-mb16">
                   — Categorías más buscadas
                 </div>
                 <h2 className="cp-section-title">
@@ -326,7 +249,7 @@ export function Home() {
                   </div>
                   <div className="cp-category-card-body">
                     <span className="cp-category-card-label">{category.title}</span>
-                    <p style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 4 }}>
+                    <p className="cp-category-card-sub">
                       {category.subtitle}
                     </p>
                   </div>
@@ -341,16 +264,7 @@ export function Home() {
       <section className="cp-section">
         <div className="cp-container">
           <RevealOnScroll>
-            <div
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 12,
-                color: 'var(--accent)',
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                marginBottom: 40,
-              }}
-            >
+            <div className="cp-eyebrow cp-eyebrow-mb40">
               — Voces reales
             </div>
           </RevealOnScroll>
@@ -379,7 +293,7 @@ export function Home() {
                   </blockquote>
                   <figcaption className="cp-testimonial-author">
                     <div>{t.a}</div>
-                    <div style={{ color: 'var(--ink-soft)', fontSize: 12 }}>
+                    <div className="cp-testimonial-role">
                       {t.r}
                     </div>
                   </figcaption>
@@ -395,21 +309,12 @@ export function Home() {
         <div className="cp-container">
           <RevealOnScroll>
             <div className="cp-cta-banner">
-              <div
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 11,
-                  color: 'var(--accent)',
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  marginBottom: 16,
-                }}
-              >
+              <div className="cp-eyebrow cp-eyebrow-mb16">
                 — Empieza hoy
               </div>
               <h2 className="cp-cta-title">
                 Tu próximo celular,{' '}
-                <em style={{ fontWeight: 300 }}>sin riesgos.</em>
+                <em className="cp-em-light">sin riesgos.</em>
               </h2>
               <p className="cp-cta-desc">
                 Regístrate gratis. Compra con garantía real. Si no queda

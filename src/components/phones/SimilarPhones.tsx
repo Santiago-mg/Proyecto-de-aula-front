@@ -41,17 +41,8 @@ export function SimilarPhones({ slug }: Readonly<{ slug: string }>) {
   if (phones.length === 0) return null
 
   return (
-    <section aria-labelledby="titulo-similares" style={{ marginTop: 64 }}>
-      <h2
-        id="titulo-similares"
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 32,
-          fontWeight: 400,
-          letterSpacing: '-0.02em',
-          marginBottom: 24,
-        }}
-      >
+    <section aria-labelledby="titulo-similares" className="cp-detail-section">
+      <h2 id="titulo-similares" className="cp-detail-h2">
         También te puede interesar
       </h2>
       <div className="cp-phones-grid">

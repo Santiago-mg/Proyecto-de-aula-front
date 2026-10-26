@@ -81,7 +81,7 @@ describe('ESC-29 · Seguridad (front) — panel de estadísticas', () => {
     abrirApp('/admin/stats')
 
     // Assert
-    expect(await screen.findByText('Error')).to.exist
+    expect(await screen.findByText('No se pudieron cargar las estadísticas')).to.exist
     expect(screen.queryByText(/ECONNREFUSED/)).to.equal(null)
   })
 })

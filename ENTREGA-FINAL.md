@@ -22,7 +22,7 @@ con `npm run dev`. Administrador del seed: `admin@celularpro.co` / `admin1234`.
 celularpro-backend   typecheck → 426 pruebas → SonarQube (Quality Gate) → build → imagen celularpro-api
 celularpro-front     typecheck → Gherkin verificado → 415 pruebas → SonarQube (Quality Gate) → build → imagen
 orquestador          backend → front → Docker (db + migraciones + seed + API + front)
-                     → 3b. Cypress API + E2E + accesibilidad + Gherkin CONTRA LO DESPLEGADO
+                     → 3b. Cypress API + E2E (func. 13, 26 a 30) CONTRA LO DESPLEGADO
                      → Vercel → 5. Cypress contra Vercel (si se dan URL_FRONT_VERCEL y URL_API_VERCEL)
 ```
 

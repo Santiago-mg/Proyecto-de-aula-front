@@ -6,7 +6,7 @@
 //   1. Backend     corre el job celularpro-backend  (pruebas + SonarQube + imagen)
 //   2. Frontend    corre el job celularpro-front    (pruebas + SonarQube + imagen)
 //   3. Docker      levanta la app completa: base de datos, API y front
-//   3b. Pruebas    Cypress (API, E2E, accesibilidad y Gherkin) contra lo desplegado en Docker
+//   3b. Pruebas    Cypress (API y E2E de las funcionalidades 13, 26 a 30) contra lo desplegado en Docker
 //   4. Vercel      publica la API y el front
 //   5. Pruebas     Cypress contra lo publicado en Vercel (si se dan sus URLs)
 //
@@ -41,6 +41,11 @@ pipeline {
             name: 'VITE_API_URL',
             defaultValue: 'http://localhost:3001/api/v1',
             description: 'URL de la API que queda grabada en el front de Docker.'
+        )
+        booleanParam(
+            name: 'INCLUIR_UI_DE_MARIO',
+            defaultValue: false,
+            description: 'Correr tambien los E2E y el Gherkin de cypress/e2e y cypress/gherkin. Estan escritos para la interfaz de Mario (pagina /profile, /admin/alerts, otra ayuda) y este front no la tiene: fallan hasta que esas pantallas existan.'
         )
         booleanParam(
             name: 'DESPLEGAR_VERCEL',
@@ -171,15 +176,25 @@ pipeline {
                 sh 'npm ci --no-audit --no-fund'
                 // API: contrato, seguridad (cabeceras, 403 al banear a un admin, 429...) y regresión
                 sh 'CY_SUITE=post-despliegue-api npx cypress run --spec "cypress/api/**/*.cy.ts"'
-                // E2E: las 6 funcionalidades, usabilidad y accesibilidad (WCAG 2.1 AA)
-                sh 'CY_SUITE=post-despliegue-e2e npx cypress run --spec "cypress/e2e/**/*.cy.ts"'
-                // Gherkin + Screenplay: los mismos escenarios Dado–Cuando–Entonces, sobre lo desplegado
-                sh 'npx cypress run --config-file cypress.gherkin.config.ts'
+                // E2E de las funcionalidades 13, 26, 27, 28, 29 y 30 (Screenplay): 20 de interfaz
+                // y 12 de API. Es un proyecto aparte, con su propio package.json. Sus direcciones
+                // por defecto (front :8081, API :3001) son las del Docker recién levantado.
+                dir('e2e/santiago/cypress') {
+                    sh 'npm ci --no-audit --no-fund'
+                    sh 'npx cypress run'
+                }
+                script {
+                    if (params.INCLUIR_UI_DE_MARIO) {
+                        // Recorridos de la interfaz de Mario y su Gherkin: ver el parámetro.
+                        sh 'CY_SUITE=post-despliegue-e2e npx cypress run --spec "cypress/e2e/**/*.cy.ts"'
+                        sh 'npx cypress run --config-file cypress.gherkin.config.ts'
+                    }
+                }
             }
             post {
                 always {
                     junit testResults: 'cypress/resultados/*.xml', allowEmptyResults: true
-                    archiveArtifacts artifacts: 'cypress/screenshots/**,cypress/videos/**,cypress/gherkin/reportes/**', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'cypress/screenshots/**,cypress/videos/**,cypress/gherkin/reportes/**,e2e/santiago/cypress/cypress/screenshots/**', allowEmptyArchive: true
                 }
             }
         }
@@ -236,13 +251,21 @@ pipeline {
                 sh 'npm ci --no-audit --no-fund'
                 // Contrato y seguridad de la API publicada
                 sh 'CY_SUITE=vercel-api npx cypress run --spec "cypress/api/**/*.cy.ts"'
-                // Recorridos principales sobre el front publicado
-                sh 'CY_SUITE=vercel-e2e npx cypress run --spec "cypress/e2e/acceso.cy.ts,cypress/e2e/perfil-y-roles.cy.ts,cypress/e2e/heuristicas.cy.ts"'
+                // Recorridos de las funcionalidades 13, 26 a 30 sobre lo publicado
+                dir('e2e/santiago/cypress') {
+                    sh 'npm ci --no-audit --no-fund'
+                    sh 'E2E_FRONT_URL="$CYPRESS_BASE_URL" E2E_API_URL="$CYPRESS_API_URL" npx cypress run'
+                }
+                script {
+                    if (params.INCLUIR_UI_DE_MARIO) {
+                        sh 'CY_SUITE=vercel-e2e npx cypress run --spec "cypress/e2e/acceso.cy.ts,cypress/e2e/perfil-y-roles.cy.ts,cypress/e2e/heuristicas.cy.ts"'
+                    }
+                }
             }
             post {
                 always {
                     junit testResults: 'cypress/resultados/*.xml', allowEmptyResults: true
-                    archiveArtifacts artifacts: 'cypress/screenshots/**,cypress/videos/**', allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'cypress/screenshots/**,cypress/videos/**,e2e/santiago/cypress/cypress/screenshots/**', allowEmptyArchive: true
                 }
             }
         }

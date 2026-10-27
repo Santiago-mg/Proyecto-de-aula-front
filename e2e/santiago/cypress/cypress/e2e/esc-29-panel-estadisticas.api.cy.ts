@@ -1,3 +1,4 @@
+import '../support/hooks'
 import { theResponseTo } from '../support/questions/Api'
 import { actorCalled } from '../support/screenplay/actor'
 import { StartApiSession } from '../support/tasks/api/ApiSession'

@@ -1,3 +1,4 @@
+import '../support/hooks'
 import { lastResponseOf } from '../support/questions/Api'
 import { Messages } from '../support/questions/Messages'
 import { UsersTable } from '../support/questions/Users'

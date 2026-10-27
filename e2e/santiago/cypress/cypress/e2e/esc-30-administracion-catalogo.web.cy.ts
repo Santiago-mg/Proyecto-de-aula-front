@@ -1,3 +1,4 @@
+import '../support/hooks'
 import { CatalogAdmin } from '../support/questions/Catalog'
 import { PhoneDetail } from '../support/questions/Recommendations'
 import { actorCalled } from '../support/screenplay/actor'

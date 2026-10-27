@@ -1,3 +1,4 @@
+import '../support/hooks'
 import { Messages } from '../support/questions/Messages'
 import { theResponseTo } from '../support/questions/Api'
 import { UsersTable } from '../support/questions/Users'

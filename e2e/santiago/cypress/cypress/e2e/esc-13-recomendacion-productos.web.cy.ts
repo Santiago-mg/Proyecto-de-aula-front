@@ -1,3 +1,4 @@
+import '../support/hooks'
 import { Recommendations, PhoneDetail } from '../support/questions/Recommendations'
 import { actorCalled } from '../support/screenplay/actor'
 import { TestData } from '../support/screenplay/testData'

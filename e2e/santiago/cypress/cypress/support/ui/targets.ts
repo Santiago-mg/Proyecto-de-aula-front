@@ -28,9 +28,10 @@ export const Login = {
   email: '#email',
   password: '#password',
   submit: 'form button[type="submit"]',
-  // El error del servidor es el párrafo suelto del formulario; los errores de
-  // cada campo llevan la clase cp-field-error.
-  error: 'form > p:not(.cp-field-error)',
+  // El aviso de error del servidor (componente ErrorMessage): un recuadro con
+  // role="alert" y, adentro, el mensaje. Los errores de cada campo son otra
+  // cosa (llevan la clase cp-field-error y no tienen role="alert").
+  error: 'form [role="alert"] .cp-error-msg',
 }
 
 export const Common = {
@@ -67,10 +68,12 @@ export const AdminPanel = {
   cardValue: '.cp-kpi-value',
 }
 
+// Cada fila de /admin/stats es una lista de definiciones: <dt> con la etiqueta
+// y <dd> con el valor.
 export const Statistics = {
   row: 'div.cp-stats-detail-row',
-  rowIsLabeled: (label: string): ElementFilter => hasDescendantText('span', label),
-  rowValue: 'span.cp-stats-detail-value',
+  rowIsLabeled: (label: string): ElementFilter => hasDescendantText('dt', label),
+  rowValue: 'dd.cp-stats-detail-value',
 }
 
 /** /admin/phones — ESC-30 */
@@ -92,7 +95,8 @@ export const PhoneForm = {
   price: '#price',
   stock: '#stock',
   submit: 'form button[type="submit"]',
-  error: 'form > p:not(.cp-field-error)',
+  // Mismo aviso de error del servidor que en el inicio de sesión.
+  error: 'form [role="alert"] .cp-error-msg',
 }
 
 /** La ficha de un celular y su sección "También te puede interesar" — ESC-13 */
@@ -100,7 +104,9 @@ const RECOMMENDATIONS = 'section[aria-labelledby="titulo-similares"]'
 export const PhoneDetail = {
   name: 'h1.cp-detail-name',
   price: '.cp-detail-price',
-  notice: 'h2',
+  // Avisos como "Celular no encontrado": la pantalla de aviso los escribe como
+  // encabezado de nivel 1 cuando no hay otro título en la página.
+  notice: 'h1, h2',
   recommendations: RECOMMENDATIONS,
   recommendedNames: `${RECOMMENDATIONS} h3.cp-phone-card-name`,
   recommendationLinks: `${RECOMMENDATIONS} a`,

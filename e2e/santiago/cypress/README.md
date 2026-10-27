@@ -55,8 +55,12 @@ Serenity: aquí es exactamente lo mismo.
 cypress/
   e2e/                    → los casos: un archivo por funcionalidad y tipo
   support/
-    e2e.ts                → antes de cada prueba: reparto y datos nuevos;
-                            después: borra los celulares que se publicaron
+    hooks.ts              → antes de cada prueba: reparto y datos nuevos;
+                            después: borra los celulares que se publicaron.
+                            Cada archivo de pruebas lo importa en su primera
+                            línea (si viviera en e2e.ts, Cypress lo empaquetaría
+                            aparte y no compartiría los datos con la prueba)
+    e2e.ts                → archivo de soporte de Cypress (vacío a propósito)
     screenplay/           → actor.ts (Actor, libreta de notas), question.ts
                             (Questions y verificaciones), testData.ts, environment.ts
     tasks/                → lo que hace un actor (LogIn, BanUser, PublishPhone...)

@@ -1,3 +1,4 @@
+import '../support/hooks'
 import { BanModal, UsersTable } from '../support/questions/Users'
 import { Messages } from '../support/questions/Messages'
 import { actorCalled } from '../support/screenplay/actor'

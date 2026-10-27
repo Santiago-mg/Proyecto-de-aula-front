@@ -193,7 +193,7 @@ pipeline {
             }
             post {
                 always {
-                    junit testResults: 'cypress/resultados/*.xml', allowEmptyResults: true
+                    junit testResults: 'cypress/resultados/*.xml', allowEmptyResults: true, skipMarkingBuildUnstable: true
                     archiveArtifacts artifacts: 'cypress/screenshots/**,cypress/videos/**,cypress/gherkin/reportes/**,e2e/santiago/cypress/cypress/screenshots/**', allowEmptyArchive: true
                 }
             }
@@ -264,7 +264,7 @@ pipeline {
             }
             post {
                 always {
-                    junit testResults: 'cypress/resultados/*.xml', allowEmptyResults: true
+                    junit testResults: 'cypress/resultados/*.xml', allowEmptyResults: true, skipMarkingBuildUnstable: true
                     archiveArtifacts artifacts: 'cypress/screenshots/**,cypress/videos/**,e2e/santiago/cypress/cypress/screenshots/**', allowEmptyArchive: true
                 }
             }

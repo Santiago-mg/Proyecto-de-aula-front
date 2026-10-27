@@ -48,6 +48,7 @@ npm run cy:gherkin
 npm run gherkin:verificar        # sin navegador
 npm run stagehand:test           # Stagehand de Mario (ver e2e/stagehand/LEEME.md)
 cd e2e/santiago/stagehand && npm test   # Stagehand de Santiago
+cd e2e/santiago/playwright-agents && npm test   # Playwright Test Agents de Santiago
 ```
 
 Cada subcarpeta de `e2e/` tiene su propio `LEEME.md` o `README.md`.

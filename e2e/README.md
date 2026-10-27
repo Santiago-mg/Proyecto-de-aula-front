@@ -12,6 +12,7 @@ sección 1. Por defecto esperan el front en <http://localhost:8081> y la API en
 |---|---|---|---|---|
 | [`santiago/serenityjs/`](santiago/serenityjs/README.md) | Santiago | Serenity/JS + Playwright + Cucumber | Funcionalidades 13, 26–30 (web y API) | 32 de 32 |
 | [`santiago/cypress/`](santiago/cypress/README.md) | Santiago | Cypress + TypeScript (estructura Screenplay) | Las mismas 13, 26–30 (web y API) | 32 de 32 |
+| [`santiago/playwright-agents/`](santiago/playwright-agents/README.md) | Santiago | Playwright Test Agents (Planner, Generator, Healer) | Las mismas 13, 26–30, con plan en `specs/` | 24 de 24 (entorno de laboratorio) |
 | [`mario/`](mario/README.md) | Mario | Serenity/JS + Cucumber (Gherkin) y Katalon Recorder | Registro, inicio de sesión, credenciales, roles (+ perfil y alertas de stock, pendientes) | 13 de 13 activos; 13 pendientes; Katalon 3 de 3 activos |
 | [`companero-test/`](companero-test/README.md) | Compañero sin identificar (archivo `test.zip`) | Serenity/JS con Playwright Test | Login, catálogo, banear, desbanear, cancelar pedido (+ favoritos, pendiente) | 6 de 6 activos; 1 pendiente |
 
@@ -23,6 +24,9 @@ cd e2e/santiago/serenityjs && npm install && npx playwright install chromium && 
 
 # Santiago (Cypress)
 cd e2e/santiago/cypress && npm install && npm test
+
+# Santiago (Playwright Test Agents)
+cd e2e/santiago/playwright-agents && npm install && npx playwright install chromium && npm test
 
 # Mario
 cd e2e/mario && npm ci && npx playwright install chromium

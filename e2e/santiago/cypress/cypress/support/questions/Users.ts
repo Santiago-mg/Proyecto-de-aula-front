@@ -18,7 +18,7 @@ export const UsersTable = {
   totalShown: () => textOf('total de usuarios en pantalla', UsersPage.total, toNumber),
   // Partes de la fila de un usuario, para comprobar que están o no están.
   ownAccountMarkOf: (email: string) => textOf(`marca "(tú)" de ${email}`, () => UsersPage.ownAccountMark(email)),
-  banButtonOf: (email: string) => textOf(`botón Banear de ${email}`, () => UsersPage.banButton(email)),
+  banButtonOf: (email: string) => textOf(`botón Banear de ${email}`, () => UsersPage.rowWithBanButton(email)),
 }
 
 export const BanModal = {

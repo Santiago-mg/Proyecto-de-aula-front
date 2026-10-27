@@ -8,6 +8,7 @@ import {
   PhoneForm,
   Statistics,
   Users,
+  hasDescendantText,
   hasText,
   isLeaf,
   startsWithText,
@@ -46,6 +47,10 @@ export const UsersPage = {
   ownAccountMark: (email: string) => UsersPage.row(email).find('span').filter(hasText('(tú)')),
   banButton: (email: string) => UsersPage.row(email).find('button').filter(hasText('Banear')),
   unbanButton: (email: string) => UsersPage.row(email).find('button').filter(hasText('Desbanear')),
+  // La fila de ese usuario, solo si tiene el botón "Banear". Sirve para
+  // comprobar que el botón NO está: la cuenta propia no tiene ningún botón y
+  // `find('button')` falla cuando no encuentra nada, aunque se esperara eso.
+  rowWithBanButton: (email: string) => UsersPage.row(email).filter(hasDescendantText('button', 'Banear')),
 }
 
 export const BanModalPage = {

@@ -115,7 +115,7 @@ export function PreferencesDialog({
               onChange={(e) => cambiar({ movimiento: (e.target.checked ? 'reducido' : 'sistema') as Movimiento })}
             />
             <span>
-              Reducir animaciones
+              {'Reducir animaciones'}
               <small>Detiene la barra que se desplaza y los efectos de fondo</small>
             </span>
           </label>

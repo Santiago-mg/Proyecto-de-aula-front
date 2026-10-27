@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description>ESC-28 Consultar usuarios</description>
+   <name>E2E_ESC28_ConsultarUsuarios</name>
+   <tag></tag>
+   <comment></comment>
+   <recordOption>OTHER</recordOption>
+   <testCaseGuid>97465fb9-9357-4195-8164-b873704a0889</testCaseGuid>
+</TestCaseEntity>

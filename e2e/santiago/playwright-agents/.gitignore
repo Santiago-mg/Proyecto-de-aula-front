@@ -4,3 +4,4 @@ resultados/
 evidencia/
 test-results/
 playwright-report/
+.playwright-mcp/

@@ -42,7 +42,7 @@ Para ver el navegador mientras corre: `npx playwright test --headed`. Para depur
 ### Correr los agentes
 
 Los agentes viven en `.claude/agents/` y el servidor MCP de Playwright en `.mcp.json` (se generaron con
-`npm run agentes`). Se usan desde Claude Code abierto **en esta carpeta**:
+`npm run agentes`). Las reglas que deben seguir los agentes (datos por la API, sin correos fijos, un test por archivo) están en `CLAUDE.md`. Se usan desde Claude Code abierto **en esta carpeta**:
 
 ```bash
 cd e2e/santiago/playwright-agents
@@ -56,6 +56,11 @@ claude
 | Healer | `Usa playwright-test-healer para reparar las pruebas que fallan` |
 
 El `seed.spec.ts` deja a la administradora con la sesión iniciada: es el punto de partida de los tres agentes.
+
+Si Claude Code no carga el servidor del `.mcp.json` (en `claude mcp list` no aparece `playwright-test`), se registra a mano desde esta
+carpeta y queda conectado: `claude mcp add playwright-test -- npx playwright run-test-mcp-server`. El nombre debe ser `playwright-test`,
+porque los agentes usan herramientas con ese nombre. En las versiones nuevas de Claude Code ya no existe `/agents`: basta con
+nombrar al agente en el mensaje.
 
 ## 3. Pruebas
 
@@ -91,7 +96,7 @@ Cómo están hechas:
 | 1 | Front compilado del código actual + API de laboratorio | 24 de 24 pasan | 56 s |
 | 2 | Igual, repetida 3 veces seguidas (`--repeat-each=3`) | 72 de 72 pasan | 2,7 min |
 | 3 | Front con 4 defectos inyectados a propósito (ver abajo) | 19 pasan, 5 fallan | 1,8 min |
-| 4 | Docker del equipo (completar al correrlo) | _ de 24 | _ |
+| 4 | Docker del equipo (front y API reales) | 24 de 24 pasan | 46 s |
 
 **Comprobación de que detectan defectos (corrida 3).** Se compiló una copia del front con cuatro defectos puestos a propósito
 y se corrió la suite contra ella: el motivo mínimo de baneo bajado de 4 a 3, la cifra «Baneados» mostrando la de

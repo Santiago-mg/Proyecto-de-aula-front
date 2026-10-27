@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+	<testsuite name="Humo: Stagehand puede leer CelularPro" time="7.935832" disabled="0" errors="0" tests="2" failures="0" skipped="0" timestamp="2026-10-27T01:28:54.471Z" hostname="MacBook-Air-de-santiago.local">
+		<testcase name="extract: lee el nombre de la tienda en la página de inicio" time="5.300191" classname="test" file="/Users/santiago/Documents/Proyecto-de-aula-front/e2e/santiago/stagehand/tests/00-humo.test.ts"/>
+		<testcase name="observe: encuentra el acceso al catálogo sin tocar nada" time="1.475810" classname="test" file="/Users/santiago/Documents/Proyecto-de-aula-front/e2e/santiago/stagehand/tests/00-humo.test.ts"/>
+	</testsuite>
+	<!-- tests 2 -->
+	<!-- suites 1 -->
+	<!-- pass 2 -->
+	<!-- fail 0 -->
+	<!-- cancelled 0 -->
+	<!-- skipped 0 -->
+	<!-- todo 0 -->
+	<!-- duration_ms 8278.10725 -->
+</testsuites>

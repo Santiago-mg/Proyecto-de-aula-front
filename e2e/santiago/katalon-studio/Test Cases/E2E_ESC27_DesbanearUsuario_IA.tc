@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description></description>
+   <name>E2E_ESC27_DesbanearUsuario_IA</name>
+   <tag></tag>
+   <integratedEntity>
+      <productName>TESTOPS</productName>
+      <properties>
+         <entry>
+            <key>createdByName</key>
+            <value>santihawking</value>
+         </entry>
+         <entry>
+            <key>lastModifiedByName</key>
+            <value>santihawking</value>
+         </entry>
+         <entry>
+            <key>createdByUuid</key>
+            <value>2744bbf2-f4c3-445a-b2ed-7cab43a9c3c4</value>
+         </entry>
+         <entry>
+            <key>lastModifiedByUuid</key>
+            <value>2744bbf2-f4c3-445a-b2ed-7cab43a9c3c4</value>
+         </entry>
+      </properties>
+      <type>TESTCASE</type>
+   </integratedEntity>
+   <comment></comment>
+   <recordOption>OTHER</recordOption>
+   <testCaseGuid>43673be4-82a6-460a-b33d-30e83ea8d2e2</testCaseGuid>
+</TestCaseEntity>

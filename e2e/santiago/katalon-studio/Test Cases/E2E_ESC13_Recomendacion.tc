@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description>ESC-13 Recomendacion de productos</description>
+   <name>E2E_ESC13_Recomendacion</name>
+   <tag></tag>
+   <comment></comment>
+   <recordOption>OTHER</recordOption>
+   <testCaseGuid>d579528c-7fc3-4cfb-a912-180a9a5c5def</testCaseGuid>
+</TestCaseEntity>

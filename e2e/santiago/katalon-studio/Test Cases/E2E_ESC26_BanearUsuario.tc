@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description>ESC-26 Banear usuario</description>
+   <name>E2E_ESC26_BanearUsuario</name>
+   <tag></tag>
+   <comment></comment>
+   <recordOption>OTHER</recordOption>
+   <testCaseGuid>bd3f5462-04c8-41a7-a830-eaa566d6ce07</testCaseGuid>
+</TestCaseEntity>

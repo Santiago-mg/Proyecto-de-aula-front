@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description></description>
+   <name>E2E_ESC30_AdministracionCatalogo_IA</name>
+   <tag></tag>
+   <integratedEntity>
+      <productName>TESTOPS</productName>
+      <properties>
+         <entry>
+            <key>createdByName</key>
+            <value>santihawking</value>
+         </entry>
+         <entry>
+            <key>lastModifiedByName</key>
+            <value>santihawking</value>
+         </entry>
+         <entry>
+            <key>createdByUuid</key>
+            <value>2744bbf2-f4c3-445a-b2ed-7cab43a9c3c4</value>
+         </entry>
+         <entry>
+            <key>lastModifiedByUuid</key>
+            <value>2744bbf2-f4c3-445a-b2ed-7cab43a9c3c4</value>
+         </entry>
+      </properties>
+      <type>TESTCASE</type>
+   </integratedEntity>
+   <comment></comment>
+   <recordOption>OTHER</recordOption>
+   <testCaseGuid>1331aa78-3b67-4945-8a04-628999cb6f92</testCaseGuid>
+</TestCaseEntity>

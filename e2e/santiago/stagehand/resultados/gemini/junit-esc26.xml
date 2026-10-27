@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+	<testsuite name="ESC-26 Banear usuario" time="21.746426" disabled="0" errors="0" tests="2" failures="0" skipped="0" timestamp="2026-10-27T01:47:17.545Z" hostname="MacBook-Air-de-santiago.local">
+		<testcase name="act + extract: Ana banea a Carlos con un motivo y Carlos ya no puede entrar" time="8.987650" classname="test" file="/Users/santiago/Documents/Proyecto-de-aula-front/e2e/santiago/stagehand/tests/esc-26-banear.test.ts"/>
+		<testcase name="observe + extract: con un motivo de menos de 4 caracteres no se puede confirmar" time="6.736463" classname="test" file="/Users/santiago/Documents/Proyecto-de-aula-front/e2e/santiago/stagehand/tests/esc-26-banear.test.ts"/>
+	</testsuite>
+	<!-- tests 2 -->
+	<!-- suites 1 -->
+	<!-- pass 2 -->
+	<!-- fail 0 -->
+	<!-- cancelled 0 -->
+	<!-- skipped 0 -->
+	<!-- todo 0 -->
+	<!-- duration_ms 21961.648834 -->
+</testsuites>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description>ESC-29 Panel de estadisticas</description>
+   <name>E2E_ESC29_PanelEstadisticas</name>
+   <tag></tag>
+   <comment></comment>
+   <recordOption>OTHER</recordOption>
+   <testCaseGuid>fcc8a647-aa2a-4c1d-b60e-36c1e63de60f</testCaseGuid>
+</TestCaseEntity>

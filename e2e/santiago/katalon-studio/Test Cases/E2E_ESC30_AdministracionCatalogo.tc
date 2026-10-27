@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description>ESC-30 Administracion del catalogo</description>
+   <name>E2E_ESC30_AdministracionCatalogo</name>
+   <tag></tag>
+   <comment></comment>
+   <recordOption>OTHER</recordOption>
+   <testCaseGuid>5fc2d77b-9627-48c3-8573-ab936cd03e1d</testCaseGuid>
+</TestCaseEntity>

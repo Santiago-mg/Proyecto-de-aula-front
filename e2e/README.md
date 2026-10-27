@@ -13,6 +13,7 @@ sección 1. Por defecto esperan el front en <http://localhost:8081> y la API en
 | [`santiago/serenityjs/`](santiago/serenityjs/README.md) | Santiago | Serenity/JS + Playwright + Cucumber | Funcionalidades 13, 26–30 (web y API) | 32 de 32 |
 | [`santiago/cypress/`](santiago/cypress/README.md) | Santiago | Cypress + TypeScript (estructura Screenplay) | Las mismas 13, 26–30 (web y API) | 32 de 32 |
 | [`santiago/playwright-agents/`](santiago/playwright-agents/README.md) | Santiago | Playwright Test Agents (Planner, Generator, Healer) | Las mismas 13, 26–30, con plan en `specs/` | 24 de 24 (entorno de laboratorio) |
+| [`santiago/katalon-studio/`](santiago/katalon-studio/README.md) | Santiago | Katalon Studio 11 con StudioAssist (IA) | Las mismas 13, 26–30: 6 casos escritos a mano y 6 `_IA` generados con el asistente | Se corre desde Katalon Studio |
 | [`mario/`](mario/README.md) | Mario | Serenity/JS + Cucumber (Gherkin) y Katalon Recorder | Registro, inicio de sesión, credenciales, roles (+ perfil y alertas de stock, pendientes) | 13 de 13 activos; 13 pendientes; Katalon 3 de 3 activos |
 | [`companero-test/`](companero-test/README.md) | Compañero sin identificar (archivo `test.zip`) | Serenity/JS con Playwright Test | Login, catálogo, banear, desbanear, cancelar pedido (+ favoritos, pendiente) | 6 de 6 activos; 1 pendiente |
 
@@ -27,6 +28,8 @@ cd e2e/santiago/cypress && npm install && npm test
 
 # Santiago (Playwright Test Agents)
 cd e2e/santiago/playwright-agents && npm install && npx playwright install chromium && npm test
+
+# Santiago (Katalon Studio): abrir la carpeta e2e/santiago/katalon-studio como proyecto en Katalon Studio y correr la suite TS_CelularPro_E2E
 
 # Mario
 cd e2e/mario && npm ci && npx playwright install chromium

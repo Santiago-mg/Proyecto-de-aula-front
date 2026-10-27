@@ -1,0 +1,161 @@
+{
+  "prueba": "esc-26-banear",
+  "proveedor": "gemini",
+  "modelo": "google/gemini-3.5-flash-lite",
+  "fecha": "2026-10-27T01:47:39.249Z",
+  "segundos": 21.1,
+  "llamadas": {
+    "act": 10,
+    "observe": 2,
+    "extract": 2
+  },
+  "tokensEntrada": 30293,
+  "tokensSalida": 802,
+  "capturas": [
+    "evidencias/gemini/esc-26-banear/01-motivo-escrito.png",
+    "evidencias/gemini/esc-26-banear/02-carlos-baneado.png",
+    "evidencias/gemini/esc-26-banear/03-motivo-corto.png"
+  ],
+  "pasos": [
+    {
+      "n": 1,
+      "tipo": "act",
+      "instruccion": "escribe %correo% en el campo de correo electrónico",
+      "segundos": 1.7,
+      "exito": true,
+      "tokensEntrada": 1102,
+      "tokensSalida": 61,
+      "detalle": "Action [fill] performed successfully on selector: xpath=/html[1]/body[1]/div[1]/main[1]/div[1]/div[1]/form[1]/div[1]/div[1]/input[1]"
+    },
+    {
+      "n": 2,
+      "tipo": "act",
+      "instruccion": "escribe %clave% en el campo de contraseña",
+      "segundos": 1.7,
+      "exito": true,
+      "tokensEntrada": 1119,
+      "tokensSalida": 65,
+      "detalle": "Action [fill] performed successfully on selector: xpath=/html[1]/body[1]/div[1]/main[1]/div[1]/div[1]/form[1]/div[2]/div[1]/input[1]"
+    },
+    {
+      "n": 3,
+      "tipo": "act",
+      "instruccion": "pulsa el botón Ingresar del formulario",
+      "segundos": 1.4,
+      "exito": true,
+      "tokensEntrada": 1035,
+      "tokensSalida": 61,
+      "detalle": "Action [click] performed successfully on selector: xpath=/html[1]/body[1]/div[1]/main[1]/div[1]/div[1]/form[1]/button[1]"
+    },
+    {
+      "n": 4,
+      "tipo": "act",
+      "instruccion": "escribe %busqueda% en el buscador de usuarios",
+      "segundos": 1.4,
+      "exito": true,
+      "tokensEntrada": 7655,
+      "tokensSalida": 70,
+      "detalle": "Action [fill] performed successfully on selector: xpath=/html[1]/body[1]/div[1]/div[2]/div[1]/main[1]/div[1]/div[2]/input[1]"
+    },
+    {
+      "n": 5,
+      "tipo": "observe",
+      "instruccion": "el botón Banear de la fila del usuario carlos.sh.mvq0zgin0@gmail.com",
+      "segundos": 0.8,
+      "exito": true,
+      "tokensEntrada": 1163,
+      "tokensSalida": 73,
+      "detalle": "1 elemento(s)"
+    },
+    {
+      "n": 6,
+      "tipo": "act",
+      "instruccion": "click: El botón Banear para el usuario carlos.sh.mvq0zgin0@gmail.com",
+      "segundos": 0,
+      "exito": true,
+      "tokensEntrada": 0,
+      "tokensSalida": 0,
+      "detalle": "Action [click] performed successfully on selector: xpath=/html[1]/body[1]/div[1]/div[2]/div[1]/main[1]/div[1]/div[3]/table[1]/tbody[1]/tr[1]/td[6]/div[1]/button[1]"
+    },
+    {
+      "n": 7,
+      "tipo": "act",
+      "instruccion": "escribe %motivo% en el campo del motivo del baneo",
+      "segundos": 1.5,
+      "exito": true,
+      "tokensEntrada": 2042,
+      "tokensSalida": 70,
+      "detalle": "Action [fill] performed successfully on selector: xpath=/html[1]/body[1]/div[1]/div[2]/div[1]/main[1]/div[1]/div[1]/div[1]/form[1]/div[1]/input[1]"
+    },
+    {
+      "n": 8,
+      "tipo": "act",
+      "instruccion": "pulsa el botón Confirmar baneo",
+      "segundos": 1.6,
+      "exito": true,
+      "tokensEntrada": 1956,
+      "tokensSalida": 60,
+      "detalle": "Action [click] performed successfully on selector: xpath=/html[1]/body[1]/div[1]/div[2]/div[1]/main[1]/div[1]/div[1]/div[1]/form[1]/div[2]/button[2]"
+    },
+    {
+      "n": 9,
+      "tipo": "extract",
+      "instruccion": "el estado (por ejemplo Activo o Baneado) y el motivo de baneo que se ven en la fila del usuario carlos.sh.mvq0zgin0@gmail.com",
+      "segundos": 2.4,
+      "exito": true,
+      "tokensEntrada": 1373,
+      "tokensSalida": 79,
+      "detalle": "{\"estado\":\"BANEADO\",\"motivo\":\"Spam en los comentarios\"}"
+    },
+    {
+      "n": 10,
+      "tipo": "act",
+      "instruccion": "escribe %busqueda% en el buscador de usuarios",
+      "segundos": 1.5,
+      "exito": true,
+      "tokensEntrada": 7936,
+      "tokensSalida": 71,
+      "detalle": "Action [fill] performed successfully on selector: xpath=/html[1]/body[1]/div[1]/div[2]/div[1]/main[1]/div[1]/div[2]/input[1]"
+    },
+    {
+      "n": 11,
+      "tipo": "observe",
+      "instruccion": "el botón Banear de la fila del usuario bruno.sh.mvq0zgin1@gmail.com",
+      "segundos": 0.9,
+      "exito": true,
+      "tokensEntrada": 1217,
+      "tokensSalida": 75,
+      "detalle": "1 elemento(s)"
+    },
+    {
+      "n": 12,
+      "tipo": "act",
+      "instruccion": "click: El botón Banear para el usuario bruno.sh.mvq0zgin1@gmail.com",
+      "segundos": 0,
+      "exito": true,
+      "tokensEntrada": 0,
+      "tokensSalida": 0,
+      "detalle": "Action [click] performed successfully on selector: xpath=/html[1]/body[1]/div[1]/div[2]/div[1]/main[1]/div[1]/div[3]/table[1]/tbody[1]/tr[1]/td[6]/div[1]/button[1]"
+    },
+    {
+      "n": 13,
+      "tipo": "act",
+      "instruccion": "escribe %motivo% en el campo del motivo del baneo",
+      "segundos": 1.6,
+      "exito": true,
+      "tokensEntrada": 2096,
+      "tokensSalida": 70,
+      "detalle": "Action [fill] performed successfully on selector: xpath=/html[1]/body[1]/div[1]/div[2]/div[1]/main[1]/div[1]/div[1]/div[1]/form[1]/div[1]/input[1]"
+    },
+    {
+      "n": 14,
+      "tipo": "extract",
+      "instruccion": "el título del cuadro de diálogo que está abierto",
+      "segundos": 1.7,
+      "exito": true,
+      "tokensEntrada": 1599,
+      "tokensSalida": 47,
+      "detalle": "{\"titulo\":\"BANEAR USUARIO\"}"
+    }
+  ]
+}

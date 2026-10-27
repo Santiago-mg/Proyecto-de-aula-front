@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description></description>
+   <name>E2E_ESC26_BanearUsuario_IA</name>
+   <tag></tag>
+   <integratedEntity>
+      <productName>TESTOPS</productName>
+      <properties>
+         <entry>
+            <key>createdByName</key>
+            <value>santihawking</value>
+         </entry>
+         <entry>
+            <key>lastModifiedByName</key>
+            <value>santihawking</value>
+         </entry>
+         <entry>
+            <key>createdByUuid</key>
+            <value>2744bbf2-f4c3-445a-b2ed-7cab43a9c3c4</value>
+         </entry>
+         <entry>
+            <key>lastModifiedByUuid</key>
+            <value>2744bbf2-f4c3-445a-b2ed-7cab43a9c3c4</value>
+         </entry>
+      </properties>
+      <type>TESTCASE</type>
+   </integratedEntity>
+   <comment></comment>
+   <recordOption>OTHER</recordOption>
+   <testCaseGuid>af134d6f-164f-477a-a5b3-d692c1c5bf0a</testCaseGuid>
+</TestCaseEntity>

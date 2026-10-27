@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TestCaseEntity>
+   <description>ESC-27 Desbanear usuario</description>
+   <name>E2E_ESC27_DesbanearUsuario</name>
+   <tag></tag>
+   <comment></comment>
+   <recordOption>OTHER</recordOption>
+   <testCaseGuid>3e9588d7-350d-4e50-ac61-f934a82642d4</testCaseGuid>
+</TestCaseEntity>

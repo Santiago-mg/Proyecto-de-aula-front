@@ -1,0 +1,21 @@
+{
+  "name": "celularpro-e2e-autify-nexus",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Escenarios E2E de CelularPro para Autify Nexus (importables y exportables como Playwright)",
+  "scripts": {
+    "listar": "playwright test --list",
+    "test": "playwright test",
+    "test:escenarios": "playwright test escenarios",
+    "test:exportados": "playwright test exportados",
+    "reporte": "playwright show-report reports/html",
+    "rp:importar": "node ../../reportportal/importar-junit.mjs reports/junit-nexus.xml autify-nexus \"Escenarios Autify Nexus (Playwright)\""
+  },
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@reportportal/agent-js-playwright": "5.5.0"
+  }
+}

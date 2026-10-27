@@ -13,3 +13,24 @@ reports
 
 # Archivos temporales que genera Vite al recargar una config en TypeScript
 vite.config.ts.timestamp-*
+
+# Herramientas de pruebas (pruebas-qa-mario)
+e2e/serenityjs/node_modules/
+e2e/serenityjs/reports/
+e2e/serenityjs/lib/
+cypress/screenshots/
+cypress/resultados/
+cypress/videos/
+# Herramientas de IA y ReportPortal
+e2e/autify-nexus/node_modules/
+e2e/autify-nexus/reports/
+e2e/autify-nexus/test-results/
+e2e/momentic/node_modules/
+e2e/momentic/reports/
+e2e/serenityjs/reports/junit-serenity.xml
+e2e/katalon/evidencia/junit-katalon.xml
+reportportal/.env
+e2e/stagehand/node_modules/
+e2e/stagehand/reports/
+e2e/stagehand/.cache/
+cypress/gherkin/reportes/

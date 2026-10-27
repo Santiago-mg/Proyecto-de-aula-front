@@ -1,0 +1,15 @@
+default:
+  requireModule:
+    - ts-node/register
+  require:
+    - features/**/*.steps.ts
+    - features/**/*.config.ts
+  format:
+    - '@serenity-js/cucumber'
+    # JUnit para ReportPortal (reportportal/importar-junit.mjs). El agente oficial de
+    # Cucumber solo soporta hasta la 12.x y aquí se usa la 13: se importa el JUnit.
+    - 'junit:reports/junit-serenity.xml'
+  paths:
+    - features/**/*.feature
+  publishQuiet: true
+

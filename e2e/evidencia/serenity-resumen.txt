@@ -1,0 +1,14 @@
+Execution Summary
+
+Alertas de stock bajo:          7 successful, 7 total (41s 423ms)
+Control de roles:               3 successful, 3 total (9s 611ms)
+Gestión de perfil:              4 successful, 4 total (25s 391ms)
+Inicio de sesión:               5 successful, 5 total (56s 252ms)
+Registro de usuario:            6 successful, 6 total (21s 76ms)
+Validación de credenciales...:  3 successful, 3 total (10s 784ms)
+
+Total time: 2m 44s 537ms
+Real time: 2m 45s 308ms
+Scenarios:  28
+================================================================================
+pasos verificados: 740

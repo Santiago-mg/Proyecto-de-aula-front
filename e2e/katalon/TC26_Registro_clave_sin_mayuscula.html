@@ -1,0 +1,15 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>TC26_Registro_clave_sin_mayuscula</title></head><body><table cellpadding="1" cellspacing="1" border="1"><thead><tr><td rowspan="1" colspan="3">TC26_Registro_clave_sin_mayuscula</td></tr></thead><tbody><tr><td>store</td><td>http://localhost:5173</td><td>BASE</td></tr>
+<tr><td>open</td><td>${BASE}/login</td><td></td></tr>
+<tr><td>runScript</td><td>localStorage.clear(); sessionStorage.clear();</td><td></td></tr>
+<tr><td>storeEval</td><td>&#x27;qa+&#x27; + Date.now() + &#x27;@gmail.com&#x27;</td><td>correo</td></tr>
+<tr><td>open</td><td>${BASE}/register</td><td></td></tr>
+<tr><td>waitForElementPresent</td><td>id=name</td><td></td></tr>
+<tr><td>type</td><td>id=name</td><td>Ana Pérez</td></tr>
+<tr><td>type</td><td>id=email</td><td>${correo}</td></tr>
+<tr><td>type</td><td>id=password</td><td>segura2026x</td></tr>
+<tr><td>type</td><td>id=confirmPassword</td><td>segura2026x</td></tr>
+<tr><td>click</td><td>css=form button[type=&quot;submit&quot;]</td><td></td></tr>
+<tr><td>waitForElementPresent</td><td>css=.cp-field-error</td><td></td></tr>
+<tr><td>assertText</td><td>css=.cp-field-error</td><td>glob:*La contraseña debe incluir al menos una letra mayúscula*</td></tr>
+<tr><td>assertLocation</td><td>glob:*/register</td><td></td></tr>
+<tr><td>assertElementPresent</td><td>id=password</td><td></td></tr></tbody></table></body></html>

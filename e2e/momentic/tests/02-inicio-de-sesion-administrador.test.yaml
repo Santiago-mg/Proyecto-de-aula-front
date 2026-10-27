@@ -1,0 +1,8 @@
+fileType: momentic/test/v2
+id: celularpro-login-admin
+description: Inicio de sesión — el administrador entra y ve su cuenta y el acceso al panel
+defaultEnv: local
+labels: [login, roles, positivo]
+steps:
+  - module: ../modules/ingresar-admin.module.yaml
+  - assert: The navigation bar shows a "Mi cuenta" link and a "Panel admin" link

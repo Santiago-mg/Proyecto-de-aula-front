@@ -1,0 +1,11 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>TC27_Ayuda_desde_ingresar</title></head><body><table cellpadding="1" cellspacing="1" border="1"><thead><tr><td rowspan="1" colspan="3">TC27_Ayuda_desde_ingresar</td></tr></thead><tbody><tr><td>store</td><td>http://localhost:5173</td><td>BASE</td></tr>
+<tr><td>open</td><td>${BASE}/login</td><td></td></tr>
+<tr><td>runScript</td><td>localStorage.clear(); sessionStorage.clear();</td><td></td></tr>
+<tr><td>waitForElementPresent</td><td>id=email</td><td></td></tr>
+<tr><td>assertElementPresent</td><td>xpath=//a[normalize-space()=&#x27;← Volver a la tienda&#x27;]</td><td></td></tr>
+<tr><td>click</td><td>xpath=//a[normalize-space()=&#x27;Centro de ayuda&#x27;]</td><td></td></tr>
+<tr><td>waitForElementPresent</td><td>xpath=//h1[normalize-space()=&#x27;Centro de ayuda&#x27;]</td><td></td></tr>
+<tr><td>assertLocation</td><td>glob:*/ayuda#guia-no-puedo-ingresar</td><td></td></tr>
+<tr><td>assertText</td><td>xpath=//article[@id=&#x27;guia-no-puedo-ingresar&#x27;]//h3</td><td>No puedo ingresar</td></tr>
+<tr><td>assertElementPresent</td><td>xpath=//h2[normalize-space()=&#x27;Preguntas frecuentes&#x27;]</td><td></td></tr>
+<tr><td>assertElementPresent</td><td>xpath=//a[@href=&#x27;mailto:soporte@celularpro.co&#x27;]</td><td></td></tr></tbody></table></body></html>

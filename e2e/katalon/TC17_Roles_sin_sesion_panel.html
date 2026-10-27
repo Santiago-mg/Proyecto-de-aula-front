@@ -1,0 +1,7 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>TC17_Roles_sin_sesion_panel</title></head><body><table cellpadding="1" cellspacing="1" border="1"><thead><tr><td rowspan="1" colspan="3">TC17_Roles_sin_sesion_panel</td></tr></thead><tbody><tr><td>store</td><td>http://localhost:5173</td><td>BASE</td></tr>
+<tr><td>open</td><td>${BASE}/login</td><td></td></tr>
+<tr><td>runScript</td><td>localStorage.clear(); sessionStorage.clear();</td><td></td></tr>
+<tr><td>storeEval</td><td>&#x27;qa+&#x27; + Date.now() + &#x27;@gmail.com&#x27;</td><td>correo</td></tr>
+<tr><td>open</td><td>${BASE}/admin</td><td></td></tr>
+<tr><td>waitForElementPresent</td><td>id=email</td><td></td></tr>
+<tr><td>assertLocation</td><td>glob:*/login</td><td></td></tr></tbody></table></body></html>

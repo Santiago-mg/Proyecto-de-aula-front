@@ -1,0 +1,14 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>TC18_Roles_admin_entra_al_panel</title></head><body><table cellpadding="1" cellspacing="1" border="1"><thead><tr><td rowspan="1" colspan="3">TC18_Roles_admin_entra_al_panel</td></tr></thead><tbody><tr><td>store</td><td>http://localhost:5173</td><td>BASE</td></tr>
+<tr><td>open</td><td>${BASE}/login</td><td></td></tr>
+<tr><td>runScript</td><td>localStorage.clear(); sessionStorage.clear();</td><td></td></tr>
+<tr><td>storeEval</td><td>&#x27;qa+&#x27; + Date.now() + &#x27;@gmail.com&#x27;</td><td>correo</td></tr>
+<tr><td>open</td><td>${BASE}/login</td><td></td></tr>
+<tr><td>waitForElementPresent</td><td>id=email</td><td></td></tr>
+<tr><td>type</td><td>id=email</td><td>admin@celularpro.co</td></tr>
+<tr><td>type</td><td>id=password</td><td>admin1234</td></tr>
+<tr><td>click</td><td>css=form button[type=&quot;submit&quot;]</td><td></td></tr>
+<tr><td>waitForElementPresent</td><td>xpath=//h1[contains(.,&#x27;Hola&#x27;)]</td><td></td></tr>
+<tr><td>open</td><td>${BASE}/admin</td><td></td></tr>
+<tr><td>waitForElementPresent</td><td>xpath=//h1[normalize-space()=&#x27;Panel&#x27;]</td><td></td></tr>
+<tr><td>assertElementPresent</td><td>xpath=//h1[normalize-space()=&#x27;Panel&#x27;]</td><td></td></tr>
+<tr><td>assertLocation</td><td>glob:*/admin</td><td></td></tr></tbody></table></body></html>

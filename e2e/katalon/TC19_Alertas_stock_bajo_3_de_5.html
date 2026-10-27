@@ -1,0 +1,30 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>TC19_Alertas_stock_bajo_3_de_5</title></head><body><table cellpadding="1" cellspacing="1" border="1"><thead><tr><td rowspan="1" colspan="3">TC19_Alertas_stock_bajo_3_de_5</td></tr></thead><tbody><tr><td>store</td><td>http://localhost:5173</td><td>BASE</td></tr>
+<tr><td>open</td><td>${BASE}/login</td><td></td></tr>
+<tr><td>runScript</td><td>localStorage.clear(); sessionStorage.clear();</td><td></td></tr>
+<tr><td>storeEval</td><td>&#x27;qa+&#x27; + Date.now() + &#x27;@gmail.com&#x27;</td><td>correo</td></tr>
+<tr><td>open</td><td>${BASE}/login</td><td></td></tr>
+<tr><td>waitForElementPresent</td><td>id=email</td><td></td></tr>
+<tr><td>type</td><td>id=email</td><td>admin@celularpro.co</td></tr>
+<tr><td>type</td><td>id=password</td><td>admin1234</td></tr>
+<tr><td>click</td><td>css=form button[type=&quot;submit&quot;]</td><td></td></tr>
+<tr><td>waitForElementPresent</td><td>xpath=//h1[contains(.,&#x27;Hola&#x27;)]</td><td></td></tr>
+<tr><td>storeEval</td><td>Date.now()</td><td>ts</td></tr>
+<tr><td>storeEval</td><td>&#x27;QA Celular &#x27; + storedVars[&#x27;ts&#x27;]</td><td>nombre</td></tr>
+<tr><td>storeEval</td><td>&#x27;qa-celular-&#x27; + storedVars[&#x27;ts&#x27;]</td><td>slug</td></tr>
+<tr><td>open</td><td>${BASE}/admin/phones/new</td><td></td></tr>
+<tr><td>waitForElementPresent</td><td>id=name</td><td></td></tr>
+<tr><td>type</td><td>id=name</td><td>${nombre}</td></tr>
+<tr><td>type</td><td>id=slug</td><td>${slug}</td></tr>
+<tr><td>type</td><td>id=brand</td><td>Samsung</td></tr>
+<tr><td>select</td><td>id=categoryId</td><td>value=samsung</td></tr>
+<tr><td>type</td><td>id=price</td><td>2500000</td></tr>
+<tr><td>type</td><td>id=stock</td><td>3</td></tr>
+<tr><td>type</td><td>id=minStock</td><td>5</td></tr>
+<tr><td>click</td><td>xpath=//button[normalize-space()=&#x27;Crear celular&#x27;]</td><td></td></tr>
+<tr><td>waitForElementPresent</td><td>xpath=//h1[contains(.,&#x27;Gestión de celulares&#x27;)]</td><td></td></tr>
+<tr><td>assertLocation</td><td>glob:*/admin/phones</td><td></td></tr>
+<tr><td>open</td><td>${BASE}/admin/alerts</td><td></td></tr>
+<tr><td>waitForElementPresent</td><td>css=#alertas-lista, #alertas-vacio</td><td></td></tr>
+<tr><td>waitForElementPresent</td><td>xpath=//li[@data-testid=&#x27;alerta&#x27;][contains(.,&#x27;${nombre}&#x27;)]</td><td></td></tr>
+<tr><td>assertText</td><td>xpath=//li[@data-testid=&#x27;alerta&#x27;][contains(.,&#x27;${nombre}&#x27;)]</td><td>glob:*Stock bajo*</td></tr>
+<tr><td>assertElementPresent</td><td>css=[data-testid=&quot;insignia-alertas&quot;]</td><td></td></tr></tbody></table></body></html>

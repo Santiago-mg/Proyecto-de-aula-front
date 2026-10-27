@@ -1,0 +1,11 @@
+fileType: momentic/test/v2
+id: celularpro-roles-cliente
+description: Control de roles — un cliente que abre /admin termina en Acceso no autorizado
+defaultEnv: local
+labels: [roles, negativo]
+steps:
+  - module: ../modules/crear-cuenta-cliente.module.yaml
+  - navigate: "{{ env.BASE_URL }}/admin"
+  - waitForUrl: /unauthorized
+  - checkPageContains: Acceso no autorizado
+  - checkPageDoesNotContain: Panel admin

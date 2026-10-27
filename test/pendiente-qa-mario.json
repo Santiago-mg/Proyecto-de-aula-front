@@ -1,0 +1,15 @@
+[
+  "test/escenarios/accesibilidad-axe.test.tsx",
+  "test/escenarios/esc-31-alertas-stock.test.tsx",
+  "test/escenarios/perfil-y-sesion.test.tsx",
+  "test/unit/errores/errores-sesion.test.tsx",
+  "test/unit/gestion-perfil/ban-admin.test.tsx",
+  "test/unit/gestion-perfil/role-confirm.test.tsx",
+  "test/unit/heuristicas/ayuda.test.tsx",
+  "test/unit/heuristicas/formularios.test.tsx",
+  "test/unit/heuristicas/sistema.test.tsx",
+  "test/unit/interfaz/password-input.test.tsx",
+  "test/unit/sesion/persistencia-sesion.test.tsx",
+  "test/unit/validacion-credenciales/auth-service-contrato.test.ts",
+  "test/unit/validacion-credenciales/reglas-backend.test.ts"
+]

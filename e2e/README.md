@@ -59,3 +59,18 @@ funciones que no existen, y la lista de pendientes dice qué faltaría construir
    Una prueba que sigue en verde cuando la regla está rota no protege nada.
 3. Las que pasan se repitieron para descartar que dependan del orden o de datos
    que dejó la corrida anterior.
+
+## Herramientas incorporadas desde `pruebas-qa-mario`
+
+Estas carpetas son de la rama de Mario y cubren **sus** seis funcionalidades (registro, inicio de sesión, perfil, credenciales, roles y alertas de stock). Qué es cada una y qué falta para que pasen contra este código: [`../INTEGRACION-QA.md`](../INTEGRACION-QA.md).
+
+| Carpeta | Herramienta | Guía |
+|---|---|---|
+| [`stagehand/`](stagehand/LEEME.md) | Stagehand 3.7.3 (act, observe, extract) | `LEEME.md` |
+| [`serenityjs/`](serenityjs) | Serenity/JS + Cucumber | `package.json` |
+| [`katalon/`](katalon) | Katalon Recorder (Selenese) y su ejecutor con Playwright | `ejecutar-selenese.cjs` |
+| [`momentic/`](momentic/LEEME.md) | Momentic (IA) | `LEEME.md` |
+| [`autify-nexus/`](autify-nexus/LEEME.md) | Autify Nexus | `LEEME.md` |
+| [`evidencia/`](evidencia/RESULTADOS.md) | Resultados de Serenity y Katalon | `RESULTADOS.md` |
+
+Las pruebas de Cypress están en [`../cypress/`](../cypress/COBERTURA-6-FUNCIONALIDADES.md).

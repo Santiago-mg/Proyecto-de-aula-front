@@ -1,0 +1,9 @@
+fileType: momentic/test/v2
+id: celularpro-alertas-stock
+description: Alertas de stock bajo — el administrador ve la lista de alertas o el aviso de que no hay ninguna
+defaultEnv: local
+labels: [alertas-stock, roles, positivo]
+steps:
+  - module: ../modules/ingresar-admin.module.yaml
+  - navigate: "{{ env.BASE_URL }}/admin/alerts"
+  - assert: The page shows either a list of low-stock alerts for phones or a message saying there are no open alerts

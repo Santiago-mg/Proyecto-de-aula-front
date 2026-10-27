@@ -1,0 +1,15 @@
+{
+  "fecha": "2026-10-25T05:06:06.153Z",
+  "resultados": [
+    {
+      "nombre": "TC99_FALLA_CONTROLADA_login_clave_incorrecta",
+      "ok": false,
+      "error": "paso 23: assertText | css=.cp-error-message | glob:*Inicio de sesión exitoso*\n      → el texto mostrado es \"Credenciales inválidas\" y no coincide con \"glob:*Inicio de sesión exitoso*\"",
+      "pasos": 23,
+      "captura": "TC99_FALLA_CONTROLADA_login_clave_incorrecta.FALLO.png",
+      "segundos": 5.7,
+      "esperadoFallar": true,
+      "cumple": true
+    }
+  ]
+}

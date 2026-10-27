@@ -1,0 +1,13 @@
+fileType: momentic/module/v2
+id: celularpro-ingresar-admin
+name: ingresar-admin
+steps:
+  - navigate: "{{ env.BASE_URL }}/login"
+  - type:
+      text: "{{ env.ADMIN_EMAIL }}"
+      into: Email input
+  - type:
+      text: "{{ env.ADMIN_PASSWORD }}"
+      css: "#password"
+  - click: Ingresar submit button
+  - waitForUrl: /dashboard

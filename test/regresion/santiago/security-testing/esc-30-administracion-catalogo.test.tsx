@@ -87,7 +87,7 @@ describe('ESC-30 · Seguridad (front) — administración del catálogo', () => 
 
     // Assert
     expect(await screen.findByText('Error interno del servidor')).to.exist
-    expect(screen.queryByText(/Phone_categoryId_fkey/)).to.equal(null)
+    expect(screen.queryByText(/Phone_categoryId_fkey/)).to.be.null
   })
 
   it('la imagen principal debe ser una URL: texto suelto no llega al back', async () => {

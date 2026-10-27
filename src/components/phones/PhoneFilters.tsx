@@ -18,6 +18,10 @@ export function PhoneFilters({ query, onChange }: Readonly<PhoneFiltersProps>) {
   const idAyudaBusqueda = useId()
   const cantidad = filtrosActivos(query).length
 
+  let textoBoton = 'Mostrar filtros'
+  if (abierto) textoBoton = 'Ocultar filtros'
+  else if (cantidad > 0) textoBoton = `Mostrar filtros (${cantidad})`
+
   return (
     <section className={`cp-filters ${abierto ? 'abierto' : ''}`} aria-label="Filtros del catálogo">
       <div className="cp-filters-head">
@@ -30,7 +34,7 @@ export function PhoneFilters({ query, onChange }: Readonly<PhoneFiltersProps>) {
           onClick={() => setAbierto((v) => !v)}
         >
           <SlidersHorizontal size={14} aria-hidden="true" />
-          {abierto ? 'Ocultar filtros' : cantidad > 0 ? `Mostrar filtros (${cantidad})` : 'Mostrar filtros'}
+          {textoBoton}
         </button>
       </div>
 

@@ -57,6 +57,6 @@ describe('ESC-29 · API (front) — adminService.getStats', () => {
     // Assert
     expect(error).to.be.instanceOf(AxiosError)
     expect((error as AxiosError).code).to.equal('ERR_NETWORK')
-    expect((error as AxiosError).response).to.equal(undefined)
+    expect((error as AxiosError).response).to.be.undefined
   })
 })

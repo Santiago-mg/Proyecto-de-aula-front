@@ -76,7 +76,7 @@ describe('ESC-30 · API (front) — administración del catálogo', () => {
     const resultado = await phonesService.remove('phone-9')
 
     // Assert
-    expect(resultado).to.equal(undefined)
+    expect(resultado).to.be.undefined
     expect(servidor.peticiones('DELETE', '/phones/phone-9')).to.have.lengthOf(1)
   })
 

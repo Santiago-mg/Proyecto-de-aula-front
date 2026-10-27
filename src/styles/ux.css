@@ -231,9 +231,8 @@ html[data-tema="contraste"] a:not(.cp-btn):not(.cp-logo):not(.cp-nav-link):not(.
 .cp-prefs-grupo legend { padding: 0 6px; font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
 .cp-prefs-opcion { display: flex; gap: 12px; align-items: flex-start; padding: 8px 4px; cursor: pointer; }
 .cp-prefs-opcion input { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--accent); flex-shrink: 0; }
-.cp-prefs-opcion span { display: flex; flex-direction: column; gap: 2px; }
-.cp-prefs-opcion strong { font-weight: 600; font-size: 0.9375rem; }
-.cp-prefs-opcion small { color: var(--ink-soft); font-size: 0.8125rem; }
+.cp-prefs-opcion span { display: flex; flex-direction: column; gap: 2px; font-weight: 600; font-size: 0.9375rem; }
+.cp-prefs-opcion small { color: var(--ink-soft); font-size: 0.8125rem; font-weight: 400; }
 .cp-prefs-fila { display: flex; gap: 8px; flex-wrap: wrap; }
 .cp-prefs-chip { position: relative; cursor: pointer; }
 .cp-prefs-chip input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }

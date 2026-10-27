@@ -54,6 +54,7 @@ function BanModal({
   return (
     <div
       className="cp-modal-overlay"
+      role="presentation"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onCancel()
       }}

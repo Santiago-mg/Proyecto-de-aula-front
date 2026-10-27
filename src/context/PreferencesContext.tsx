@@ -28,9 +28,9 @@ export const PREFERENCIAS_INICIALES: Preferencias = {
 
 export const CLAVE_PREFERENCIAS = 'cp_prefs'
 
-const TEMAS: readonly Tema[] = ['sistema', 'oscuro', 'claro', 'contraste']
-const TAMANOS: readonly TamanoTexto[] = [100, 115, 130]
-const MOVIMIENTOS: readonly Movimiento[] = ['sistema', 'reducido']
+const TEMAS: ReadonlySet<Tema> = new Set<Tema>(['sistema', 'oscuro', 'claro', 'contraste'])
+const TAMANOS: ReadonlySet<TamanoTexto> = new Set<TamanoTexto>([100, 115, 130])
+const MOVIMIENTOS: ReadonlySet<Movimiento> = new Set<Movimiento>(['sistema', 'reducido'])
 
 function consulta(media: string): boolean {
   try {
@@ -46,11 +46,11 @@ export function leerPreferencias(): Preferencias {
     const crudo = localStorage.getItem(CLAVE_PREFERENCIAS)
     const guardado = (crudo ? JSON.parse(crudo) : {}) as Partial<Preferencias>
     return {
-      tema: TEMAS.includes(guardado.tema as Tema) ? (guardado.tema as Tema) : PREFERENCIAS_INICIALES.tema,
-      tamano: TAMANOS.includes(guardado.tamano as TamanoTexto)
+      tema: TEMAS.has(guardado.tema as Tema) ? (guardado.tema as Tema) : PREFERENCIAS_INICIALES.tema,
+      tamano: TAMANOS.has(guardado.tamano as TamanoTexto)
         ? (guardado.tamano as TamanoTexto)
         : PREFERENCIAS_INICIALES.tamano,
-      movimiento: MOVIMIENTOS.includes(guardado.movimiento as Movimiento)
+      movimiento: MOVIMIENTOS.has(guardado.movimiento as Movimiento)
         ? (guardado.movimiento as Movimiento)
         : PREFERENCIAS_INICIALES.movimiento,
     }

@@ -74,7 +74,7 @@ describe('ESC-13 · Regresión (front) — "También te puede interesar"', () =>
     })
 
     // Assert
-    expect(screen.queryByRole('region', { name: TITULO })).to.equal(null)
+    expect(screen.queryByRole('region', { name: TITULO })).to.be.null
   })
 
   it('si la recomendación falla, la ficha se ve completa y sin la sección', async () => {
@@ -91,8 +91,8 @@ describe('ESC-13 · Regresión (front) — "También te puede interesar"', () =>
     await waitFor(() => {
       expect(servidor.peticiones('GET', '/phones/iphone-15/similares')).to.have.lengthOf(1)
     })
-    expect(screen.queryByRole('region', { name: TITULO })).to.equal(null)
-    expect(screen.queryByText('Error interno del servidor')).to.equal(null)
+    expect(screen.queryByRole('region', { name: TITULO })).to.be.null
+    expect(screen.queryByText('Error interno del servidor')).to.be.null
   })
 
   it('si el back responde 200 pero con una página HTML (no JSON), la ficha no se rompe', async () => {
@@ -110,7 +110,7 @@ describe('ESC-13 · Regresión (front) — "También te puede interesar"', () =>
     // Assert
     expect(screen.getByRole('heading', { name: 'iPhone 15', level: 1 })).to.exist
     expect(servidor.peticiones('GET', '/phones/iphone-15/similares')).to.have.lengthOf(1)
-    expect(screen.queryByRole('region', { name: TITULO })).to.equal(null)
+    expect(screen.queryByRole('region', { name: TITULO })).to.be.null
   })
 
   it('al abrir una recomendación se muestra su ficha y se piden SUS recomendaciones', async () => {
@@ -136,7 +136,7 @@ describe('ESC-13 · Regresión (front) — "También te puede interesar"', () =>
     expect(rutaActual()).to.equal('/phones/iphone-14')
     // Mientras llegan las nuevas no quedan las del iPhone 15, que
     // recomendarían el mismo iPhone 14 que ya se está viendo.
-    expect(screen.queryByRole('region', { name: TITULO })).to.equal(null)
+    expect(screen.queryByRole('region', { name: TITULO })).to.be.null
     lentas.entregar(ok([celular({ id: 'p-4', slug: 'iphone-13', name: 'iPhone 13' })]))
     const nuevaSeccion = await screen.findByRole('region', { name: TITULO })
     expect(within(nuevaSeccion).getAllByRole('link').map((a) => a.getAttribute('href'))).to.deep.equal(['/phones/iphone-13'])

@@ -127,7 +127,7 @@ describe('ESC-26 · Seguridad (front) — banear usuario', () => {
 
     // Assert
     expect(await screen.findByText('Error interno del servidor')).to.exist
-    expect(screen.queryByText(/ECONNREFUSED/)).to.equal(null)
+    expect(screen.queryByText(/ECONNREFUSED/)).to.be.null
   })
 
   it('si la sesión venció a mitad del baneo (401), se borra y se vuelve a /login', async () => {
@@ -146,6 +146,6 @@ describe('ESC-26 · Seguridad (front) — banear usuario', () => {
     await waitFor(() => {
       expect(redirecciones).to.deep.equal(['/login'])
     })
-    expect(localStorage.getItem('cp_token')).to.equal(null)
+    expect(localStorage.getItem('cp_token')).to.be.null
   })
 })

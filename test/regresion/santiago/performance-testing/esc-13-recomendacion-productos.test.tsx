@@ -52,7 +52,7 @@ describe('ESC-13 · Performance (front) — recomendaciones', () => {
     // Assert
     expect(await screen.findByRole('heading', { name: 'iPhone 15', level: 1 })).to.exist
     expect(screen.getByRole('button', { name: 'Agregar al carrito' })).to.exist
-    expect(screen.queryByRole('region', { name: TITULO })).to.equal(null)
+    expect(screen.queryByRole('region', { name: TITULO })).to.be.null
     diferida.entregar(ok(similares(1)))
     expect(await screen.findByRole('region', { name: TITULO })).to.exist
   })
@@ -91,7 +91,7 @@ describe('ESC-13 · Performance (front) — recomendaciones', () => {
     // alcanzara a pintarse.
     await new Promise((resolver) => setTimeout(resolver, 20))
     expect(servidor.peticiones('GET')).to.have.lengthOf(2)
-    expect(screen.queryByText('A 0')).to.equal(null)
+    expect(screen.queryByText('A 0')).to.be.null
     expect(screen.getAllByRole('link')).to.have.lengthOf(2)
   })
 

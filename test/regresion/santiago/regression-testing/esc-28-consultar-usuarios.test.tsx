@@ -106,7 +106,7 @@ describe('ESC-28 · Regresión (front) — consultar usuarios', () => {
 
     // Assert
     expect(await screen.findByText('Usuario de la página 1', {}, { timeout: 2_000 })).to.exist
-    expect(servidor.peticiones('GET', '/admin/users').at(-1)?.params.search).to.equal(undefined)
+    expect(servidor.peticiones('GET', '/admin/users').at(-1)?.params.search).to.be.undefined
   })
 
   it('cada fila muestra rol, pedidos y estado; la propia lleva la marca "(tú)"', async () => {
@@ -144,7 +144,7 @@ describe('ESC-28 · Regresión (front) — consultar usuarios', () => {
     // Assert
     expect(await screen.findByText('Error interno del servidor')).to.exist
     await waitFor(() => {
-      expect(screen.queryByText('Cargando usuarios...')).to.equal(null)
+      expect(screen.queryByText('Cargando usuarios...')).to.be.null
     })
   })
 })

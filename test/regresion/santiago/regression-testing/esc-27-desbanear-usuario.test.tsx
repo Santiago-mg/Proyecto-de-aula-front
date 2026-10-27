@@ -32,7 +32,7 @@ describe('ESC-27 · Regresión (front) — desbanear usuario', () => {
 
     // Assert
     expect(await within(fila).findByText('Activo')).to.exist
-    expect(within(fila).queryByText('fraude en pagos')).to.equal(null)
+    expect(within(fila).queryByText('fraude en pagos')).to.be.null
     expect(within(fila).getByRole('button', { name: /^banear/i })).to.exist
   })
 
@@ -46,7 +46,7 @@ describe('ESC-27 · Regresión (front) — desbanear usuario', () => {
 
     // Assert
     await within(fila).findByText('Activo')
-    expect(screen.queryByRole('heading', { name: 'Banear usuario' })).to.equal(null)
+    expect(screen.queryByRole('heading', { name: 'Banear usuario' })).to.be.null
     expect(servidor.peticiones('PUT')).to.have.lengthOf(1)
   })
 

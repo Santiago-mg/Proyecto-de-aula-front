@@ -51,7 +51,7 @@ describe('ESC-13 · API (front) — phonesService.getSimilar', () => {
     await phonesService.getSimilar('iphone-15')
 
     // Assert
-    expect(servidor.peticiones('GET', RUTA)[0].authorization).to.equal(undefined)
+    expect(servidor.peticiones('GET', RUTA)[0].authorization).to.be.undefined
   })
 
   it('con sesión iniciada sigue funcionando igual (el token no estorba)', async () => {

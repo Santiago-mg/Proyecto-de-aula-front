@@ -62,7 +62,7 @@ describe('ESC-26 · API (front) — adminService.banUser', () => {
     await waitFor(() => {
       expect(redirecciones).to.deep.equal(['/login'])
     })
-    expect(localStorage.getItem('cp_token')).to.equal(null)
-    expect(localStorage.getItem('cp_user')).to.equal(null)
+    expect(localStorage.getItem('cp_token')).to.be.null
+    expect(localStorage.getItem('cp_user')).to.be.null
   })
 })

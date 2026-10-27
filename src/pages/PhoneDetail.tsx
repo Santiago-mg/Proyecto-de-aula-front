@@ -73,6 +73,24 @@ export function PhoneDetail() {
   return <FichaDelCelular key={slug} slug={slug} />
 }
 
+/** Fichas técnicas que el equipo sí tiene: lo que viene vacío no se muestra. */
+function especificacionesDe(phone: Phone): { icon: JSX.Element; label: string; value: string }[] {
+  const specs = [
+    phone.chip && { icon: <Cpu size={14} aria-hidden="true" />, label: 'Procesador', value: phone.chip },
+    phone.ram && { icon: <MemoryStick size={14} aria-hidden="true" />, label: 'RAM', value: phone.ram },
+    phone.storage && { icon: <HardDrive size={14} aria-hidden="true" />, label: 'Almacenamiento', value: phone.storage },
+    phone.camera && { icon: <Camera size={14} aria-hidden="true" />, label: 'Cámara', value: phone.camera },
+    phone.screen && { icon: <Monitor size={14} aria-hidden="true" />, label: 'Pantalla', value: phone.screen },
+    phone.battery && { icon: <Battery size={14} aria-hidden="true" />, label: 'Batería', value: phone.battery },
+    phone.batteryHealth !== null && phone.condition !== 'NEW' && {
+      icon: <Battery size={14} aria-hidden="true" />,
+      label: 'Salud de batería',
+      value: `${phone.batteryHealth}%`,
+    },
+  ]
+  return specs.filter(Boolean) as { icon: JSX.Element; label: string; value: string }[]
+}
+
 function FichaDelCelular({ slug }: Readonly<{ slug: string }>) {
   const [phone, setPhone] = useState<Phone | null>(null)
   const [loading, setLoading] = useState(true)
@@ -88,7 +106,10 @@ function FichaDelCelular({ slug }: Readonly<{ slug: string }>) {
   const idCantidad = useId()
   const idColor = useId()
 
-  useDocumentTitle(phone ? phone.name : notFound ? 'Celular no encontrado' : null)
+  let titulo: string | null = null
+  if (phone) titulo = phone.name
+  else if (notFound) titulo = 'Celular no encontrado'
+  useDocumentTitle(titulo)
 
   useEffect(() => {
     if (!slug) return
@@ -183,19 +204,7 @@ function FichaDelCelular({ slug }: Readonly<{ slug: string }>) {
   const images = imagenesDe(phone)
   const enTope = qty >= phone.stock
 
-  const specs = [
-    phone.chip && { icon: <Cpu size={14} aria-hidden="true" />, label: 'Procesador', value: phone.chip },
-    phone.ram && { icon: <MemoryStick size={14} aria-hidden="true" />, label: 'RAM', value: phone.ram },
-    phone.storage && { icon: <HardDrive size={14} aria-hidden="true" />, label: 'Almacenamiento', value: phone.storage },
-    phone.camera && { icon: <Camera size={14} aria-hidden="true" />, label: 'Cámara', value: phone.camera },
-    phone.screen && { icon: <Monitor size={14} aria-hidden="true" />, label: 'Pantalla', value: phone.screen },
-    phone.battery && { icon: <Battery size={14} aria-hidden="true" />, label: 'Batería', value: phone.battery },
-    phone.batteryHealth !== null && phone.condition !== 'NEW' && {
-      icon: <Battery size={14} aria-hidden="true" />,
-      label: 'Salud de batería',
-      value: `${phone.batteryHealth}%`,
-    },
-  ].filter(Boolean) as { icon: JSX.Element; label: string; value: string }[]
+  const specs = especificacionesDe(phone)
 
   return (
     <>

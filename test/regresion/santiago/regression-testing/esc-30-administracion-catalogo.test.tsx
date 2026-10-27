@@ -116,7 +116,7 @@ describe('ESC-30 · Regresión (front) — administración del catálogo', () =>
         expect(servidor.peticiones('POST', '/phones')).to.have.lengthOf(1)
       })
       expect(servidor.peticiones('POST', '/phones')[0].body).to.deep.include({ batteryHealth: 100 })
-      expect(screen.queryByText('Entre 0 y 100')).to.equal(null)
+      expect(screen.queryByText('Entre 0 y 100')).to.be.null
     })
 
     it('un slug repetido (409) se explica y el formulario conserva lo escrito', async () => {

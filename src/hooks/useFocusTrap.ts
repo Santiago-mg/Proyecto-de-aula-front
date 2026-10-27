@@ -66,10 +66,7 @@ export function useFocusTrap(
       if (e.shiftKey && (actual === primero || actual === caja)) {
         e.preventDefault()
         ultimo.focus()
-      } else if (!e.shiftKey && actual === ultimo) {
-        e.preventDefault()
-        primero.focus()
-      } else if (!caja.contains(actual)) {
+      } else if ((!e.shiftKey && actual === ultimo) || !caja.contains(actual)) {
         e.preventDefault()
         primero.focus()
       }

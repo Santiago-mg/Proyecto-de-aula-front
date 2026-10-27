@@ -41,7 +41,7 @@ describe('ESC-29 · Seguridad (front) — panel de estadísticas', () => {
       await waitFor(() => {
         expect(redirecciones).to.deep.equal(['/login'])
       })
-      expect(localStorage.getItem('cp_token')).to.equal(null)
+      expect(localStorage.getItem('cp_token')).to.be.null
     })
   })
 
@@ -82,6 +82,6 @@ describe('ESC-29 · Seguridad (front) — panel de estadísticas', () => {
 
     // Assert
     expect(await screen.findByText('No se pudieron cargar las estadísticas')).to.exist
-    expect(screen.queryByText(/ECONNREFUSED/)).to.equal(null)
+    expect(screen.queryByText(/ECONNREFUSED/)).to.be.null
   })
 })

@@ -56,7 +56,7 @@ describe('ESC-30 · Performance (front) — administración del catálogo', () =
 
     // Assert
     await waitFor(() => {
-      expect(screen.queryByText('Celular 1')).to.equal(null)
+      expect(screen.queryByText('Celular 1')).to.be.null
     })
     expect(servidor.peticiones('GET', '/phones')).to.have.lengthOf(1)
     expect(servidor.peticiones('DELETE')).to.have.lengthOf(1)

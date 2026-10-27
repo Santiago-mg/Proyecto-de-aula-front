@@ -75,7 +75,8 @@ export function Register() {
   let ayudaClave = `Al menos ${LARGO_MINIMO} caracteres.`
   if (largo > 0 && largo < LARGO_MINIMO) {
     const faltan = LARGO_MINIMO - largo
-    ayudaClave = `Te ${faltan === 1 ? 'falta 1 carácter' : `faltan ${faltan} caracteres`}.`
+    const faltante = faltan === 1 ? 'falta 1 carácter' : `faltan ${faltan} caracteres`
+    ayudaClave = `Te ${faltante}.`
   } else if (largo >= LARGO_MINIMO) {
     ayudaClave = 'Con eso alcanza.'
   }

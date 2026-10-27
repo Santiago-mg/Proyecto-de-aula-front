@@ -43,6 +43,7 @@ export function PreferencesDialog({
   return (
     <div
       className="cp-modal-overlay"
+      role="presentation"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) cerrarPanel()
       }}
@@ -80,7 +81,7 @@ export function PreferencesDialog({
                 onChange={() => cambiar({ tema: t.valor })}
               />
               <span>
-                <strong>{t.titulo}</strong>
+                {t.titulo}
                 <small>{t.detalle}</small>
               </span>
             </label>
@@ -114,7 +115,7 @@ export function PreferencesDialog({
               onChange={(e) => cambiar({ movimiento: (e.target.checked ? 'reducido' : 'sistema') as Movimiento })}
             />
             <span>
-              <strong>Reducir animaciones</strong>
+              Reducir animaciones
               <small>Detiene la barra que se desplaza y los efectos de fondo</small>
             </span>
           </label>

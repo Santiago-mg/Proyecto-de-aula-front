@@ -24,7 +24,7 @@ describe('authService — usa las rutas que existen en el backend', () => {
 
     const resultado = await authService.changePassword({ currentPassword: 'Vieja1234', newPassword: 'Nueva1234' })
 
-    expect(resultado).to.equal(undefined)
+    expect(resultado).to.be.undefined
     expect(servidor.peticiones('PUT', '/auth/me/password')[0].body).to.deep.equal({
       currentPassword: 'Vieja1234',
       newPassword: 'Nueva1234',

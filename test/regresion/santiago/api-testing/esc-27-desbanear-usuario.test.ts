@@ -25,7 +25,7 @@ describe('ESC-27 · API (front) — adminService.unbanUser', () => {
     // Assert
     expect(resultado).to.deep.equal(activa)
     const [peticion] = servidor.peticiones('PUT', RUTA)
-    expect(peticion.body).to.equal(undefined)
+    expect(peticion.body).to.be.undefined
     expect(peticion.authorization).to.equal(`Bearer ${TOKEN_ADMIN}`)
   })
 

@@ -21,7 +21,7 @@ import { SIN_FILTROS, filtrosActivos } from '../utils/filtros'
 // Escribir en el buscador o en el precio dispara una consulta por tecla; se
 // espera un instante a que la persona termine antes de preguntarle al servidor.
 const ESPERA_AL_ESCRIBIR_MS = 350
-const CAMPOS_DE_TEXTO = ['search', 'maxPrice']
+const CAMPOS_DE_TEXTO = new Set(['search', 'maxPrice'])
 
 /** ¿Lo único que cambió entre las dos URL es lo que se escribe en un campo? */
 function soloCambiaTexto(antes: string, ahora: string): boolean {
@@ -35,8 +35,8 @@ function soloCambiaTexto(antes: string, ahora: string): boolean {
 /** Escribir cambia un campo de texto y, a lo sumo, regresa a la página 1. */
 function esEscritura(clavesCambiadas: string[]): boolean {
   return (
-    clavesCambiadas.some((k) => CAMPOS_DE_TEXTO.includes(k)) &&
-    clavesCambiadas.every((k) => CAMPOS_DE_TEXTO.includes(k) || k === 'page')
+    clavesCambiadas.some((k) => CAMPOS_DE_TEXTO.has(k)) &&
+    clavesCambiadas.every((k) => CAMPOS_DE_TEXTO.has(k) || k === 'page')
   )
 }
 
@@ -245,8 +245,7 @@ export function Catalog() {
                     onClick={() => updateQuery({ search: sugerencia, page: 1 })}
                   >
                     {sugerencia}
-                  </button>
-                  ?
+                  </button>?
                 </p>
               ) : (
                 <p>

@@ -49,7 +49,7 @@ describe('ESC-26 · Regresión (front) — banear usuario', () => {
     expect(await within(fila).findByText('Baneado')).to.exist
     expect(within(fila).getByText('fraude en pagos')).to.exist
     expect(within(fila).getByRole('button', { name: /desbanear/i })).to.exist
-    expect(screen.queryByRole('heading', { name: 'Banear usuario' })).to.equal(null)
+    expect(screen.queryByRole('heading', { name: 'Banear usuario' })).to.be.null
     // Al back le llegó el motivo que escribió el admin, y nada más.
     const [peticion] = servidor.peticiones('PUT', '/admin/users/user-2/ban')
     expect(peticion.body).to.deep.equal({ reason: 'fraude en pagos' })
@@ -64,7 +64,7 @@ describe('ESC-26 · Regresión (front) — banear usuario', () => {
     await user.click(screen.getByRole('button', { name: 'Cancelar' }))
 
     // Assert
-    expect(screen.queryByRole('heading', { name: 'Banear usuario' })).to.equal(null)
+    expect(screen.queryByRole('heading', { name: 'Banear usuario' })).to.be.null
     expect(servidor.peticiones('PUT')).to.be.empty
     expect(within(fila).getByText('Activo')).to.exist
   })
@@ -93,7 +93,7 @@ describe('ESC-26 · Regresión (front) — banear usuario', () => {
     // Assert
     expect(await screen.findByText('Error interno del servidor')).to.exist
     expect(within(fila).getByRole('button', { name: /^banear/i })).to.have.property('disabled', false)
-    expect(within(fila).queryByText('Baneado')).to.equal(null)
+    expect(within(fila).queryByText('Baneado')).to.be.null
   })
 
   it('al reintentar con éxito la fila queda "Baneado" y el error desaparece', async () => {
@@ -110,7 +110,7 @@ describe('ESC-26 · Regresión (front) — banear usuario', () => {
 
     // Assert
     expect(await within(fila).findByText('Baneado')).to.exist
-    expect(screen.queryByText('Error interno del servidor')).to.equal(null)
+    expect(screen.queryByText('Error interno del servidor')).to.be.null
     expect(servidor.peticiones('PUT', '/admin/users/user-2/ban')).to.have.lengthOf(2)
   })
 })

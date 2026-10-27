@@ -44,6 +44,14 @@ function Pregunta({
   )
 }
 
+/** Frase que se anuncia al buscar: cuántas preguntas coinciden (vacía si no se busca). */
+function resumenDeCoincidencias(coincidencias: Set<string> | null): string {
+  if (!coincidencias) return ''
+  const total = coincidencias.size
+  if (total === 0) return 'Ninguna pregunta coincide.'
+  return `${total} ${total === 1 ? 'pregunta coincide' : 'preguntas coinciden'}.`
+}
+
 export function Help() {
   useDocumentTitle('Centro de ayuda')
   const { hash } = useLocation()
@@ -109,11 +117,7 @@ export function Help() {
           />
         </div>
         <p className="cp-help-count" aria-live="polite">
-          {coincidencias
-            ? coincidencias.size === 0
-              ? 'Ninguna pregunta coincide.'
-              : `${coincidencias.size} ${coincidencias.size === 1 ? 'pregunta coincide' : 'preguntas coinciden'}.`
-            : ''}
+          {resumenDeCoincidencias(coincidencias)}
         </p>
       </div>
 

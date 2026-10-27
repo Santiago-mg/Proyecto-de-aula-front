@@ -1,0 +1,39 @@
+{
+  "name": "celularpro-e2e-serenityjs",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Pruebas E2E de CelularPro con Serenity/JS, Playwright, Cucumber y Screenplay",
+  "scripts": {
+    "clean": "node scripts/clean.js",
+    "typecheck": "tsc --noEmit",
+    "dry-run": "cucumber-js --dry-run",
+    "test": "npm run clean && cucumber-js",
+    "test:smoke": "npm test -- --tags '@smoke'",
+    "test:registro": "npm test -- --tags '@registro'",
+    "test:login": "npm test -- --tags '@login'",
+    "test:perfil": "npm test -- --tags '@perfil'",
+    "test:credenciales": "npm test -- --tags '@credenciales'",
+    "test:roles": "npm test -- --tags '@roles'",
+    "test:alertas": "npm test -- --tags '@alertas'",
+    "test:rapido": "npm test -- --tags 'not @lento'",
+    "test:report": "html-reporter serve --dir reports/serenity-js --port 8080 --open"
+  },
+  "engines": {
+    "node": "^22.22.2 || ^24.15.0"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "13.3.0",
+    "@serenity-js/assertions": "3.48.0",
+    "@serenity-js/console-reporter": "3.48.0",
+    "@serenity-js/core": "3.48.0",
+    "@serenity-js/cucumber": "3.48.0",
+    "@serenity-js/html-reporter": "3.48.0",
+    "@serenity-js/playwright": "3.48.0",
+    "@serenity-js/web": "3.48.0",
+    "@types/node": "24.10.0",
+    "cross-env": "10.1.0",
+    "playwright": "1.63.0",
+    "ts-node": "10.9.2",
+    "typescript": "5.9.3"
+  }
+}

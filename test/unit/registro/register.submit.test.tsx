@@ -22,8 +22,8 @@ vi.mock('react-router-dom', async () => {
 async function fillAndSubmit(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/nombre completo/i), 'Mario')
   await user.type(screen.getByLabelText(/email/i), 'user@gmail.com')
-  await user.type(screen.getByLabelText(/^contraseña$/i), 'password123')
-  await user.type(screen.getByLabelText(/confirmar contraseña/i), 'password123')
+  await user.type(screen.getByLabelText(/^contraseña$/i), 'Password123')
+  await user.type(screen.getByLabelText(/confirmar contraseña/i), 'Password123')
   await user.click(screen.getByRole('button', { name: /crear cuenta/i }))
 }
 
@@ -49,7 +49,7 @@ describe('Register — envío del formulario', () => {
 
     // Assert
     await waitFor(() => {
-      expect(registerFn.mock.calls).to.deep.include(['user@gmail.com', 'Mario', 'password123'])
+      expect(registerFn.mock.calls).to.deep.include(['user@gmail.com', 'Mario', 'Password123'])
     })
     await waitFor(() => {
       expect(navigateMock.mock.calls).to.deep.include(['/dashboard'])

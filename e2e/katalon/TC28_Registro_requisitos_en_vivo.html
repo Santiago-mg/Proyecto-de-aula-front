@@ -1,0 +1,15 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>TC28_Registro_requisitos_en_vivo</title></head><body><table cellpadding="1" cellspacing="1" border="1"><thead><tr><td rowspan="1" colspan="3">TC28_Registro_requisitos_en_vivo</td></tr></thead><tbody><tr><td>store</td><td>http://localhost:5173</td><td>BASE</td></tr>
+<tr><td>open</td><td>${BASE}/login</td><td></td></tr>
+<tr><td>runScript</td><td>localStorage.clear(); sessionStorage.clear();</td><td></td></tr>
+<tr><td>open</td><td>${BASE}/register</td><td></td></tr>
+<tr><td>waitForElementPresent</td><td>id=password</td><td></td></tr>
+<tr><td>assertElementPresent</td><td>css=[data-regla=&quot;mayuscula&quot;][data-cumple=&quot;false&quot;]</td><td></td></tr>
+<tr><td>type</td><td>id=password</td><td>medellin2026</td></tr>
+<tr><td>waitForElementPresent</td><td>css=[data-regla=&quot;minuscula&quot;][data-cumple=&quot;true&quot;]</td><td></td></tr>
+<tr><td>assertElementPresent</td><td>css=[data-regla=&quot;numero&quot;][data-cumple=&quot;true&quot;]</td><td></td></tr>
+<tr><td>assertElementPresent</td><td>css=[data-regla=&quot;mayuscula&quot;][data-cumple=&quot;false&quot;]</td><td></td></tr>
+<tr><td>type</td><td>id=password</td><td>Medellin2026</td></tr>
+<tr><td>waitForElementPresent</td><td>css=[data-regla=&quot;mayuscula&quot;][data-cumple=&quot;true&quot;]</td><td></td></tr>
+<tr><td>assertElementNotPresent</td><td>css=[data-cumple=&quot;false&quot;]</td><td></td></tr>
+<tr><td>assertText</td><td>id=email-hint</td><td>glob:*Gmail, Outlook, Hotmail, Yahoo o iCloud*</td></tr>
+<tr><td>assertLocation</td><td>glob:*/register</td><td></td></tr></tbody></table></body></html>

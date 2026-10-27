@@ -5,6 +5,5 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["vitest/globals"]
   },
-  "include": ["src", "test"],
-  "exclude": ["test/regresion/mario/pendiente-codigo-de-mario"]
+  "include": ["src", "test"]
 }

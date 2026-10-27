@@ -17,37 +17,27 @@ async function ingresar(user: Usuario) {
 }
 
 describe('Fallos al consultar listados', () => {
-  it('si falla la consulta de mis pedidos → 500: avisa del fallo y deja reintentar, sin decir que no hay pedidos', async () => {
-    // Arrange
-    // Antes el panel mostraba "Todavía no tienes pedidos", que a quien sí los
-    // tiene le hace creer que los perdió. Un fallo del servidor no es una lista vacía.
-    sesionIniciada()
-    servidor.responder('GET', '/orders/my', fallo(500, 'Error interno del servidor'))
-
-    // Act
-    abrirApp('/dashboard')
-
-    // Assert
-    expect(await screen.findByText('No pudimos cargar tus pedidos')).to.exist
-    expect(screen.queryByText('Todavía no tienes pedidos')).to.be.null
-    expect(screen.queryByRole('button', { name: 'Reintentar' })).to.exist
-  })
-
-  it('"Reintentar" vuelve a pedir los pedidos y los muestra cuando el servidor ya responde', async () => {
+  it('si falla la consulta de mis pedidos → 500: lo dice (no "no tienes pedidos") y ofrece reintentar (H1, H11)', async () => {
     // Arrange
     sesionIniciada()
-    servidor.responder('GET', '/orders/my', fallo(500, 'Error interno del servidor'))
+    let llamadas = 0
+    servidor.responder('GET', '/orders/my', () => {
+      llamadas += 1
+      return llamadas === 1 ? fallo(500, 'Error interno del servidor') : { status: 200, body: { data: [] } }
+    })
     const user = abrirApp('/dashboard')
-    await screen.findByText('No pudimos cargar tus pedidos')
-    servidor.responder('GET', '/orders/my', ok([pedido({ orderRef: 'CP-0077' })]))
 
     // Act
+    const alerta = await screen.findByRole('alert')
+    const textoError = alerta.textContent
+    const decíaSinPedidos = screen.queryByText('Todavía no tienes pedidos') !== null
     await user.click(screen.getByRole('button', { name: 'Reintentar' }))
 
     // Assert
-    expect(await screen.findByText('CP-0077')).to.exist
-    expect(screen.queryByText('No pudimos cargar tus pedidos')).to.be.null
-    expect(servidor.peticiones('GET', '/orders/my')).to.have.lengthOf(2)
+    expect(textoError).to.equal('Algo falló de nuestro lado. Inténtalo de nuevo en unos minutos.')
+    expect(decíaSinPedidos).to.equal(false)
+    expect(await screen.findByText('Todavía no tienes pedidos')).to.exist
+    expect(llamadas).to.equal(2)
   })
 
   it('si falla el conteo del catálogo → 500: el catálogo avisa', async () => {
@@ -73,7 +63,7 @@ describe('Detalle del error según el entorno del backend', () => {
     abrirApp('/admin')
 
     // Assert
-    expect(await screen.findByText('Error interno del servidor')).to.exist
+    expect(await screen.findByText('Algo falló de nuestro lado. Inténtalo de nuevo en unos minutos.')).to.exist
   })
 
   it('fuera de producción el panel muestra el detalle, para diagnosticar', async () => {
@@ -100,7 +90,7 @@ describe('Detalle del error según el entorno del backend', () => {
     await ingresar(user)
 
     // Assert
-    expect(await screen.findByText('Error de conexión con el servidor')).to.exist
+    expect(await screen.findByText('No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.')).to.exist
     expect(screen.queryByText(/bad gateway/i)).to.be.null
   })
 
@@ -113,7 +103,9 @@ describe('Detalle del error según el entorno del backend', () => {
     abrirApp('/admin')
 
     // Assert
-    expect(await screen.findByText('Request failed with status code 500')).to.exist
+    // H9: antes mostraba el texto crudo de axios ("Request failed with status code 500")
+    expect(await screen.findByText('No se pudieron cargar los datos. Inténtalo de nuevo.')).to.exist
+    expect(screen.queryByText(/status code/)).to.be.null
   })
 })
 
@@ -128,7 +120,8 @@ describe('Panel principal sin datos o sin red', () => {
     abrirApp('/admin')
 
     // Assert
-    expect(await screen.findByText(/no se puede conectar al backend/i)).to.exist
+    expect(await screen.findByText('No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.')).to.exist
+    expect(screen.queryByText(/localhost/)).to.be.null
   })
 
   it('si el backend responde 200 sin datos, avisa que la respuesta llegó vacía', async () => {

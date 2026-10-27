@@ -3,7 +3,7 @@ import { describe, it, vi } from 'vitest'
 import { screen, waitFor, within } from '@testing-library/react'
 import { abrirApp, capturarRedirecciones, rutaActual } from '../helpers/app'
 import { creado, fallo, listado, ok, servidor, sinContenido } from '../helpers/servidor'
-import { celular, celularCompleto, paginado, sesionDeAdmin, sesionIniciada, TOKEN_ADMIN } from '../helpers/fixtures'
+import { alertaDeStock, celular, celularCompleto, paginado, sesionDeAdmin, sesionIniciada, TOKEN_ADMIN } from '../helpers/fixtures'
 
 // ESC-30 — Administración del catálogo (V(G)=10)
 // Caminos de tests/escenarios/esc-30-administracion-catalogo.test.ts del back:
@@ -240,25 +240,29 @@ describe('Panel de celulares — detalles del listado y del formulario', () => {
     expect(servidor.peticiones('GET', '/phones')[0].params).to.deep.equal({ limit: 50 })
   })
 
-  it('marca el stock según quede: agotado, poco o suficiente', async () => {
-    // Arrange
+  it('marca el stock según las alertas del backend: agotado, poco o suficiente', async () => {
+    // Arrange: el estado ya no lo decide la tabla con números fijos; lo dice una alerta abierta
     sesionDeAdmin()
     catalogoCon(
       celular({ id: 'a', name: 'Agotado', stock: 0, verified: false, heroImage: 'https://cdn.celularpro.co/a.png' }),
       celular({ id: 'b', name: 'Pocos', stock: 2, condition: 'USED' }),
       celular({ id: 'c', name: 'Muchos', stock: 9, condition: 'CERTIFIED' }),
     )
+    servidor.responder('GET', '/admin/alerts', ok([
+      alertaDeStock({ id: 'al-a', type: 'OUT_OF_STOCK', phone: { id: 'a', name: 'Agotado', stock: 0 } }),
+      alertaDeStock({ id: 'al-b', type: 'LOW_STOCK', phone: { id: 'b', name: 'Pocos', stock: 2 } }),
+    ]))
 
     // Act
     abrirApp('/admin/phones')
     await screen.findByText('Agotado')
 
     // Assert
-    const colorDe = (nombre: string) =>
-      ((screen.getByText(nombre).closest('tr') as HTMLElement).querySelectorAll('td')[3].firstElementChild as HTMLElement).style.color
-    expect(colorDe('Agotado')).to.equal('rgb(224, 82, 82)')
-    expect(colorDe('Pocos')).to.equal('rgb(224, 144, 82)')
-    expect(colorDe('Muchos')).to.equal('inherit')
+    const filaDe = (nombre: string) => screen.getByText(nombre).closest('tr') as HTMLElement
+    await waitFor(() => expect(within(filaDe('Agotado')).queryByText('Sin stock')).to.exist)
+    expect(within(filaDe('Pocos')).queryByText('Stock bajo')).to.exist
+    expect(within(filaDe('Muchos')).queryByText('Sin stock')).to.be.null
+    expect(within(filaDe('Muchos')).queryByText('Stock bajo')).to.be.null
     expect(screen.queryByText('Usado')).to.exist
     expect(screen.queryByText('Certificado')).to.exist
   })

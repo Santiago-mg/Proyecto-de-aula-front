@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   Package,
   ShieldOff,
   ShoppingCart,
@@ -6,82 +7,95 @@ import {
   Users,
   Zap,
 } from 'lucide-react'
-import { useCallback, useEffect, useState, type CSSProperties } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ErrorState } from '../../components/ui/ErrorState'
 import { Loading } from '../../components/ui/Loading'
-import { useDocumentTitle } from '../../hooks/useDocumentTitle'
+import { useAlertas } from '../../hooks/useAlertas'
 import { adminService } from '../../services/admin.service'
 import type { AdminStats } from '../../types/admin'
-import { ESTADOS_PEDIDO, infoEstado } from '../../utils/estados'
-import { formatCOPCorto, formatDiaCorto } from '../../utils/formato'
+import { MENSAJE_SIN_CONEXION, enLenguajeCotidiano } from '../../utils/errores'
 
-/** El mensaje que verá el administrador según lo que falló. */
-function mensajeDeFallo(err: unknown): string {
-  const e = err as {
-    code?: string
-    message?: string
-    response?: { status?: number; data?: { detail?: string; error?: string } }
-  } | null
-  const status = e?.response?.status
-  if (status === 401 || status === 403) {
-    return 'Sin permisos. Verifica que estés logueado como admin.'
-  }
-  if (!navigator.onLine || e?.code === 'ERR_NETWORK') {
-    return 'No se puede conectar al backend. ¿Está corriendo en localhost:3001?'
-  }
-  return e?.response?.data?.detail ?? e?.response?.data?.error ?? e?.message ?? 'Error desconocido'
+function formatCOP(n: number) {
+  if (n >= 1_000_000)
+    return '$' + (n / 1_000_000).toFixed(1).replace('.0', '') + 'M COP'
+  if (n >= 1_000)
+    return '$' + (n / 1_000).toFixed(0) + 'K COP'
+  return '$' + n + ' COP'
+}
+
+const STATUS_COLOR: Record<string, string> = {
+  PENDING: '#ffaa00',
+  CONFIRMED: '#00e5ff',
+  SHIPPED: '#a855f7',
+  DELIVERED: '#22ff88',
+  CANCELLED: '#ff3860',
+}
+const STATUS_LABEL: Record<string, string> = {
+  PENDING: 'Pendiente',
+  CONFIRMED: 'Confirmado',
+  SHIPPED: 'En camino',
+  DELIVERED: 'Entregado',
+  CANCELLED: 'Cancelado',
 }
 
 export function AdminDashboard() {
-  useDocumentTitle('Administración · Resumen')
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { alertas, cargando: cargandoAlertas } = useAlertas()
 
-  const cargar = useCallback(() => {
-    let vigente = true
+  function load() {
     setLoading(true)
     setError(null)
     adminService
       .getStats()
-      .then((r) => {
-        if (vigente) setStats(r)
-      })
+      .then(setStats)
       .catch((err) => {
-        if (vigente) setError(mensajeDeFallo(err))
+        const status = err?.response?.status
+        const detail = err?.response?.data?.detail
+        const serverError = err?.response?.data?.error
+        // H2 y H9: mensajes para quien administra la tienda, no para quien
+        // programa (antes: "¿Está corriendo en localhost:3001?").
+        if (status === 401 || status === 403) {
+          setError('Sin permisos para ver estas estadísticas. Vuelve a ingresar con una cuenta de administrador.')
+        } else if (!navigator.onLine || err?.code === 'ERR_NETWORK') {
+          setError(MENSAJE_SIN_CONEXION)
+        } else {
+          // `detail` solo llega fuera de producción: sirve para diagnosticar.
+          setError(detail ?? (serverError ? enLenguajeCotidiano(serverError) : 'No se pudieron cargar los datos. Inténtalo de nuevo.'))
+        }
       })
-      .finally(() => {
-        if (vigente) setLoading(false)
-      })
-    return () => {
-      vigente = false
-    }
-  }, [])
+      .finally(() => setLoading(false))
+  }
 
-  useEffect(() => cargar(), [cargar])
+  useEffect(() => { load() }, [])
 
   if (loading) return <Loading text="Cargando estadísticas..." />
 
-  if (error || !stats) {
-    return (
-      <ErrorState
-        titulo="No se pudieron cargar las estadísticas"
-        detalle={error ?? 'Respuesta vacía del servidor'}
-        onReintentar={cargar}
-      />
-    )
-  }
+  if (error || !stats) return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      justifyContent: 'center', minHeight: '50vh', gap: 16, textAlign: 'center',
+    }}>
+      <div style={{ fontSize: 48 }}>⚠️</div>
+      <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 600, letterSpacing: '0.04em' }}>
+        No se pudieron cargar las estadísticas
+      </h2>
+      <p style={{
+        fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--ink-soft)',
+        maxWidth: 420, lineHeight: 1.6,
+        background: 'var(--surface-2)', border: '1px solid var(--glass-border)',
+        padding: '12px 20px', borderRadius: 'var(--radius)',
+      }}>
+        {error ?? 'Respuesta vacía del servidor'}
+      </p>
+      <button className="cp-btn cp-btn-secondary" onClick={load}>
+        Reintentar
+      </button>
+    </div>
+  )
 
   const maxRevenue = Math.max(...stats.revenueByDay.map((d) => d.amount), 1)
-
-  const repartoDeOrdenes: [keyof typeof ESTADOS_PEDIDO, number][] = [
-    ['PENDING', stats.orders.pending],
-    ['CONFIRMED', stats.orders.confirmed],
-    ['SHIPPED', stats.orders.shipped],
-    ['DELIVERED', stats.orders.delivered],
-    ['CANCELLED', stats.orders.cancelled],
-  ]
 
   return (
     <div className="cp-admin-page">
@@ -89,27 +103,41 @@ export function AdminDashboard() {
       <div className="cp-admin-page-header">
         <div>
           <div className="cp-admin-page-eyebrow">— Panel principal</div>
-          <h1 className="cp-admin-page-title">Dashboard</h1>
+          <h1 className="cp-admin-page-title">Panel</h1>
         </div>
-        <div className="cp-admin-actions">
+        <div style={{ display: 'flex', gap: 8 }}>
           <Link to="/admin/phones/new" className="cp-btn cp-btn-primary">
-            <Zap size={14} aria-hidden="true" /> Nuevo celular
+            <Zap size={14} /> Nuevo celular
           </Link>
         </div>
       </div>
 
+      {/* Aviso de inventario: es la notificación al administrador */}
+      {!cargandoAlertas && alertas.length > 0 && (
+        <div role="status" id="banner-alertas" className="cp-alert-banner">
+          <AlertTriangle size={18} aria-hidden="true" />
+          <span>
+            Hay {alertas.length} {alertas.length === 1 ? 'alerta' : 'alertas'} de inventario sin
+            atender.
+          </span>
+          <Link to="/admin/alerts" className="cp-link">
+            Ver alertas
+          </Link>
+        </div>
+      )}
+
       {/* KPI Cards */}
       <div className="cp-admin-kpi-grid">
         <div className="cp-kpi-card cp-kpi-cyan">
-          <div className="cp-kpi-icon" aria-hidden="true"><TrendingUp size={22} /></div>
-          <div className="cp-kpi-value">{formatCOPCorto(stats.orders.revenue)}</div>
+          <div className="cp-kpi-icon"><TrendingUp size={22} /></div>
+          <div className="cp-kpi-value">{formatCOP(stats.orders.revenue)}</div>
           <div className="cp-kpi-label">Revenue total</div>
           <div className="cp-kpi-sub">
-            {formatCOPCorto(stats.orders.revenueThisMonth)} este mes
+            {formatCOP(stats.orders.revenueThisMonth)} este mes
           </div>
         </div>
         <div className="cp-kpi-card cp-kpi-violet">
-          <div className="cp-kpi-icon" aria-hidden="true"><ShoppingCart size={22} /></div>
+          <div className="cp-kpi-icon"><ShoppingCart size={22} /></div>
           <div className="cp-kpi-value">{stats.orders.total}</div>
           <div className="cp-kpi-label">Órdenes totales</div>
           <div className="cp-kpi-sub">
@@ -117,7 +145,7 @@ export function AdminDashboard() {
           </div>
         </div>
         <div className="cp-kpi-card cp-kpi-green">
-          <div className="cp-kpi-icon" aria-hidden="true"><Users size={22} /></div>
+          <div className="cp-kpi-icon"><Users size={22} /></div>
           <div className="cp-kpi-value">{stats.users.total}</div>
           <div className="cp-kpi-label">Usuarios</div>
           <div className="cp-kpi-sub">
@@ -125,7 +153,7 @@ export function AdminDashboard() {
           </div>
         </div>
         <div className="cp-kpi-card cp-kpi-orange">
-          <div className="cp-kpi-icon" aria-hidden="true"><Package size={22} /></div>
+          <div className="cp-kpi-icon"><Package size={22} /></div>
           <div className="cp-kpi-value">{stats.phones.total}</div>
           <div className="cp-kpi-label">Celulares en catálogo</div>
           <div className="cp-kpi-sub">
@@ -136,64 +164,65 @@ export function AdminDashboard() {
 
       <div className="cp-admin-grid-2">
         {/* Revenue chart */}
-        <section className="cp-admin-card" aria-labelledby="titulo-revenue">
+        <div className="cp-admin-card">
           <div className="cp-admin-card-header">
-            <h2 className="cp-admin-card-title" id="titulo-revenue">Revenue — últimos 7 días</h2>
+            <div className="cp-admin-card-title">Revenue — últimos 7 días</div>
           </div>
           <div className="cp-revenue-chart">
             {stats.revenueByDay.map((day) => (
-              <div
-                key={day.date}
-                className="cp-revenue-bar-wrap"
-                role="img"
-                aria-label={`${day.date}: ${day.amount > 0 ? formatCOPCorto(day.amount) : 'sin ventas'}`}
-              >
+              <div key={day.date} className="cp-revenue-bar-wrap">
                 <div className="cp-revenue-bar-track">
                   <div
                     className="cp-revenue-bar-fill"
                     style={{ height: `${(day.amount / maxRevenue) * 100}%` }}
                   />
                 </div>
-                <div className="cp-revenue-bar-label">{formatDiaCorto(day.date)}</div>
+                <div className="cp-revenue-bar-label">{day.date}</div>
                 {day.amount > 0 && (
                   <div className="cp-revenue-bar-value">
-                    {formatCOPCorto(day.amount)}
+                    {formatCOP(day.amount)}
                   </div>
                 )}
               </div>
             ))}
           </div>
-        </section>
+        </div>
 
-        {/* Reparto de las órdenes por estado */}
-        <section className="cp-admin-card" aria-labelledby="titulo-estados">
+        {/* Order status donut visual */}
+        <div className="cp-admin-card">
           <div className="cp-admin-card-header">
-            <h2 className="cp-admin-card-title" id="titulo-estados">Estado de órdenes</h2>
+            <div className="cp-admin-card-title">Estado de órdenes</div>
           </div>
           <div className="cp-order-status-list">
-            {repartoDeOrdenes.map(([status, count]) => {
+            {(
+              [
+                ['CONFIRMED', stats.orders.confirmed],
+                ['SHIPPED', stats.orders.shipped],
+                ['DELIVERED', stats.orders.delivered],
+                ['PENDING', stats.orders.pending],
+                ['CANCELLED', stats.orders.cancelled],
+              ] as [string, number][]
+            ).map(([status, count]) => {
               const pct =
                 stats.orders.total > 0
                   ? Math.round((count / stats.orders.total) * 100)
                   : 0
-              const { etiqueta, color } = ESTADOS_PEDIDO[status]
               return (
                 <div key={status} className="cp-order-status-row">
                   <div className="cp-order-status-info">
                     <span
                       className="cp-order-status-dot"
-                      style={{ background: color }}
-                      aria-hidden="true"
+                      style={{ background: STATUS_COLOR[status] }}
                     />
-                    <span>{etiqueta}</span>
+                    <span>{STATUS_LABEL[status]}</span>
                   </div>
                   <div className="cp-order-status-bar-wrap">
-                    <div className="cp-order-status-bar" aria-hidden="true">
+                    <div className="cp-order-status-bar">
                       <div
                         className="cp-order-status-bar-fill"
                         style={{
                           width: `${pct}%`,
-                          background: color,
+                          background: STATUS_COLOR[status],
                         }}
                       />
                     </div>
@@ -203,88 +232,88 @@ export function AdminDashboard() {
               )
             })}
           </div>
-        </section>
+        </div>
       </div>
 
       {/* Órdenes recientes */}
-      <section className="cp-admin-card cp-admin-card-spaced" aria-labelledby="titulo-recientes">
+      <div className="cp-admin-card" style={{ marginTop: 24 }}>
         <div className="cp-admin-card-header">
-          <h2 className="cp-admin-card-title" id="titulo-recientes">Órdenes recientes</h2>
-          <Link to="/admin/orders" className="cp-btn cp-btn-ghost cp-btn-sm">
+          <div className="cp-admin-card-title">Órdenes recientes</div>
+          <Link to="/admin/orders" className="cp-btn cp-btn-ghost" style={{ fontSize: 12 }}>
             Ver todas →
           </Link>
         </div>
-        <div className="cp-admin-table-wrap cp-admin-table-flush">
+        <div className="cp-admin-table-wrap">
           <table className="cp-admin-table">
-            <caption className="cp-sr-only">Últimas órdenes recibidas</caption>
             <thead>
               <tr>
-                <th scope="col">Referencia</th>
-                <th scope="col">Cliente</th>
-                <th scope="col">Productos</th>
-                <th scope="col">Total</th>
-                <th scope="col">Estado</th>
-                <th scope="col">Fecha</th>
+                <th>Referencia</th>
+                <th>Cliente</th>
+                <th>Productos</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Fecha</th>
               </tr>
             </thead>
             <tbody>
-              {stats.recentOrders.map((order) => {
-                const estado = infoEstado(order.status)
-                return (
-                  <tr key={order.id}>
-                    <td>
-                      <span className="cp-admin-ref">{order.orderRef}</span>
-                    </td>
-                    <td data-label="Cliente">
-                      <div>
-                        <div className="cp-admin-user-title">{order.name}</div>
-                        <div className="cp-admin-email">{order.email}</div>
-                      </div>
-                    </td>
-                    <td className="cp-admin-mono" data-label="Productos">
-                      {order.itemCount} ítem{order.itemCount === 1 ? '' : 's'}
-                    </td>
-                    <td className="cp-admin-money" data-label="Total">{formatCOPCorto(order.total)}</td>
-                    <td data-label="Estado">
-                      <span
-                        className="cp-badge cp-status"
-                        style={{ '--estado': estado.color } as CSSProperties}
-                      >
-                        {estado.etiqueta}
-                      </span>
-                    </td>
-                    <td className="cp-admin-mono cp-admin-soft" data-label="Fecha">
-                      <time dateTime={order.createdAt}>
-                        {new Date(order.createdAt).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}
-                      </time>
-                    </td>
-                  </tr>
-                )
-              })}
+              {stats.recentOrders.map((order) => (
+                <tr key={order.id}>
+                  <td>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--accent)' }}>
+                      {order.orderRef}
+                    </span>
+                  </td>
+                  <td>
+                    <div style={{ fontSize: 13, fontWeight: 500 }}>{order.name}</div>
+                    <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>{order.email}</div>
+                  </td>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>
+                    {order.itemCount} ítem{order.itemCount === 1 ? '' : 's'}
+                  </td>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600 }}>
+                    {formatCOP(order.total)}
+                  </td>
+                  <td>
+                    <span
+                      className="cp-badge"
+                      style={{
+                        background: STATUS_COLOR[order.status] + '20',
+                        color: STATUS_COLOR[order.status],
+                        border: `1px solid ${STATUS_COLOR[order.status]}40`,
+                      }}
+                    >
+                      {STATUS_LABEL[order.status]}
+                    </span>
+                  </td>
+                  <td style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--ink-soft)' }}>
+                    {new Date(order.createdAt).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-      </section>
+      </div>
 
-      {/* Resumen del inventario y de los usuarios */}
-      <div className="cp-admin-grid-3 cp-admin-card-spaced">
+      {/* Quick stats phones */}
+      <div className="cp-admin-grid-3" style={{ marginTop: 24 }}>
         <div className="cp-admin-mini-stat">
-          <div className="cp-admin-mini-stat-num cp-tone-accent">
+          <div className="cp-admin-mini-stat-num" style={{ color: 'var(--accent)' }}>
             {stats.phones.verified}
           </div>
           <div className="cp-admin-mini-stat-label">Celulares verificados ✓</div>
         </div>
         <div className="cp-admin-mini-stat">
-          <div className="cp-admin-mini-stat-num cp-tone-bad">
+          <div className="cp-admin-mini-stat-num" style={{ color: '#ff3860' }}>
             {stats.phones.outOfStock}
           </div>
           <div className="cp-admin-mini-stat-label">Sin stock</div>
         </div>
         <div className="cp-admin-mini-stat">
-          <div className="cp-admin-mini-stat-num cp-tone-violet">
+          <div className="cp-admin-mini-stat-num" style={{ color: '#a855f7' }}>
             {stats.users.banned > 0 ? (
-              <span className="cp-admin-mini-stat-icon">
-                <ShieldOff size={20} aria-hidden="true" /> {stats.users.banned}
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <ShieldOff size={20} /> {stats.users.banned}
               </span>
             ) : (
               '0'

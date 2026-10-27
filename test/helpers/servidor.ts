@@ -7,7 +7,7 @@ import api from '../../src/services/api'
 // backend" con servidor.responder() y después revisa qué le llegó con
 // servidor.peticiones().
 
-export type Metodo = 'GET' | 'POST' | 'PUT' | 'DELETE'
+export type Metodo = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 export interface Respuesta {
   status: number

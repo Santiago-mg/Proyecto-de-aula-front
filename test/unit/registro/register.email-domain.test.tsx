@@ -28,7 +28,7 @@ beforeEach(() => {
   })
 })
 
-describe('Register — validación del dominio de correo', () => {
+describe('Register — validación del correo (dominios permitidos por el backend)', () => {
   // Camino 1,2,3,4,F — correo con formato inválido
   it('muestra "Correo electrónico inválido" con un formato incorrecto', async () => {
     // Arrange
@@ -43,8 +43,8 @@ describe('Register — validación del dominio de correo', () => {
     // Act
     await user.type(name, 'Mario')
     await user.type(screen.getByLabelText(/email/i), 'usuario@')
-    await user.type(password, 'password123')
-    await user.type(confirm, 'password123')
+    await user.type(password, 'Password123')
+    await user.type(confirm, 'Password123')
     await user.click(screen.getByRole('button', { name: /crear cuenta/i }))
 
     // Assert
@@ -53,31 +53,62 @@ describe('Register — validación del dominio de correo', () => {
     })
   })
 
-  // Camino 1,2,3,5,6,7,F — correo válido pero dominio no permitido
-  it('muestra el mensaje de dominio no permitido con user@empresa.com', async () => {
-    // Arrange
-    const user = userEvent.setup()
-    render(
-      <MemoryRouter>
-        <Register />
-      </MemoryRouter>,
-    )
-    const { name, password, confirm } = fillRequiredFieldsExceptEmail()
+  // Mismos 5 dominios que el backend (src/domain/credenciales.ts).
+  it.each(['user@gmail.com', 'user@outlook.com', 'user@hotmail.com', 'user@yahoo.com', 'user@icloud.com', '  User@Gmail.COM '])(
+    'acepta el correo "%s" (dominio permitido) y envía el registro normalizado',
+    async (correo) => {
+      // Arrange
+      const registerFn = vi.fn().mockResolvedValue(undefined)
+      useAuthMock.mockReturnValue({ user: null, register: registerFn, isLoading: false })
+      const user = userEvent.setup()
+      render(
+        <MemoryRouter>
+          <Register />
+        </MemoryRouter>,
+      )
+      const { name, password, confirm } = fillRequiredFieldsExceptEmail()
 
-    // Act
-    await user.type(name, 'Mario')
-    await user.type(screen.getByLabelText(/email/i), 'user@empresa.com')
-    await user.type(password, 'password123')
-    await user.type(confirm, 'password123')
-    await user.click(screen.getByRole('button', { name: /crear cuenta/i }))
+      // Act
+      await user.type(name, 'Mario')
+      await user.type(screen.getByLabelText(/email/i), correo)
+      await user.type(password, 'Password123')
+      await user.type(confirm, 'Password123')
+      await user.click(screen.getByRole('button', { name: /crear cuenta/i }))
 
-    // Assert
-    await waitFor(() => {
-      expect(
-        screen.queryByText(/Correo inválido\. Usa Gmail, Outlook, Hotmail, Yahoo o iCloud\./),
-      ).to.exist
-    })
-  })
+      // Assert
+      await waitFor(() => expect(registerFn.mock.calls).to.have.length(1))
+      expect(registerFn.mock.calls[0]).to.deep.equal([correo.trim().toLowerCase(), 'Mario', 'Password123'])
+      expect(screen.queryByText(/Usa Gmail, Outlook/)).to.be.null
+    },
+  )
+
+  // El backend responde 400 a estos dominios: el formulario lo avisa antes de enviar.
+  it.each(['user@empresa.com', 'user@unal.edu.co', 'user@gmail.co'])(
+    'rechaza el correo %s con el mensaje de dominio y no envía',
+    async (correo) => {
+      // Arrange
+      const registerFn = vi.fn()
+      useAuthMock.mockReturnValue({ user: null, register: registerFn, isLoading: false })
+      const user = userEvent.setup()
+      render(
+        <MemoryRouter>
+          <Register />
+        </MemoryRouter>,
+      )
+      const { name, password, confirm } = fillRequiredFieldsExceptEmail()
+
+      // Act
+      await user.type(name, 'Mario')
+      await user.type(screen.getByLabelText(/email/i), correo)
+      await user.type(password, 'Password123')
+      await user.type(confirm, 'Password123')
+      await user.click(screen.getByRole('button', { name: /crear cuenta/i }))
+
+      // Assert
+      expect(await screen.findByText('Correo inválido. Usa Gmail, Outlook, Hotmail, Yahoo o iCloud.')).to.exist
+      expect(registerFn.mock.calls).to.have.length(0)
+    },
+  )
 
   // Camino 1,2,3,5,6,8,F — correo válido con dominio permitido
   it('no muestra error de email con un dominio permitido (user@gmail.com)', async () => {
@@ -95,8 +126,8 @@ describe('Register — validación del dominio de correo', () => {
     // Act
     await user.type(name, 'Mario')
     await user.type(screen.getByLabelText(/email/i), 'user@gmail.com')
-    await user.type(password, 'password123')
-    await user.type(confirm, 'password123')
+    await user.type(password, 'Password123')
+    await user.type(confirm, 'Password123')
     await user.click(screen.getByRole('button', { name: /crear cuenta/i }))
 
     // Assert
@@ -123,8 +154,8 @@ describe('Register — correo sin arroba', () => {
     // Act
     await user.type(name, 'Mario')
     await user.type(screen.getByLabelText(/email/i), 'sin-arroba')
-    await user.type(password, 'password123')
-    await user.type(confirm, 'password123')
+    await user.type(password, 'Password123')
+    await user.type(confirm, 'Password123')
     await user.click(screen.getByRole('button', { name: /crear cuenta/i }))
 
     // Assert

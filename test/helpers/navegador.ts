@@ -28,7 +28,3 @@ globalThis.IntersectionObserver ??= IntersectionObserverDePrueba as unknown as t
 // jsdom no tiene WebGL: getContext devuelve null, como un navegador sin
 // aceleración gráfica. ShaderBackground ya contempla ese caso.
 HTMLCanvasElement.prototype.getContext = (() => null) as typeof HTMLCanvasElement.prototype.getContext
-
-// jsdom no desplaza la página: window.scrollTo existe pero solo avisa "Not
-// implemented". Aquí no hace nada, y las pruebas que lo necesiten lo espían.
-window.scrollTo = (() => undefined) as typeof window.scrollTo

@@ -1,32 +1,84 @@
 import {
   Ban,
   CheckCircle,
+  LockOpen,
   Crown,
   Search,
   ShieldOff,
   User,
 } from 'lucide-react'
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
-import { EmptyState } from '../../components/ui/EmptyState'
+import { useEffect, useRef, useState } from 'react'
 import { ErrorMessage } from '../../components/ui/ErrorMessage'
 import { Loading } from '../../components/ui/Loading'
 import { Pagination } from '../../components/ui/Pagination'
 import { useAuth } from '../../context/AuthContext'
-import { useToastOpcional } from '../../context/ToastContext'
-import { useDocumentTitle } from '../../hooks/useDocumentTitle'
-import { useFocusTrap } from '../../hooks/useFocusTrap'
 import { adminService } from '../../services/admin.service'
 import type { AdminUser } from '../../types/admin'
 import { comoError } from '../../utils/errores'
 
-/** Lo mismo que exige el servidor: un motivo de una o dos letras no sirve para nadie. */
-const MIN_MOTIVO = 4
+// Los modales se cierran con Escape (además del botón Cancelar).
+function useCerrarConEscape(onCancel: () => void) {
+  useEffect(() => {
+    function alPulsar(e: KeyboardEvent) {
+      if (e.key === 'Escape') onCancel()
+    }
+    document.addEventListener('keydown', alPulsar)
+    return () => document.removeEventListener('keydown', alPulsar)
+  }, [onCancel])
+}
 
-/** Espera tras la última tecla antes de buscar. */
-const ESPERA_BUSQUEDA = 400
+// Confirmación antes de cambiar un rol: dar o quitar el acceso de administrador
+// cambia lo que la persona puede hacer, y antes se ejecutaba al primer clic.
+function RoleModal({
+  user,
+  role,
+  onConfirm,
+  onCancel,
+}: Readonly<{
+  user: AdminUser
+  role: 'USER' | 'ADMIN'
+  onConfirm(): void
+  onCancel(): void
+}>) {
+  useCerrarConEscape(onCancel)
+  const daAcceso = role === 'ADMIN'
 
-// Confirmación de baneo. Es un diálogo de verdad: el teclado se queda dentro,
-// Escape lo cierra y, al cerrarlo, el foco vuelve al botón "Banear" de la fila.
+  return (
+    <div className="cp-modal-overlay">
+      <div className="cp-modal" role="dialog" aria-modal="true" aria-labelledby="rol-titulo">
+        <div className="cp-modal-header">
+          <Crown size={20} style={{ color: '#a855f7' }} />
+          <h3 id="rol-titulo" className="cp-modal-title">
+            {daAcceso ? 'Hacer administrador' : 'Quitar administrador'}
+          </h3>
+        </div>
+        <p className="cp-modal-body">
+          {daAcceso ? (
+            <>
+              Vas a dar acceso de administrador a <strong>{user.name}</strong> ({user.email}).
+              Podrá banear usuarios, cambiar roles y gestionar el catálogo.
+            </>
+          ) : (
+            <>
+              Vas a quitar el acceso de administrador a <strong>{user.name}</strong> ({user.email}).
+              Perderá el acceso al panel de inmediato.
+            </>
+          )}
+        </p>
+        <div className="cp-modal-actions">
+          <button className="cp-btn cp-btn-secondary" onClick={onCancel} autoFocus>
+            Cancelar
+          </button>
+          <button className="cp-btn cp-btn-primary" onClick={onConfirm}>
+            {daAcceso ? 'Sí, hacer admin' : 'Sí, quitar admin'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Modal sencillo de confirmación de ban
 function BanModal({
   user,
   onConfirm,
@@ -37,164 +89,99 @@ function BanModal({
   onCancel(): void
 }>) {
   const [reason, setReason] = useState('')
-  const caja = useRef<HTMLDivElement>(null)
-  const campo = useRef<HTMLInputElement>(null)
-  const idTitulo = useId()
-  const idTexto = useId()
-  const idAyuda = useId()
-  const valido = reason.trim().length >= MIN_MOTIVO
-
-  useFocusTrap(caja, true, { alEscapar: onCancel, inicial: campo })
-
-  function enviar(e: FormEvent) {
-    e.preventDefault()
-    if (valido) onConfirm(reason.trim())
-  }
+  useCerrarConEscape(onCancel)
 
   return (
-    <div
-      className="cp-modal-overlay"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onCancel()
-      }}
-    >
-      <div
-        ref={caja}
-        className="cp-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={idTitulo}
-        aria-describedby={idTexto}
-        tabIndex={-1}
-      >
+    <div className="cp-modal-overlay">
+      <div className="cp-modal" role="dialog" aria-modal="true" aria-labelledby="ban-titulo">
         <div className="cp-modal-header">
-          <ShieldOff size={20} aria-hidden="true" className="cp-modal-icon-danger" />
-          <h2 id={idTitulo} className="cp-modal-title">Banear usuario</h2>
+          <ShieldOff size={20} style={{ color: '#ff3860' }} />
+          <h3 id="ban-titulo" className="cp-modal-title">Banear usuario</h3>
         </div>
-        <p id={idTexto} className="cp-modal-body">
+        <p className="cp-modal-body">
           Vas a suspender la cuenta de{' '}
           <strong>{user.name}</strong> ({user.email}). El usuario no podrá
           iniciar sesión.
         </p>
-        <form onSubmit={enviar} noValidate>
-          <div className="cp-field">
-            <label className="cp-label" htmlFor="motivo-baneo">Motivo del baneo</label>
-            <input
-              ref={campo}
-              id="motivo-baneo"
-              className="cp-input"
-              placeholder="Ej: Comportamiento fraudulento, spam..."
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              aria-describedby={idAyuda}
-              autoComplete="off"
-            />
-            <p id={idAyuda} className="cp-field-hint">
-              Mínimo {MIN_MOTIVO} caracteres. El motivo queda registrado en la cuenta.
-            </p>
-          </div>
-          <div className="cp-modal-actions">
-            <button type="button" className="cp-btn cp-btn-secondary" onClick={onCancel}>
-              Cancelar
-            </button>
-            <button type="submit" className="cp-btn cp-btn-danger" disabled={!valido}>
-              <Ban size={14} aria-hidden="true" /> Confirmar baneo
-            </button>
-          </div>
-        </form>
+        <div className="cp-field">
+          <label className="cp-label" htmlFor="motivo-baneo">Motivo del baneo</label>
+          <input
+            id="motivo-baneo"
+            className="cp-input"
+            placeholder="Ej: Comportamiento fraudulento, spam..."
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            autoFocus
+          />
+        </div>
+        <div className="cp-modal-actions">
+          <button className="cp-btn cp-btn-secondary" onClick={onCancel}>
+            Cancelar
+          </button>
+          <button
+            className="cp-btn"
+            style={{ background: '#ff3860', color: '#fff', border: 'none' }}
+            disabled={reason.trim().length < 4}
+            onClick={() => onConfirm(reason.trim())}
+          >
+            <Ban size={14} /> Confirmar baneo
+          </button>
+        </div>
       </div>
     </div>
   )
 }
 
-function textoTotal(total: number) {
-  return total === 1 ? '1 usuario registrado' : `${total} usuarios registrados`
-}
-
 export function AdminUsers() {
-  useDocumentTitle('Administración · Usuarios')
   const { user: me } = useAuth()
-  const avisar = useToastOpcional()
   const [users, setUsers] = useState<AdminUser[]>([])
   const [meta, setMeta] = useState({ total: 0, page: 1, totalPages: 1 })
-  // Qué se está pidiendo. Cambiar el término vuelve a la primera página en el
-  // mismo paso, así que cada cambio es una sola petición.
-  const [consulta, setConsulta] = useState({ page: 1, termino: '' })
-  const [intento, setIntento] = useState(0)
-  const [escrito, setEscrito] = useState('')
-  const [cargando, setCargando] = useState(true)
-  const [yaCargo, setYaCargo] = useState(false)
-  const [errorCarga, setErrorCarga] = useState<Error | null>(null)
-  const [errorAccion, setErrorAccion] = useState<Error | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
   const [banTarget, setBanTarget] = useState<AdminUser | null>(null)
+  const [roleTarget, setRoleTarget] = useState<{ user: AdminUser; role: 'USER' | 'ADMIN' } | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
-  const temporizador = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [error, setError] = useState<Error | null>(null)
+  const searchRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  useEffect(() => {
-    // Si llegan dos respuestas, solo cuenta la de la última petición.
-    let vigente = true
-    setCargando(true)
-    setErrorCarga(null)
+  function load(p: number, s: string) {
+    setLoading(true)
+    setError(null)
     adminService
-      .getUsers(consulta.page, consulta.termino || undefined)
+      .getUsers(p, s || undefined)
       .then((r) => {
-        if (!vigente) return
         setUsers(r.data)
         setMeta(r.meta)
-        setYaCargo(true)
       })
-      .catch((err) => {
-        if (vigente) setErrorCarga(comoError(err))
-      })
-      .finally(() => {
-        if (vigente) setCargando(false)
-      })
-    return () => {
-      vigente = false
-    }
-  }, [consulta, intento])
-
-  useEffect(
-    () => () => {
-      if (temporizador.current) clearTimeout(temporizador.current)
-    },
-    [],
-  )
-
-  function buscarTras(valor: string) {
-    if (temporizador.current) clearTimeout(temporizador.current)
-    temporizador.current = setTimeout(() => {
-      const termino = valor.trim()
-      setConsulta((c) => (c.termino === termino ? c : { page: 1, termino }))
-    }, ESPERA_BUSQUEDA)
+      .catch((err) => setError(comoError(err)))
+      .finally(() => setLoading(false))
   }
 
-  function alEscribir(valor: string) {
-    setEscrito(valor)
-    buscarTras(valor)
-  }
+  useEffect(() => {
+    load(page, search)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page])
 
-  function limpiarBusqueda() {
-    if (temporizador.current) clearTimeout(temporizador.current)
-    setEscrito('')
-    setConsulta({ page: 1, termino: '' })
+  function handleSearchChange(value: string) {
+    setSearch(value)
+    if (searchRef.current) clearTimeout(searchRef.current)
+    searchRef.current = setTimeout(() => {
+      setPage(1)
+      load(1, value)
+    }, 400)
   }
 
   // Banear, desbanear y cambiar rol comparten el mismo flujo: bloquear la fila,
   // reemplazarla con lo que devuelve el servidor o mostrar su error.
-  async function ejecutarAccion(
-    userId: string,
-    accion: () => Promise<AdminUser>,
-    mensaje: (actualizado: AdminUser) => string,
-  ) {
+  async function ejecutarAccion(userId: string, accion: () => Promise<AdminUser>) {
     setActionLoading(userId)
-    setErrorAccion(null)
+    setError(null)
     try {
       const updated = await accion()
       setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
-      avisar.showToast(mensaje(updated))
     } catch (err) {
-      setErrorAccion(comoError(err))
+      setError(comoError(err))
     } finally {
       setActionLoading(null)
     }
@@ -202,32 +189,32 @@ export function AdminUsers() {
 
   async function handleBan(user: AdminUser, reason: string) {
     setBanTarget(null)
-    await ejecutarAccion(
-      user.id,
-      () => adminService.banUser(user.id, reason),
-      (u) => `Suspendimos la cuenta de ${u.name}.`,
-    )
+    await ejecutarAccion(user.id, () => adminService.banUser(user.id, reason))
   }
 
   async function handleUnban(user: AdminUser) {
-    await ejecutarAccion(
-      user.id,
-      () => adminService.unbanUser(user.id),
-      (u) => `Reactivamos la cuenta de ${u.name}.`,
-    )
+    await ejecutarAccion(user.id, () => adminService.unbanUser(user.id))
   }
 
   async function handleRoleChange(user: AdminUser, role: 'USER' | 'ADMIN') {
     if (user.id === me?.id) return
-    await ejecutarAccion(
-      user.id,
-      () => adminService.changeRole(user.id, role),
-      (u) => `${u.name} ahora es ${role === 'ADMIN' ? 'administrador' : 'usuario'}.`,
-    )
+    await ejecutarAccion(user.id, () => adminService.changeRole(user.id, role))
   }
 
   return (
     <div className="cp-admin-page">
+      {roleTarget && (
+        <RoleModal
+          user={roleTarget.user}
+          role={roleTarget.role}
+          onConfirm={() => {
+            const { user, role } = roleTarget
+            setRoleTarget(null)
+            void handleRoleChange(user, role)
+          }}
+          onCancel={() => setRoleTarget(null)}
+        />
+      )}
       {banTarget && (
         <BanModal
           user={banTarget}
@@ -241,178 +228,202 @@ export function AdminUsers() {
           <div className="cp-admin-page-eyebrow">— Gestión</div>
           <h1 className="cp-admin-page-title">Usuarios</h1>
         </div>
-        {yaCargo && !errorCarga && (
-          <div className="cp-admin-count">{textoTotal(meta.total)}</div>
-        )}
+        <div
+          style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 12,
+            color: 'var(--ink-soft)',
+          }}
+        >
+          {meta.total} usuarios registrados
+        </div>
       </div>
 
       {/* Buscador */}
-      <div className="cp-admin-search" role="search">
-        <label htmlFor="buscar-usuarios" className="cp-sr-only">
-          Buscar por nombre o email
-        </label>
-        <Search size={16} aria-hidden="true" className="cp-admin-search-icon" />
+      <div style={{ position: 'relative', maxWidth: 400, marginBottom: 24 }}>
+        <Search
+          size={15}
+          style={{
+            position: 'absolute',
+            left: 14,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: 'var(--ink-faint)',
+          }}
+        />
         <input
-          id="buscar-usuarios"
           className="cp-input"
           placeholder="Buscar por nombre o email..."
-          value={escrito}
-          onChange={(e) => alEscribir(e.target.value)}
-          autoComplete="off"
-          spellCheck={false}
-          inputMode="search"
-          enterKeyHint="search"
+          value={search}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          style={{ paddingLeft: 38 }}
         />
       </div>
 
-      {errorAccion && <ErrorMessage error={errorAccion} />}
-      {errorCarga && (
-        <ErrorMessage error={errorCarga} onReintentar={() => setIntento((n) => n + 1)} />
-      )}
+      {error && <ErrorMessage error={error} />}
 
-      {cargando && !yaCargo && <Loading text="Cargando usuarios..." />}
-
-      {yaCargo && !errorCarga && (
+      {loading ? (
+        <Loading text="Cargando usuarios..." />
+      ) : (
         <>
-          {cargando && (
-            <p className="cp-actualizando" role="status">
-              Actualizando la lista...
-            </p>
-          )}
-
-          {users.length === 0 ? (
-            !cargando && (
-              <EmptyState
-                titulo={consulta.termino ? 'Ningún usuario coincide con tu búsqueda' : 'Todavía no hay usuarios'}
-                acciones={
-                  consulta.termino ? (
-                    <button type="button" className="cp-btn cp-btn-secondary" onClick={limpiarBusqueda}>
-                      Quitar la búsqueda
-                    </button>
-                  ) : undefined
-                }
-              >
-                {consulta.termino
-                  ? 'Prueba con otra parte del nombre o del correo.'
-                  : 'Cuando alguien cree una cuenta, aparecerá aquí.'}
-              </EmptyState>
-            )
-          ) : (
-            <div className="cp-admin-table-wrap" aria-busy={cargando}>
-              <table className="cp-admin-table">
-                <caption className="cp-sr-only">Usuarios registrados</caption>
-                <thead>
-                  <tr>
-                    <th scope="col">Usuario</th>
-                    <th scope="col">Rol</th>
-                    <th scope="col">Órdenes</th>
-                    <th scope="col">Registro</th>
-                    <th scope="col">Estado</th>
-                    <th scope="col">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((u) => (
-                    <tr key={u.id} className={u.banned ? 'cp-row-baneado' : undefined}>
-                      <td>
-                        <div className="cp-admin-user-cell">
-                          <div className="cp-user-avatar-sm" aria-hidden="true">
-                            {u.name.charAt(0).toUpperCase()}
+          <div className="cp-admin-table-wrap">
+            <table className="cp-admin-table">
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Rol</th>
+                  <th>Órdenes</th>
+                  <th>Registro</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr key={u.id} style={{ opacity: u.banned ? 0.65 : 1 }}>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div className="cp-user-avatar-sm">
+                          {u.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 500, fontSize: 13 }}>
+                            {u.name}
+                            {u.id === me?.id && (
+                              <span
+                                style={{
+                                  marginLeft: 6,
+                                  fontFamily: 'var(--font-mono)',
+                                  fontSize: 12,
+                                  color: 'var(--accent)',
+                                }}
+                              >
+                                (tú)
+                              </span>
+                            )}
                           </div>
-                          <div>
-                            <div className="cp-admin-user-title">
-                              {u.name}
-                              {u.id === me?.id && <span className="cp-admin-you">(tú)</span>}
-                            </div>
-                            <div className="cp-admin-email">{u.email}</div>
+                          <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>
+                            {u.email}
                           </div>
                         </div>
-                      </td>
-                      <td data-label="Rol">
+                      </div>
+                    </td>
+                    <td>
+                      <span
+                        className="cp-badge"
+                        style={
+                          u.role === 'ADMIN'
+                            ? {
+                                background: 'rgba(168,85,247,0.15)',
+                                color: '#a855f7',
+                                border: '1px solid rgba(168,85,247,0.3)',
+                              }
+                            : {
+                                background: 'rgba(0,229,255,0.08)',
+                                color: 'var(--ink-soft)',
+                                border: '1px solid var(--line-strong)',
+                              }
+                        }
+                      >
                         {u.role === 'ADMIN' ? (
-                          <span className="cp-badge cp-badge-violet">
-                            <Crown size={12} aria-hidden="true" /> Admin
-                          </span>
+                          <><Crown size={10} /> Admin</>
                         ) : (
-                          <span className="cp-badge cp-badge-muted">
-                            <User size={12} aria-hidden="true" /> Usuario
-                          </span>
+                          <><User size={10} /> Usuario</>
                         )}
-                      </td>
-                      <td className="cp-admin-mono" data-label="Órdenes">{u.orderCount}</td>
-                      <td className="cp-admin-mono cp-admin-soft" data-label="Registro">
-                        <time dateTime={u.createdAt}>
-                          {new Date(u.createdAt).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: '2-digit' })}
-                        </time>
-                      </td>
-                      <td data-label="Estado">
-                        {u.banned ? (
-                          <div>
-                            <span className="cp-badge cp-badge-bad">
-                              <Ban size={12} aria-hidden="true" /> Baneado
-                            </span>
-                            {u.banReason && <div className="cp-ban-reason">{u.banReason}</div>}
-                          </div>
-                        ) : (
-                          <span className="cp-badge cp-badge-ok">
-                            <CheckCircle size={12} aria-hidden="true" /> Activo
+                      </span>
+                    </td>
+                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>
+                      {u.orderCount}
+                    </td>
+                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--ink-soft)' }}>
+                      {new Date(u.createdAt).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: '2-digit' })}
+                    </td>
+                    <td>
+                      {u.banned ? (
+                        <div>
+                          <span
+                            className="cp-badge"
+                            style={{
+                              background: 'rgba(255,56,96,0.15)',
+                              color: '#ff3860',
+                              border: '1px solid rgba(255,56,96,0.3)',
+                            }}
+                          >
+                            <Ban size={10} /> Baneado
                           </span>
-                        )}
-                      </td>
-                      <td data-label="Acciones">
-                        <div className="cp-admin-actions">
-                          {/* Ban / Unban: nadie puede suspenderse a sí mismo */}
-                          {u.id !== me?.id &&
-                            (u.banned ? (
-                              <button
-                                type="button"
-                                className="cp-btn cp-btn-ghost cp-btn-sm cp-tone-ok"
-                                aria-label={`Desbanear a ${u.name}`}
-                                disabled={actionLoading === u.id}
-                                onClick={() => handleUnban(u)}
-                              >
-                                <CheckCircle size={14} aria-hidden="true" /> Desbanear
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                className="cp-btn cp-btn-ghost cp-btn-sm cp-tone-bad"
-                                aria-label={`Banear a ${u.name}`}
-                                disabled={actionLoading === u.id}
-                                onClick={() => setBanTarget(u)}
-                              >
-                                <Ban size={14} aria-hidden="true" /> Banear
-                              </button>
-                            ))}
-
-                          {/* Cambiar rol */}
-                          {u.id !== me?.id && (
-                            <button
-                              type="button"
-                              className="cp-btn cp-btn-ghost cp-btn-sm cp-tone-violet"
-                              aria-label={`${u.role === 'ADMIN' ? 'Quitar admin a' : 'Hacer admin a'} ${u.name}`}
-                              disabled={actionLoading === u.id}
-                              onClick={() => handleRoleChange(u, u.role === 'ADMIN' ? 'USER' : 'ADMIN')}
-                            >
-                              <Crown size={14} aria-hidden="true" />
-                              {u.role === 'ADMIN' ? 'Quitar admin' : 'Hacer admin'}
-                            </button>
+                          {u.banReason && (
+                            <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 3 }}>
+                              {u.banReason}
+                            </div>
                           )}
                         </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                      ) : (
+                        <span
+                          className="cp-badge"
+                          style={{
+                            background: 'rgba(34,255,136,0.1)',
+                            color: '#22ff88',
+                            border: '1px solid rgba(34,255,136,0.25)',
+                          }}
+                        >
+                          <CheckCircle size={10} /> Activo
+                        </span>
+                      )}
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                        {/* Ban / Unban */}
+                        {u.id !== me?.id && (
+                          u.banned ? (
+                            <button
+                              className="cp-btn cp-btn-ghost"
+                              style={{ fontSize: 12, padding: '6px 12px', color: '#22ff88' }}
+                              disabled={actionLoading === u.id}
+                              onClick={() => handleUnban(u)}
+                            >
+                              {/* Heurística 4: CheckCircle queda solo para "Activo" */}
+                              <LockOpen size={12} aria-hidden="true" /> Desbanear
+                            </button>
+                          ) : u.role === 'ADMIN' ? (
+                            // H7.1: no se banea a un administrador. La pantalla no lo ofrece y explica
+                            // el camino; el backend también lo rechaza (403), de forma atómica.
+                            <span className="cp-field-hint" style={{ alignSelf: 'center' }}>
+                              Para banearlo, quita primero el rol admin
+                            </span>
+                          ) : (
+                            <button
+                              className="cp-btn cp-btn-ghost"
+                              style={{ fontSize: 12, padding: '6px 12px', color: '#ff3860' }}
+                              disabled={actionLoading === u.id}
+                              onClick={() => setBanTarget(u)}
+                            >
+                              <Ban size={12} /> Banear
+                            </button>
+                          )
+                        )}
 
-          <Pagination
-            page={consulta.page}
-            totalPages={meta.totalPages}
-            onPage={(page) => setConsulta((c) => ({ ...c, page }))}
-            etiqueta="Páginas de usuarios"
-          />
+                        {/* Cambiar rol */}
+                        {u.id !== me?.id && (
+                          <button
+                            className="cp-btn cp-btn-ghost"
+                            style={{ fontSize: 12, padding: '6px 12px', color: '#a855f7' }}
+                            disabled={actionLoading === u.id}
+                            onClick={() =>
+                              setRoleTarget({ user: u, role: u.role === 'ADMIN' ? 'USER' : 'ADMIN' })
+                            }
+                          >
+                            <Crown size={12} />
+                            {u.role === 'ADMIN' ? 'Quitar admin' : 'Hacer admin'}
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <Pagination page={page} totalPages={meta.totalPages} onPage={setPage} />
         </>
       )}
     </div>

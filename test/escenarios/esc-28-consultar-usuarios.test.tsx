@@ -74,7 +74,7 @@ describe('ESC-28 — Consultar usuarios', () => {
     abrirApp('/admin/users')
 
     // Assert
-    expect(await screen.findByText('Datos inválidos')).to.exist
+    expect(await screen.findByText('Algunos datos no son válidos. Revisa el formulario e inténtalo de nuevo.')).to.exist
     expect(screen.queryByText('Ana Torres')).to.be.null
   })
 

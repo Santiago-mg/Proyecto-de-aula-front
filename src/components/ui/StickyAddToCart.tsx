@@ -1,7 +1,10 @@
 import { ShoppingBag, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { Phone, PhoneColor } from '../../types/phone'
-import { formatCOP } from '../../utils/formato'
+
+function formatCOP(n: number) {
+  return '$' + new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 }).format(n) + ' COP'
+}
 
 interface StickyAddToCartProps {
   phone: Phone
@@ -34,9 +37,14 @@ export function StickyAddToCart({ phone, selectedColor, qty, onAdd }: Readonly<S
             {selectedColor && (
               <div className="cp-sticky-cart-color">
                 <span
-                  className="cp-sticky-cart-dot"
-                  style={{ background: selectedColor.hex }}
-                  aria-hidden="true"
+                  style={{
+                    display: 'inline-block',
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    background: selectedColor.hex,
+                    marginRight: 5,
+                  }}
                 />
                 {selectedColor.name}
               </div>
@@ -47,15 +55,15 @@ export function StickyAddToCart({ phone, selectedColor, qty, onAdd }: Readonly<S
         <div className="cp-sticky-cart-right">
           <div className="cp-sticky-cart-price">{formatCOP(phone.price * qty)}</div>
           <button
-            type="button"
-            className="cp-btn cp-btn-primary cp-sticky-cart-btn"
+            className="cp-btn cp-btn-primary"
+            style={{ animation: 'glowPulse 2s ease-in-out infinite' }}
             onClick={onAdd}
           >
-            <ShoppingBag size={15} aria-hidden="true" />
+            <ShoppingBag size={15} />
             Agregar al carrito
           </button>
           <div className="cp-sticky-cart-trust">
-            <ShieldCheck size={12} className="cp-ok-icon" aria-hidden="true" />
+            <ShieldCheck size={12} style={{ color: '#22ff88' }} />
             <span>Garantía incluida</span>
           </div>
         </div>

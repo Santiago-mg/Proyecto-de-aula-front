@@ -6,66 +6,82 @@ export function comoError(err: unknown): Error {
   return err instanceof Error ? err : new Error(String(err))
 }
 
-export interface DescripcionError {
-  /** Qué pasó, en una frase que cualquiera entienda. */
-  mensaje: string
-  /** Qué puede hacer la persona ahora. */
-  pista?: string
-  /** Referencia corta para decirle a soporte cuando la persona no puede arreglarlo sola. */
-  codigo?: string
-  /** Volver a intentar tiene sentido (red caída, servidor ocupado). */
-  reintentable: boolean
+interface CuerpoError {
+  error?: string
+  code?: string
+  errors?: Array<{ field?: string; message?: string }>
 }
 
-const MENSAJE_SIN_DETALLE = 'Error de conexión con el servidor'
+function cuerpo(error: unknown): CuerpoError | undefined {
+  return axios.isAxiosError(error) ? (error.response?.data as CuerpoError | undefined) : undefined
+}
 
 /**
- * Traduce un error técnico a lo que la persona necesita saber: qué pasó, qué
- * hacer y una referencia por si tiene que escribir a soporte. Antes todos los
- * fallos terminaban en el mismo texto, sin una salida (heurística 9).
- *
- * El mensaje que manda el servidor ("El email ya está registrado") siempre
- * manda sobre el genérico, porque ese ya está redactado para la persona.
+ * Código opcional de los errores de sesión (TOKEN_EXPIRED…). El backend actual
+ * solo envía { error }, así que normalmente es undefined y se usa el aviso genérico.
  */
-export function describirError(error: Error | null): DescripcionError | null {
-  if (!error) return null
+export function codigoDeError(error: unknown): string | undefined {
+  return cuerpo(error)?.code
+}
 
-  if (!axios.isAxiosError(error)) {
-    return { mensaje: error.message, reintentable: false }
+/**
+ * Texto que se le muestra a la persona. Si el backend devolvió el detalle por
+ * campo (errores de validación), se usa el primero en lugar del genérico
+ * "Datos inválidos", que no dice qué corregir.
+ */
+export function mensajeDeError(error: Error | null): string {
+  if (!error) return ''
+  if (axios.isAxiosError(error)) {
+    const c = cuerpo(error)
+    const texto = c?.errors?.[0]?.message ?? c?.error
+    return texto ? enLenguajeCotidiano(texto) : MENSAJE_SIN_CONEXION
   }
+  return error.message
+}
 
-  const estado = error.response?.status
-  const delServidor = (error.response?.data as { error?: string } | undefined)?.error
-  const mensaje = delServidor ?? MENSAJE_SIN_DETALLE
+// Heurística 2 (lenguaje del usuario) y 9 (mensajes que dicen qué hacer): el
+// backend devuelve algunos textos técnicos ("Token inválido o expirado") que
+// una persona no técnica no entiende. Se traducen aquí; el resto de mensajes
+// del backend ya están en español claro y se muestran tal cual.
+export const MENSAJE_SIN_CONEXION = 'No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.'
 
-  // Sin respuesta: se cayó el internet, el servidor no contesta o se agotó el tiempo.
-  if (estado === undefined) {
-    return {
-      mensaje,
-      pista: 'Revisa tu conexión a internet y vuelve a intentarlo.',
-      codigo: 'SIN-RED',
-      reintentable: true,
-    }
-  }
+const TRADUCCIONES: Record<string, string> = {
+  'Token inválido o expirado': 'Tu sesión ya no es válida. Inicia sesión de nuevo.',
+  'Token requerido': 'Necesitas iniciar sesión para hacer esto.',
+  'Datos inválidos': 'Algunos datos no son válidos. Revisa el formulario e inténtalo de nuevo.',
+  'Ruta no encontrada': 'No encontramos lo que buscabas. Recarga la página o vuelve al inicio.',
+  'Error interno del servidor': 'Algo falló de nuestro lado. Inténtalo de nuevo en unos minutos.',
+}
 
-  const codigo = `HTTP ${estado}`
-  if (estado >= 500) {
-    return {
-      mensaje,
-      pista: 'El problema es de nuestro lado, no tuyo. Inténtalo de nuevo en unos minutos.',
-      codigo,
-      reintentable: true,
-    }
-  }
-  if (estado === 401) {
-    return { mensaje, pista: 'Tu sesión pudo haber vencido. Ingresa de nuevo para continuar.', reintentable: false }
-  }
-  if (estado === 403) {
-    return { mensaje, pista: 'Tu cuenta no tiene permiso para hacer esto.', reintentable: false }
-  }
-  if (estado === 429) {
-    return { mensaje, pista: 'Hiciste muchos intentos seguidos. Espera un momento y prueba otra vez.', reintentable: true }
-  }
-  // 400, 404, 409, 422…: el mensaje del servidor ya dice qué corregir.
-  return { mensaje, reintentable: false }
+export function enLenguajeCotidiano(texto: string): string {
+  return TRADUCCIONES[texto] ?? texto
+}
+
+/** true si el error es de red (no hubo respuesta): conviene ofrecer "Reintentar". */
+export function esErrorDeRed(error: unknown): boolean {
+  return axios.isAxiosError(error) && !error.response
+}
+
+// Mensajes de sesión que sobreviven a la redirección a /login (la página se
+// recarga y el estado de React se pierde, por eso viajan en sessionStorage).
+export const CLAVE_AVISO = 'cp_aviso'
+
+const AVISOS_SESION: Record<string, string> = {
+  TOKEN_EXPIRED: 'Tu sesión ha vencido. Inicia sesión de nuevo.',
+}
+const AVISO_GENERICO = 'Tu sesión ya no es válida. Inicia sesión de nuevo.'
+
+export function avisoDeSesion(code: string | undefined): string {
+  return (code && AVISOS_SESION[code]) || AVISO_GENERICO
+}
+
+/**
+ * El backend responde 403 "Tu cuenta ha sido suspendida. Motivo: …" cuando un
+ * administrador suspende la cuenta mientras la sesión está abierta. Es distinto
+ * del 403 "Acceso restringido a administradores", que no debe cerrar la sesión.
+ */
+export function mensajeDeSuspension(error: unknown): string | undefined {
+  if (!axios.isAxiosError(error) || error.response?.status !== 403) return undefined
+  const texto = cuerpo(error)?.error
+  return texto?.startsWith('Tu cuenta ha sido suspendida') ? texto : undefined
 }

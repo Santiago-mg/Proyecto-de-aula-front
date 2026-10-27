@@ -1,0 +1,65 @@
+{
+  "$schema": "https://serenity-js.org/schemas/report-summary.json",
+  "generated": "2026-10-25T05:20:09.857Z",
+  "title": "celularpro-e2e-serenityjs",
+  "schemaVersion": 1,
+  "reportUrl": "./index.html",
+  "ci": {
+    "commit": "unknown",
+    "branch": "unknown"
+  },
+  "latestRun": {
+    "timestamp": "2026-10-25T05:18:17.555Z",
+    "label": "2026-10-25T05-20-09.684Z",
+    "totals": {
+      "passed": 28,
+      "failed": 0,
+      "pending": 0,
+      "skipped": 0,
+      "compromised": 0,
+      "error": 0
+    },
+    "duration": 112030
+  },
+  "runs": 1,
+  "failureClusters": [],
+  "consistency": {
+    "flaky": [],
+    "inconsistent": [],
+    "degraded": [],
+    "recovered": []
+  },
+  "scores": {
+    "passRate": 100,
+    "completeness": 100,
+    "consistency": 100,
+    "confidence": 100
+  },
+  "slowest": [
+    {
+      "name": "La alerta depende del stock frente al mínimo",
+      "source": "alertas.feature:23",
+      "duration": 19799
+    },
+    {
+      "name": "Demasiados intentos fallidos bloquean el acceso un rato",
+      "source": "login.feature:34",
+      "duration": 13806
+    },
+    {
+      "name": "Contraseña que no cumple la regla",
+      "source": "registro.feature:26",
+      "duration": 10558
+    },
+    {
+      "name": "Cambiar la contraseña y entrar con la nueva",
+      "source": "perfil.feature:21",
+      "duration": 7723
+    },
+    {
+      "name": "Reponer el inventario cierra la alerta",
+      "source": "alertas.feature:30",
+      "duration": 5272
+    }
+  ]
+}

@@ -1,34 +1,49 @@
-import { Compass } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { EmptyState } from '../components/ui/EmptyState'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useTituloPagina } from '../hooks/useTituloPagina'
 
 export function NotFound() {
-  useDocumentTitle('Página no encontrada')
-
+  useTituloPagina('Página no encontrada')
   return (
-    <div className="cp-container cp-status-page">
-      <div className="cp-status-code" aria-hidden="true">404</div>
-      <EmptyState
-        nivel={1}
-        icono={<Compass size={40} />}
-        titulo="Página no encontrada"
-        acciones={
-          <>
-            <Link to="/" className="cp-btn cp-btn-primary">
-              Volver al inicio
-            </Link>
-            <Link to="/catalog" className="cp-btn cp-btn-secondary">
-              Ver el catálogo
-            </Link>
-            <Link to="/ayuda" className="cp-btn cp-btn-ghost">
-              Centro de ayuda
-            </Link>
-          </>
-        }
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '60vh',
+        textAlign: 'center',
+        padding: '40px 20px',
+      }}
+    >
+      <div
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: 72,
+          fontWeight: 400,
+          color: 'var(--accent)',
+          lineHeight: 1,
+          marginBottom: 16,
+        }}
       >
+        404
+      </div>
+      <h1
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 32,
+          fontWeight: 400,
+          letterSpacing: '-0.02em',
+          marginBottom: 12,
+        }}
+      >
+        Página no encontrada
+      </h1>
+      <p style={{ color: 'var(--ink-soft)', marginBottom: 32 }}>
         La URL que buscas no existe o fue movida.
-      </EmptyState>
+      </p>
+      <Link to="/" className="cp-btn cp-btn-primary">
+        Volver al inicio
+      </Link>
     </div>
   )
 }

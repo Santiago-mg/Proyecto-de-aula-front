@@ -145,7 +145,7 @@ describe('Panel principal (/admin) — mismo endpoint GET /admin/stats', () => {
     abrirApp('/admin')
 
     // Assert
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).to.exist
+    expect(await screen.findByRole('heading', { name: 'Panel' })).to.exist
     expect(screen.queryByText('$50M COP')).to.exist
     expect(screen.queryByText('$8M COP este mes')).to.exist
     expect(screen.queryByText('$250K COP')).to.exist
@@ -184,7 +184,7 @@ describe('Panel principal (/admin) — mismo endpoint GET /admin/stats', () => {
 
     // Act
     abrirApp('/admin')
-    await screen.findByRole('heading', { name: 'Dashboard' })
+    await screen.findByRole('heading', { name: 'Panel' })
 
     // Assert
     const baneados = screen.getByText('Usuarios baneados').previousElementSibling
@@ -198,14 +198,15 @@ describe('Panel principal (/admin) — mismo endpoint GET /admin/stats', () => {
     sesionDeAdmin()
     servidor.responder('GET', '/admin/stats', sinConexion())
     const user = abrirApp('/admin')
-    await screen.findByText(/no se puede conectar al backend/i)
+    await screen.findByText('No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.')
+    expect(screen.queryByText(/localhost/)).to.be.null
     servidor.responder('GET', '/admin/stats', ok(estadisticas()))
 
     // Act
     await user.click(screen.getByRole('button', { name: 'Reintentar' }))
 
     // Assert
-    expect(await screen.findByRole('heading', { name: 'Dashboard' })).to.exist
+    expect(await screen.findByRole('heading', { name: 'Panel' })).to.exist
     expect(servidor.peticiones('GET', '/admin/stats')).to.have.lengthOf(2)
   })
 

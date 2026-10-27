@@ -174,7 +174,7 @@ export function HeroGeometric({
               size={8}
               style={{ fill: 'rgba(244,63,94,0.8)', color: 'rgba(244,63,94,0.8)' }}
             />
-            <span style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.75)', letterSpacing: '0.06em' }}>
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', letterSpacing: '0.06em' }}>
               {badge}
             </span>
           </motion.div>
@@ -186,14 +186,14 @@ export function HeroGeometric({
             initial="hidden"
             animate="visible"
             style={{
-              fontSize: 'clamp(2.5rem, 8vw, 5.5rem)',
+              fontSize: 'clamp(40px, 8vw, 88px)',
               fontWeight: 700,
               lineHeight: 1.05,
               marginBottom: 24,
               letterSpacing: '-0.02em',
             }}
           >
-            <span style={{ color: 'rgba(255,255,255,0.92)' }}>{title1}</span>
+            <span style={{ color: 'rgba(255,255,255,0.92)', textShadow: '0 2px 24px rgba(5,10,20,0.85)' }}>{title1}</span>
             <br />
             <span
               style={{
@@ -215,10 +215,13 @@ export function HeroGeometric({
               initial="hidden"
               animate="visible"
               style={{
-                fontSize: 'clamp(0.9375rem, 2vw, 1.1875rem)',
-                color: 'rgba(255,255,255,0.7)',
+                fontSize: 'clamp(15px, 2vw, 19px)',
+                // Heurística 12: antes 40 % de opacidad (≈3,5:1 sobre el fondo oscuro,
+                // por debajo de WCAG AA). 80 % + sombra para leerse sobre el fondo animado.
+                color: 'rgba(255,255,255,0.8)',
+                textShadow: '0 1px 12px rgba(5,10,20,0.9)',
                 lineHeight: 1.7,
-                fontWeight: 300,
+                fontWeight: 400,
                 letterSpacing: '0.02em',
                 maxWidth: 540,
                 margin: '0 auto',

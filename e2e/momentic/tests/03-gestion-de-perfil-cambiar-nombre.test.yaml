@@ -1,0 +1,17 @@
+fileType: momentic/test/v2
+id: celularpro-perfil-nombre
+description: Gestión de perfil — cambiar el nombre actualiza el saludo de Mi cuenta
+defaultEnv: local
+labels: [perfil, positivo]
+steps:
+  - module: ../modules/crear-cuenta-cliente.module.yaml
+  - click: Editar perfil link
+  - waitForUrl: /profile
+  - type:
+      text: María Gómez
+      into: Nombre completo input
+      clear: always
+  - click: Guardar cambios button
+  - assert: A confirmation that the profile was updated is visible
+  - navigate: "{{ env.BASE_URL }}/dashboard"
+  - checkPageContains: Hola, María

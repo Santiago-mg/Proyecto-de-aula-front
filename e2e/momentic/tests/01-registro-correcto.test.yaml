@@ -1,0 +1,9 @@
+fileType: momentic/test/v2
+id: celularpro-registro-correcto
+description: Registro de usuario — una cuenta nueva con correo de Gmail entra a Mi cuenta
+defaultEnv: local
+labels: [registro, positivo]
+steps:
+  - module: ../modules/crear-cuenta-cliente.module.yaml
+  - checkPageContains: Hola, Ana
+  - assert: The page greets the user by first name and shows the email address of the new account

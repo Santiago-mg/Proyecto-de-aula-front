@@ -1,32 +1,28 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
+import { RPReporter } from '@reportportal/agent-js-vitest'
+import rp from './reportportal/config.cjs'
 
 // En Jenkins (y en cualquier CI) la variable CI=true activa el reporte JUnit,
 // que es el que Jenkins lee para mostrar cada prueba en su interfaz. En local
 // no hace falta y solo llenaria el arbol de archivos en reports/.
 const enCI = process.env.CI === 'true'
 
+// ReportPortal: se suma como reporter solo si hay RP_API_KEY (ver reportportal/config.cjs).
+// Cada prueba llega con su archivo y su describe, para clasificar fallos y buscar errores similares.
+const reportePortal = rp.activo()
+  ? [new RPReporter(rp.opciones('vitest', 'Pruebas unitarias y de escenarios del frontend (Vitest + Testing Library)'))]
+  : []
+
 export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
-    // test/regresion: suite de regresión de las funcionalidades 13 y 26-30
-    // (api, seguridad, performance y regresión funcional). También corre en
-    // `npm test`, así que Jenkins la ejecuta completa en cada cambio.
-    include: [
-      'test/unit/**/*.test.{ts,tsx}',
-      'test/escenarios/**/*.test.{ts,tsx}',
-      'test/regresion/**/*.test.{ts,tsx}',
-    ],
-
-    // Pruebas de un compañero que verifican código que este front todavía no
-    // tiene (ver test/regresion/mario/README.md). Se corren a propósito con
-    // vitest.pendiente.config.ts, no dentro de `npm test`.
-    exclude: ['**/node_modules/**', 'test/regresion/mario/pendiente-codigo-de-mario/**'],
+    include: ['test/unit/**/*.test.{ts,tsx}', 'test/escenarios/**/*.test.{ts,tsx}'],
     globals: true,
     setupFiles: ['./test/setup.ts'],
 
-    reporters: enCI ? ['default', 'junit'] : ['default'],
+    reporters: [...(enCI ? ['default', 'junit'] : ['default']), ...reportePortal],
     outputFile: { junit: 'reports/junit.xml' },
 
     coverage: {

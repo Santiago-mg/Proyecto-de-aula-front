@@ -35,8 +35,10 @@ describe('Nav — barra principal', () => {
     abrirApp('/unauthorized')
 
     // Assert
-    expect((await screen.findByRole('link', { name: 'Admin' })).getAttribute('href')).to.equal('/admin/phones')
-    expect(screen.queryByRole('link', { name: 'Paula' })).to.exist
+    expect((await screen.findByRole('link', { name: 'Panel admin' })).getAttribute('href')).to.equal('/admin')
+    // H4: la etiqueta dice a dónde lleva; el nombre queda en el title
+    const miCuenta = screen.getByRole('link', { name: 'Mi cuenta' })
+    expect(miCuenta.getAttribute('title')).to.equal('Sesión iniciada como Paula Rendón')
   })
 
   it('el contador del carrito suma las unidades guardadas', async () => {
@@ -54,7 +56,7 @@ describe('Nav — barra principal', () => {
     // Arrange
     servidor.colgar('GET', '/phones')
     const user = abrirApp('/unauthorized')
-    await user.click(await screen.findByRole('button', { name: 'Menú' }))
+    await user.click(await screen.findByRole('button', { name: 'Abrir menú' }))
     const abierto = menuMovil() !== null
 
     // Act
@@ -69,7 +71,7 @@ describe('Nav — barra principal', () => {
   it('sin sesión el menú móvil lleva a ingresar y registrarse', async () => {
     // Arrange
     const user = abrirApp('/unauthorized')
-    await user.click(await screen.findByRole('button', { name: 'Menú' }))
+    await user.click(await screen.findByRole('button', { name: 'Abrir menú' }))
 
     // Act
     await user.click(within(menuMovil() as HTMLElement).getByRole('link', { name: 'Registrarse' }))
@@ -82,7 +84,7 @@ describe('Nav — barra principal', () => {
     // Arrange
     sesionIniciada()
     const user = abrirApp('/unauthorized')
-    await user.click(await screen.findByRole('button', { name: 'Menú' }))
+    await user.click(await screen.findByRole('button', { name: 'Abrir menú' }))
     const menu = menuMovil() as HTMLElement
     const tieneMiCuenta = within(menu).queryByRole('link', { name: 'Mi cuenta' }) !== null
 
@@ -95,17 +97,49 @@ describe('Nav — barra principal', () => {
     expect(localStorage.getItem('cp_token')).to.be.null
   })
 
-  it('el botón del menú alterna entre abrir y cerrar', async () => {
+  it('el botón del menú alterna entre abrir y cerrar, y lo anuncia (aria-expanded)', async () => {
     // Arrange
     const user = abrirApp('/unauthorized')
-    const boton = await screen.findByRole('button', { name: 'Menú' })
+    const boton = await screen.findByRole('button', { name: 'Abrir menú' })
 
     // Act
     await user.click(boton)
+    const etiquetaAbierto = boton.getAttribute('aria-label')
+    const expandido = boton.getAttribute('aria-expanded')
     await user.click(boton)
 
     // Assert
+    expect(etiquetaAbierto).to.equal('Cerrar menú')
+    expect(expandido).to.equal('true')
     expect(menuMovil()).to.be.null
+  })
+
+  it('H1: en /profile, "Mi cuenta" queda marcado como sección actual', async () => {
+    sesionIniciada()
+    abrirApp('/profile')
+
+    const miCuenta = await screen.findByRole('link', { name: 'Mi cuenta' })
+    expect(miCuenta.getAttribute('aria-current')).to.equal('page')
+    expect(miCuenta.className).to.include('active')
+  })
+
+  it('H10: la ayuda está en la barra en todas las pantallas de la tienda', async () => {
+    const user = abrirApp('/unauthorized')
+
+    await user.click(await screen.findByRole('link', { name: 'Ayuda' }))
+
+    expect(await screen.findByRole('heading', { name: 'Centro de ayuda' })).to.exist
+    expect(screen.getByRole('link', { name: 'Ayuda' }).getAttribute('aria-current')).to.equal('page')
+  })
+
+  it('H2: escritorio y móvil dicen lo mismo, "Cerrar sesión"', async () => {
+    sesionIniciada()
+    const user = abrirApp('/unauthorized')
+    await user.click(await screen.findByRole('button', { name: 'Abrir menú' }))
+
+    const botones = screen.getAllByRole('button', { name: /cerrar sesión/i })
+    expect(botones).to.have.length(2)
+    expect(screen.queryByRole('button', { name: /^salir$/i })).to.be.null
   })
 
   it('en el menú móvil, Mi cuenta lleva al panel del usuario', async () => {
@@ -113,7 +147,7 @@ describe('Nav — barra principal', () => {
     sesionIniciada()
     servidor.colgar('GET', '/orders/my')
     const user = abrirApp('/unauthorized')
-    await user.click(await screen.findByRole('button', { name: 'Menú' }))
+    await user.click(await screen.findByRole('button', { name: 'Abrir menú' }))
 
     // Act
     await user.click(within(menuMovil() as HTMLElement).getByRole('link', { name: 'Mi cuenta' }))
@@ -126,7 +160,7 @@ describe('Nav — barra principal', () => {
   it('en el menú móvil, Ingresar lleva al login', async () => {
     // Arrange
     const user = abrirApp('/unauthorized')
-    await user.click(await screen.findByRole('button', { name: 'Menú' }))
+    await user.click(await screen.findByRole('button', { name: 'Abrir menú' }))
 
     // Act
     await user.click(within(menuMovil() as HTMLElement).getByRole('link', { name: 'Ingresar' }))
@@ -156,7 +190,7 @@ describe('AdminLayout — menú lateral del panel', () => {
     expect(await within(barraSuperior()).findByText('Estadísticas')).to.exist
     expect(within(lateral()).queryByText('Paula Admin')).to.exist
     expect(within(lateral()).getByRole('link', { name: /estadísticas/i }).className).to.include('active')
-    expect(within(lateral()).getByRole('link', { name: /dashboard/i }).className).to.not.include('active')
+    expect(within(lateral()).getByRole('link', { name: /^panel/i }).className).to.not.include('active')
   })
 
   it('el menú se abre desde la barra superior y se cierra con el fondo', async () => {
@@ -173,7 +207,7 @@ describe('AdminLayout — menú lateral del panel', () => {
     // Assert
     expect(abierto).to.be.true
     expect(lateral().className).to.not.include('open')
-    expect(within(barraSuperior()).queryByText('Dashboard')).to.exist
+    expect(within(barraSuperior()).queryByText('Panel')).to.exist
   })
 
   it('elegir una sección o la X también cierra el menú', async () => {
@@ -194,14 +228,14 @@ describe('AdminLayout — menú lateral del panel', () => {
     expect(rutaActual()).to.equal('/admin/orders')
   })
 
-  it('Salir cierra la sesión y vuelve al login', async () => {
+  it('Cerrar sesión (antes "Salir") cierra la sesión y vuelve al login', async () => {
     // Arrange
     sesionDeAdmin()
     servidor.colgar('GET', '/admin/stats')
     const user = abrirApp('/admin')
 
     // Act
-    await user.click(within(lateral()).getByRole('button', { name: /salir/i }))
+    await user.click(within(lateral()).getByRole('button', { name: /cerrar sesión/i }))
 
     // Assert
     expect(await screen.findByRole('heading', { name: 'Ingresar' })).to.exist

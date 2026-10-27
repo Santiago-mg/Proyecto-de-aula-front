@@ -1,0 +1,11 @@
+fileType: momentic/test/v2
+id: celularpro-ayuda-meta-ia
+description: Heurística 10 — una persona que no puede ingresar encuentra la guía de ayuda (meta en lenguaje natural)
+defaultEnv: local
+labels: [heuristicas, ayuda, ia]
+steps:
+  - navigate: "{{ env.BASE_URL }}/login"
+  - act:
+      goal: From the login page, find the help guide for people who cannot log in
+      postcondition: A section titled "No puedo ingresar" with numbered steps is visible
+  - waitForUrl: /ayuda

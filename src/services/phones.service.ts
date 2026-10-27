@@ -2,7 +2,6 @@ import type {
   PaginatedPhones,
   Phone,
   PhoneFormData,
-  PhoneListItem,
   PhonesQuery,
 } from '../types/phone'
 import api from './api'
@@ -15,17 +14,6 @@ export const phonesService = {
 
   async getBySlug(slug: string): Promise<Phone> {
     const res = await api.get<{ data: Phone }>(`/phones/${slug}`)
-    return res.data.data
-  },
-
-  // Funcionalidad 13: celulares parecidos al que se está viendo. El slug sale
-  // de la URL, así que se codifica: un slug con "/" o "?" no debe poder
-  // apuntar a otro endpoint del back.
-  async getSimilar(slug: string, limit = 4): Promise<PhoneListItem[]> {
-    const res = await api.get<{ data: PhoneListItem[] }>(
-      `/phones/${encodeURIComponent(slug)}/similares`,
-      { params: { limit } },
-    )
     return res.data.data
   },
 

@@ -6,35 +6,34 @@ import {
   Monitor,
   HardDrive,
   MemoryStick,
+  ChevronLeft,
+  Eye,
   Truck,
   RefreshCw,
   Lock,
-  PackageX,
 } from 'lucide-react'
-import axios from 'axios'
-import { useCallback, useEffect, useId, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { RecentlyViewed } from '../components/phones/RecentlyViewed'
-import { SimilarPhones } from '../components/phones/SimilarPhones'
-import { Breadcrumbs } from '../components/ui/Breadcrumbs'
-import { EmptyState } from '../components/ui/EmptyState'
-import { ErrorState } from '../components/ui/ErrorState'
-import { SkeletonDetail } from '../components/ui/SkeletonCard'
+import { Loading } from '../components/ui/Loading'
 import { StickyAddToCart } from '../components/ui/StickyAddToCart'
-import { useCartDrawer } from '../context/CartDrawerContext'
 import { useCart } from '../context/CartContext'
 import { useToast } from '../context/ToastContext'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { phonesService } from '../services/phones.service'
 import type { Phone, PhoneColor } from '../types/phone'
-import { comoError } from '../utils/errores'
-import { formatCOP } from '../utils/formato'
-import { registrarVisto } from '../utils/vistos'
+import { useTituloPagina } from '../hooks/useTituloPagina'
 
 const CONDITION_LABEL: Record<string, string> = {
   NEW: 'Nuevo',
   CERTIFIED: 'Reacondicionado certificado',
   USED: 'Usado verificado',
+}
+
+function formatCOP(n: number) {
+  return (
+    '$' +
+    new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 }).format(n) +
+    ' COP'
+  )
 }
 
 // Fotos de la galería: las del celular o, si no tiene, la imagen principal
@@ -43,155 +42,68 @@ function imagenesDe(phone: Phone): string[] {
   return phone.heroImage ? [phone.heroImage] : []
 }
 
-// El servidor contesta 404 si el celular no existe (y 400 si el enlace está mal
-// escrito). Cualquier otro fallo no significa "no existe", sino "no pude ver".
-function esNoEncontrado(error: Error): boolean {
-  const estado = axios.isAxiosError(error) ? error.response?.status : undefined
-  return estado === 404 || estado === 400
-}
-
-/**
- * Ficha del celular de la URL.
- *
- * Cada celular monta su propia ficha (key = slug): al pasar de uno a otro
- * desde "También te puede interesar" (funcionalidad 13), React descarta el
- * estado del anterior (color, cantidad, foto elegida, "no encontrado") en
- * lugar de reutilizarlo. Antes se arrastraba y, por ejemplo, un iPhone en
- * Azul x3 hacía que el siguiente equipo, sin colores y con 1 en stock, se
- * agregara al carrito en Azul x3 (DEF-13-01, tests/regresion del front).
- *
- * Además vuelve al inicio de la página: las recomendaciones están al final de
- * la ficha y, sin esto, el cliente quedaba mirando el pie de la nueva.
- */
 export function PhoneDetail() {
-  const { slug = '' } = useParams<{ slug: string }>()
-
-  useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [slug])
-
-  return <FichaDelCelular key={slug} slug={slug} />
-}
-
-function FichaDelCelular({ slug }: Readonly<{ slug: string }>) {
+  const { slug } = useParams<{ slug: string }>()
   const [phone, setPhone] = useState<Phone | null>(null)
+  useTituloPagina(phone?.name ?? 'Detalle del celular')
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
-  const [intento, setIntento] = useState(0)
   const [selectedColor, setSelectedColor] = useState<PhoneColor | null>(null)
   const [selectedImg, setSelectedImg] = useState(0)
   const [qty, setQty] = useState(1)
   const { addToCart } = useCart()
   const { showToast } = useToast()
-  const { abrir: abrirCarrito, disponible: hayCarrito } = useCartDrawer()
-  const idCantidad = useId()
-  const idColor = useId()
 
-  useDocumentTitle(phone ? phone.name : notFound ? 'Celular no encontrado' : null)
+  // Simula "personas viendo ahora" — número fijo por slug para que sea consistente
+  const viewersNow = useMemo(() => {
+    const seed = (slug ?? '').split('').reduce((a, c) => a + (c.codePointAt(0) ?? 0), 0)
+    return 3 + (seed % 14)
+  }, [slug])
 
   useEffect(() => {
     if (!slug) return
-    let vigente = true
-    setLoading(true)
-    setError(null)
     phonesService
       .getBySlug(slug)
       .then((p) => {
-        if (!vigente) return
         setPhone(p)
         if (p.colors.length > 0) setSelectedColor(p.colors[0])
-        registrarVisto({ slug: p.slug, name: p.name, price: p.price, heroImage: p.heroImage })
       })
-      .catch((e: unknown) => {
-        if (!vigente) return
-        const err = comoError(e)
-        if (esNoEncontrado(err)) setNotFound(true)
-        else setError(err)
-      })
-      .finally(() => {
-        if (vigente) setLoading(false)
-      })
-    return () => {
-      vigente = false
-    }
-  }, [slug, intento])
-
-  const verCarrito = useCallback(
-    () => (hayCarrito ? { etiqueta: 'Ver carrito', onClick: abrirCarrito } : undefined),
-    [hayCarrito, abrirCarrito],
-  )
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false))
+  }, [slug])
 
   function handleAddToCart() {
     // Si el equipo tiene colores hay que elegir uno; si no tiene, se agrega sin
     // color. Antes se exigía color siempre y, en un equipo sin colores, el botón
     // quedaba activo pero no hacía nada.
     if (!phone || (phone.colors.length > 0 && !selectedColor)) return
-    const agregadas = addToCart(phone, selectedColor, qty)
-
-    if (agregadas === 0) {
-      showToast(`Ya tienes en el carrito todas las unidades disponibles de ${phone.name}`, {
-        tono: 'info',
-        accion: verCarrito(),
-      })
-    } else if (agregadas < qty) {
-      showToast(`Agregamos ${agregadas} de ${qty}: no hay más unidades de ${phone.name}`, {
-        tono: 'info',
-        accion: verCarrito(),
-      })
-    } else {
-      showToast(`✓ ${phone.name} añadido al carrito`, { accion: verCarrito() })
-    }
+    addToCart(phone, selectedColor, qty)
+    showToast(`✓ ${phone.name} añadido al carrito`)
   }
 
-  if (loading) return <SkeletonDetail />
-
-  if (notFound)
+  if (loading) return <Loading />
+  if (notFound || !phone)
     return (
-      <div className="cp-container cp-notfound">
-        <EmptyState
-          icono={<PackageX size={56} />}
-          titulo="Celular no encontrado"
-          nivel={1}
-          acciones={
-            <Link to="/catalog" className="cp-btn cp-btn-primary">
-              Volver al catálogo
-            </Link>
-          }
-        >
-          Puede que ya no esté a la venta o que el enlace tenga un error. En el catálogo encuentras equipos parecidos.
-        </EmptyState>
-      </div>
-    )
-
-  if (error || !phone)
-    return (
-      <div className="cp-container cp-notfound">
-        <ErrorState
-          titulo="No pudimos mostrar este celular"
-          error={error}
-          onReintentar={() => setIntento((n) => n + 1)}
-          acciones={
-            <Link to="/catalog" className="cp-btn cp-btn-secondary">
-              Volver al catálogo
-            </Link>
-          }
-        />
+      <div style={{ textAlign: 'center', padding: '80px 20px' }}>
+        <div style={{ fontSize: 64, marginBottom: 16 }}>📵</div>
+        <h2>Celular no encontrado</h2>
+        <Link to="/catalog" className="cp-btn cp-btn-primary" style={{ marginTop: 24, display: 'inline-block' }}>
+          Volver al catálogo
+        </Link>
       </div>
     )
 
   const images = imagenesDe(phone)
-  const enTope = qty >= phone.stock
 
   const specs = [
-    phone.chip && { icon: <Cpu size={14} aria-hidden="true" />, label: 'Procesador', value: phone.chip },
-    phone.ram && { icon: <MemoryStick size={14} aria-hidden="true" />, label: 'RAM', value: phone.ram },
-    phone.storage && { icon: <HardDrive size={14} aria-hidden="true" />, label: 'Almacenamiento', value: phone.storage },
-    phone.camera && { icon: <Camera size={14} aria-hidden="true" />, label: 'Cámara', value: phone.camera },
-    phone.screen && { icon: <Monitor size={14} aria-hidden="true" />, label: 'Pantalla', value: phone.screen },
-    phone.battery && { icon: <Battery size={14} aria-hidden="true" />, label: 'Batería', value: phone.battery },
+    phone.chip && { icon: <Cpu size={14} />, label: 'Procesador', value: phone.chip },
+    phone.ram && { icon: <MemoryStick size={14} />, label: 'RAM', value: phone.ram },
+    phone.storage && { icon: <HardDrive size={14} />, label: 'Almacenamiento', value: phone.storage },
+    phone.camera && { icon: <Camera size={14} />, label: 'Cámara', value: phone.camera },
+    phone.screen && { icon: <Monitor size={14} />, label: 'Pantalla', value: phone.screen },
+    phone.battery && { icon: <Battery size={14} />, label: 'Batería', value: phone.battery },
     phone.batteryHealth !== null && phone.condition !== 'NEW' && {
-      icon: <Battery size={14} aria-hidden="true" />,
+      icon: <Battery size={14} />,
       label: 'Salud de batería',
       value: `${phone.batteryHealth}%`,
     },
@@ -205,23 +117,37 @@ function FichaDelCelular({ slug }: Readonly<{ slug: string }>) {
       qty={qty}
       onAdd={handleAddToCart}
     />
-    <div className="cp-container cp-reveal cp-detail-page">
-      <Breadcrumbs
-        migas={[
-          { etiqueta: 'Inicio', to: '/' },
-          { etiqueta: 'Catálogo', to: '/catalog' },
-          { etiqueta: phone.name },
-        ]}
-      />
+    <div className="cp-container cp-reveal" style={{ paddingTop: 40, paddingBottom: 80 }}>
+      <Link
+        to="/catalog"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          color: 'var(--ink-soft)',
+          textDecoration: 'none',
+          fontFamily: 'var(--font-mono)',
+          fontSize: 12,
+          letterSpacing: '0.1em',
+          marginBottom: 32,
+        }}
+      >
+        <ChevronLeft size={14} /> Catálogo
+      </Link>
 
-      {/* Solo se muestra lo que es verdad: el stock real, no un contador inventado */}
-      {phone.stock > 0 && phone.stock <= 5 && (
-        <div className="cp-detail-social-proof">
+      {/* Social proof strip */}
+      <div className="cp-detail-social-proof">
+        <span className="cp-social-proof-viewers">
+          <Eye size={13} />
+          <span className="cp-dot-live" />
+          <strong>{viewersNow}</strong> personas viendo ahora
+        </span>
+        {phone.stock > 0 && phone.stock <= 5 && (
           <span className="cp-social-proof-urgency">
-            <span aria-hidden="true">⚡</span> Solo <strong>{phone.stock}</strong> en stock
+            ⚡ Solo <strong>{phone.stock}</strong> en stock
           </span>
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="cp-detail-grid">
         {/* Galería */}
@@ -230,7 +156,15 @@ function FichaDelCelular({ slug }: Readonly<{ slug: string }>) {
             {images[selectedImg] ? (
               <img src={images[selectedImg]} alt={phone.name} />
             ) : (
-              <div className="cp-detail-noimg" role="img" aria-label="Este equipo todavía no tiene fotos">
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100%',
+                  fontSize: 80,
+                }}
+              >
                 📱
               </div>
             )}
@@ -240,11 +174,8 @@ function FichaDelCelular({ slug }: Readonly<{ slug: string }>) {
               {images.map((url, i) => (
                 <button
                   key={url}
-                  type="button"
                   className={`cp-detail-thumb ${selectedImg === i ? 'active' : ''}`}
                   onClick={() => setSelectedImg(i)}
-                  aria-label={`Ver imagen ${i + 1} de ${images.length}`}
-                  aria-pressed={selectedImg === i}
                 >
                   <img src={url} alt="" />
                 </button>
@@ -256,13 +187,13 @@ function FichaDelCelular({ slug }: Readonly<{ slug: string }>) {
         {/* Info */}
         <div className="cp-detail-info">
           {/* Badges */}
-          <div className="cp-detail-badges">
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
             <span className="cp-badge cp-badge-accent">
               {CONDITION_LABEL[phone.condition]}
             </span>
             {phone.verified && (
               <span className="cp-badge cp-badge-verified">
-                <ShieldCheck size={12} aria-hidden="true" /> Verificado
+                <ShieldCheck size={11} /> Verificado
               </span>
             )}
             {phone.badge && (
@@ -270,18 +201,37 @@ function FichaDelCelular({ slug }: Readonly<{ slug: string }>) {
             )}
           </div>
 
-          <div className="cp-detail-brand">{phone.brand}</div>
+          <div
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 12,
+              color: 'var(--ink-soft)',
+              letterSpacing: '0.1em',
+              marginBottom: 6,
+            }}
+          >
+            {phone.brand}
+          </div>
 
           <h1 className="cp-detail-name">{phone.name}</h1>
 
-          <p className="cp-detail-short">{phone.shortDesc}</p>
+          <p style={{ color: 'var(--ink-soft)', marginBottom: 24, lineHeight: 1.6 }}>
+            {phone.shortDesc}
+          </p>
 
           {/* Precio */}
-          <div className="cp-detail-pricing">
+          <div style={{ marginBottom: 24 }}>
             <div className="cp-detail-price">{formatCOP(phone.price)}</div>
             {phone.compareAt && phone.compareAt > phone.price && (
-              <div className="cp-detail-compare">
-                <span className="cp-sr-only">Precio anterior: </span>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 13,
+                  color: 'var(--ink-faint)',
+                  textDecoration: 'line-through',
+                  marginTop: 4,
+                }}
+              >
                 {formatCOP(phone.compareAt)}
               </div>
             )}
@@ -290,12 +240,30 @@ function FichaDelCelular({ slug }: Readonly<{ slug: string }>) {
           {/* Batería */}
           {phone.batteryHealth !== null && phone.condition !== 'NEW' && (
             <div className="cp-battery-bar-wrap">
-              <div className="cp-battery-head">
-                <span className="cp-mini-label">Salud de batería</span>
-                <span className="cp-battery-value">{phone.batteryHealth}%</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 12,
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    color: 'var(--ink-soft)',
+                  }}
+                >
+                  Salud de batería
+                </span>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 13,
+                    color: 'var(--accent)',
+                    fontWeight: 500,
+                  }}
+                >
+                  {phone.batteryHealth}%
+                </span>
               </div>
-              {/* El valor ya está escrito arriba: la barra es solo el dibujo */}
-              <div className="cp-battery-bar" aria-hidden="true">
+              <div className="cp-battery-bar">
                 <div
                   className="cp-battery-fill"
                   style={{ width: `${phone.batteryHealth}%` }}
@@ -306,21 +274,28 @@ function FichaDelCelular({ slug }: Readonly<{ slug: string }>) {
 
           {/* Colores */}
           {phone.colors.length > 0 && (
-            <div className="cp-detail-block" role="group" aria-labelledby={idColor}>
-              <div className="cp-mini-label" id={idColor}>
+            <div style={{ marginBottom: 24 }}>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 12,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: 'var(--ink-soft)',
+                  marginBottom: 10,
+                }}
+              >
                 Color — {selectedColor?.name}
               </div>
-              <div className="cp-color-row">
+              <div style={{ display: 'flex', gap: 8 }}>
                 {phone.colors.map((c) => (
                   <button
                     key={c.colorId}
-                    type="button"
                     className={`cp-color-btn ${selectedColor?.colorId === c.colorId ? 'active' : ''}`}
                     style={{ background: c.hex }}
                     onClick={() => setSelectedColor(c)}
                     title={c.name}
                     aria-label={c.name}
-                    aria-pressed={selectedColor?.colorId === c.colorId}
                   />
                 ))}
               </div>
@@ -328,35 +303,39 @@ function FichaDelCelular({ slug }: Readonly<{ slug: string }>) {
           )}
 
           {/* Cantidad */}
-          <div className="cp-detail-qty" role="group" aria-labelledby={idCantidad}>
-            <div className="cp-mini-label" id={idCantidad}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 12,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                color: 'var(--ink-soft)',
+              }}
+            >
               Cantidad
             </div>
-            <div className="cp-detail-qty-controls">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <button
-                type="button"
                 className="cp-qty-btn"
-                title="Quitar una unidad"
-                aria-disabled={qty <= 1}
                 onClick={() => setQty((q) => Math.max(1, q - 1))}
+                disabled={qty <= 1}
               >
                 −
               </button>
-              <span className="cp-qty-value" aria-live="polite">
+              <span style={{ fontFamily: 'var(--font-mono)', minWidth: 24, textAlign: 'center' }}>
                 {qty}
               </span>
               <button
-                type="button"
                 className="cp-qty-btn"
-                title={enTope ? 'No hay más unidades disponibles' : 'Sumar una unidad'}
-                aria-disabled={enTope}
                 onClick={() => setQty((q) => Math.min(phone.stock, q + 1))}
+                disabled={qty >= phone.stock}
               >
                 +
               </button>
             </div>
             {phone.stock <= 3 && phone.stock > 0 && (
-              <span className="cp-stock-warn">
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: '#e09052' }}>
                 Solo {phone.stock} disponibles
               </span>
             )}
@@ -365,7 +344,6 @@ function FichaDelCelular({ slug }: Readonly<{ slug: string }>) {
           {/* CTA */}
           {phone.stock > 0 ? (
             <button
-              type="button"
               className="cp-btn cp-btn-primary cp-btn-buy"
               onClick={handleAddToCart}
               disabled={phone.colors.length > 0 && !selectedColor}
@@ -373,32 +351,40 @@ function FichaDelCelular({ slug }: Readonly<{ slug: string }>) {
               Agregar al carrito
             </button>
           ) : (
-            <button type="button" className="cp-btn cp-btn-block cp-btn-soldout" disabled>
+            <button className="cp-btn" disabled style={{ width: '100%', opacity: 0.5 }}>
               Sin stock
             </button>
           )}
 
           {/* Trust badges */}
-          <ul className="cp-detail-trust-badges">
+          <div className="cp-detail-trust-badges">
             {[
-              { icon: <ShieldCheck size={14} aria-hidden="true" />, label: 'IMEI limpio verificado' },
-              { icon: <Truck size={14} aria-hidden="true" />, label: 'Envío en 24–48 h' },
-              { icon: <RefreshCw size={14} aria-hidden="true" />, label: 'Garantía incluida' },
-              { icon: <Lock size={14} aria-hidden="true" />, label: 'Pago 100% seguro' },
+              { icon: <ShieldCheck size={14} />, label: 'IMEI limpio verificado' },
+              { icon: <Truck size={14} />, label: 'Envío en 24–48 h' },
+              { icon: <RefreshCw size={14} />, label: 'Garantía incluida' },
+              { icon: <Lock size={14} />, label: 'Pago 100% seguro' },
             ].map((b) => (
-              <li key={b.label} className="cp-detail-trust-badge">
-                <span className="cp-accent-icon">{b.icon}</span>
+              <div key={b.label} className="cp-detail-trust-badge">
+                <span style={{ color: 'var(--accent)' }}>{b.icon}</span>
                 <span>{b.label}</span>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       </div>
 
       {/* Specs */}
       {specs.length > 0 && (
-        <section className="cp-detail-section" aria-labelledby="detalle-specs">
-          <h2 className="cp-detail-h2" id="detalle-specs">
+        <div style={{ marginTop: 64 }}>
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 32,
+              fontWeight: 400,
+              letterSpacing: '-0.02em',
+              marginBottom: 32,
+            }}
+          >
             Especificaciones
           </h2>
           <div className="cp-specs-grid">
@@ -412,38 +398,49 @@ function FichaDelCelular({ slug }: Readonly<{ slug: string }>) {
               </div>
             ))}
           </div>
-        </section>
+        </div>
       )}
 
       {/* Features */}
       {phone.features.length > 0 && (
-        <section className="cp-detail-section" aria-labelledby="detalle-caracteristicas">
-          <h2 className="cp-detail-h2" id="detalle-caracteristicas">
+        <div style={{ marginTop: 48 }}>
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 32,
+              fontWeight: 400,
+              letterSpacing: '-0.02em',
+              marginBottom: 24,
+            }}
+          >
             Características
           </h2>
           <ul className="cp-features-list">
             {phone.features.map((f) => (
               <li key={f} className="cp-feature-item">
-                <span className="cp-accent-icon" aria-hidden="true">✓</span> {f}
+                <span style={{ color: 'var(--accent)' }}>✓</span> {f}
               </li>
             ))}
           </ul>
-        </section>
+        </div>
       )}
 
       {phone.longDesc && (
-        <section className="cp-detail-section cp-detail-desc" aria-labelledby="detalle-descripcion">
-          <h2 className="cp-detail-h2" id="detalle-descripcion">
+        <div style={{ marginTop: 48, maxWidth: 720 }}>
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 32,
+              fontWeight: 400,
+              letterSpacing: '-0.02em',
+              marginBottom: 16,
+            }}
+          >
             Descripción
           </h2>
-          <p className="cp-detail-long">{phone.longDesc}</p>
-        </section>
+          <p style={{ color: 'var(--ink-soft)', lineHeight: 1.7 }}>{phone.longDesc}</p>
+        </div>
       )}
-
-      {/* Funcionalidad 13 — recomendaciones */}
-      <SimilarPhones slug={phone.slug} />
-
-      <RecentlyViewed excluir={[phone.slug]} />
     </div>
     </>
   )

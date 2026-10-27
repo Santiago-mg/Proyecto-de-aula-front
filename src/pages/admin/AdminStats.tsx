@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useState } from 'react'
-import { ErrorState } from '../../components/ui/ErrorState'
+import { useEffect, useState } from 'react'
 import { Loading } from '../../components/ui/Loading'
-import { useDocumentTitle } from '../../hooks/useDocumentTitle'
+import { ErrorMessage } from '../../components/ui/ErrorMessage'
+import { comoError } from '../../utils/errores'
 import { adminService } from '../../services/admin.service'
 import type { AdminStats as StatsType } from '../../types/admin'
-import { comoError } from '../../utils/errores'
-import { formatCOP, formatDiaCorto } from '../../utils/formato'
+
+function formatCOP(n: number) {
+  return '$' + new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 }).format(n) + ' COP'
+}
 
 // "—" si no hubo ventas ese día, "1 venta" o "N ventas" si las hubo
 function etiquetaVentas(count: number) {
@@ -13,84 +15,35 @@ function etiquetaVentas(count: number) {
   return count === 1 ? '1 venta' : `${count} ventas`
 }
 
-// Lo mismo para quien escucha la gráfica: "—" no se lee como "sin ventas".
-function ventasHabladas(count: number) {
-  if (count <= 0) return 'sin ventas'
-  return count === 1 ? '1 venta' : `${count} ventas`
-}
-
-type Tono = 'accent' | 'ok' | 'violet' | 'bad' | 'warn' | 'ink'
-
-interface Fila {
-  etiqueta: string
-  valor: string | number
-  tono: Tono
-  /** Montos en pesos: se ven en la fuente de números. */
-  monto?: boolean
-}
-
-// Una tarjeta con pares "etiqueta → valor". Es una lista de definiciones, así
-// el lector de pantalla une cada número con su nombre.
-function TarjetaDetalle({ titulo, filas }: Readonly<{ titulo: string; filas: Fila[] }>) {
-  return (
-    <section className="cp-admin-card" aria-label={titulo}>
-      <div className="cp-admin-card-header">
-        <h2 className="cp-admin-card-title">{titulo}</h2>
-      </div>
-      <dl className="cp-stats-detail-list">
-        {filas.map((fila) => (
-          <div key={fila.etiqueta} className="cp-stats-detail-row">
-            <dt className="cp-stats-detail-label">{fila.etiqueta}</dt>
-            <dd className={`cp-stats-detail-value cp-tone-${fila.tono} ${fila.monto ? 'cp-stats-money' : ''}`}>
-              {fila.valor}
-            </dd>
-          </div>
-        ))}
-      </dl>
-    </section>
-  )
-}
-
 export function AdminStats() {
-  useDocumentTitle('Administración · Estadísticas')
   const [stats, setStats] = useState<StatsType | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
-  const cargar = useCallback(() => {
-    let vigente = true
+  function cargar() {
     setLoading(true)
     setError(null)
     adminService
       .getStats()
-      .then((r) => {
-        if (vigente) setStats(r)
-      })
+      .then(setStats)
       .catch((err) => {
-        if (vigente) {
-          setStats(null)
-          setError(comoError(err))
-        }
+        setStats(null)
+        setError(comoError(err))
       })
-      .finally(() => {
-        if (vigente) setLoading(false)
-      })
-    return () => {
-      vigente = false
-    }
-  }, [])
+      .finally(() => setLoading(false))
+  }
 
-  useEffect(() => cargar(), [cargar])
+  useEffect(() => { cargar() }, [])
 
   if (loading) return <Loading text="Calculando estadísticas..." />
+  // H9 y H11: antes decía solo "Error"; ahora explica y deja reintentar
   if (!stats) {
     return (
-      <ErrorState
-        titulo="No se pudieron cargar las estadísticas"
-        error={error}
-        detalle="Inténtalo de nuevo en un momento."
-        onReintentar={cargar}
-      />
+      <div className="cp-admin-page">
+        <h1 className="cp-admin-page-title">Estadísticas</h1>
+        <p>No se pudieron cargar las estadísticas.</p>
+        <ErrorMessage error={error} onReintentar={cargar} />
+      </div>
     )
   }
 
@@ -106,76 +59,119 @@ export function AdminStats() {
       </div>
 
       {/* Revenue 7 días - gráfico grande */}
-      <section className="cp-admin-card cp-admin-card-gap" aria-labelledby="titulo-revenue-semana">
+      <div className="cp-admin-card" style={{ marginBottom: 24 }}>
         <div className="cp-admin-card-header">
-          <h2 className="cp-admin-card-title" id="titulo-revenue-semana">Revenue últimos 7 días</h2>
-          <div className="cp-stats-total">
+          <div className="cp-admin-card-title">Revenue últimos 7 días</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--accent)' }}>
             {formatCOP(stats.revenueByDay.reduce((a, d) => a + d.amount, 0))}
           </div>
         </div>
         <div className="cp-revenue-chart cp-revenue-chart-lg">
           {stats.revenueByDay.map((day) => (
-            <div
-              key={day.date}
-              className="cp-revenue-bar-wrap"
-              role="img"
-              aria-label={`${day.date}: ${ventasHabladas(day.count)}`}
-            >
+            <div key={day.date} className="cp-revenue-bar-wrap">
               <div className="cp-revenue-bar-track">
                 <div
                   className="cp-revenue-bar-fill"
                   style={{ height: `${(day.amount / maxRevenue) * 100}%` }}
                 />
               </div>
-              <div className="cp-revenue-bar-label">{formatDiaCorto(day.date)}</div>
+              <div className="cp-revenue-bar-label">{day.date}</div>
               <div className="cp-revenue-bar-value">
                 {etiquetaVentas(day.count)}
               </div>
             </div>
           ))}
         </div>
-      </section>
+      </div>
 
       <div className="cp-admin-grid-2">
-        <TarjetaDetalle
-          titulo="Usuarios"
-          filas={[
-            { etiqueta: 'Total registrados', valor: stats.users.total, tono: 'accent' },
-            { etiqueta: 'Nuevos esta semana', valor: stats.users.newThisWeek, tono: 'ok' },
-            { etiqueta: 'Administradores', valor: stats.users.admins, tono: 'violet' },
-            { etiqueta: 'Baneados', valor: stats.users.banned, tono: 'bad' },
-          ]}
-        />
+        {/* Usuarios */}
+        <div className="cp-admin-card">
+          <div className="cp-admin-card-header">
+            <div className="cp-admin-card-title">Usuarios</div>
+          </div>
+          <div className="cp-stats-detail-list">
+            {[
+              { label: 'Total registrados', value: stats.users.total, color: 'var(--accent)' },
+              { label: 'Nuevos esta semana', value: stats.users.newThisWeek, color: '#22ff88' },
+              { label: 'Administradores', value: stats.users.admins, color: '#a855f7' },
+              { label: 'Baneados', value: stats.users.banned, color: '#ff3860' },
+            ].map((item) => (
+              <div key={item.label} className="cp-stats-detail-row">
+                <span className="cp-stats-detail-label">{item.label}</span>
+                <span className="cp-stats-detail-value" style={{ color: item.color }}>
+                  {item.value}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
 
-        <TarjetaDetalle
-          titulo="Inventario"
-          filas={[
-            { etiqueta: 'Total en catálogo', valor: stats.phones.total, tono: 'accent' },
-            { etiqueta: 'Con stock disponible', valor: stats.phones.inStock, tono: 'ok' },
-            { etiqueta: 'Verificados ✓', valor: stats.phones.verified, tono: 'accent' },
-            { etiqueta: 'Sin stock', valor: stats.phones.outOfStock, tono: 'bad' },
-          ]}
-        />
+        {/* Celulares */}
+        <div className="cp-admin-card">
+          <div className="cp-admin-card-header">
+            <div className="cp-admin-card-title">Inventario</div>
+          </div>
+          <div className="cp-stats-detail-list">
+            {[
+              { label: 'Total en catálogo', value: stats.phones.total, color: 'var(--accent)' },
+              { label: 'Con stock disponible', value: stats.phones.inStock, color: '#22ff88' },
+              { label: 'Verificados ✓', value: stats.phones.verified, color: '#00e5ff' },
+              { label: 'Sin stock', value: stats.phones.outOfStock, color: '#ff3860' },
+            ].map((item) => (
+              <div key={item.label} className="cp-stats-detail-row">
+                <span className="cp-stats-detail-label">{item.label}</span>
+                <span className="cp-stats-detail-value" style={{ color: item.color }}>
+                  {item.value}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
 
-        <TarjetaDetalle
-          titulo="Órdenes"
-          filas={[
-            { etiqueta: 'Total órdenes', valor: stats.orders.total, tono: 'ink' },
-            { etiqueta: 'Pendientes', valor: stats.orders.pending, tono: 'warn' },
-            { etiqueta: 'Confirmadas', valor: stats.orders.confirmed, tono: 'accent' },
-            { etiqueta: 'En camino', valor: stats.orders.shipped, tono: 'violet' },
-            { etiqueta: 'Entregadas', valor: stats.orders.delivered, tono: 'ok' },
-            { etiqueta: 'Canceladas', valor: stats.orders.cancelled, tono: 'bad' },
-          ]}
-        />
+        {/* Órdenes */}
+        <div className="cp-admin-card">
+          <div className="cp-admin-card-header">
+            <div className="cp-admin-card-title">Órdenes</div>
+          </div>
+          <div className="cp-stats-detail-list">
+            {[
+              { label: 'Total órdenes', value: stats.orders.total, color: 'var(--ink)' },
+              { label: 'Pendientes', value: stats.orders.pending, color: '#ffaa00' },
+              { label: 'Confirmadas', value: stats.orders.confirmed, color: '#00e5ff' },
+              { label: 'En camino', value: stats.orders.shipped, color: '#a855f7' },
+              { label: 'Entregadas', value: stats.orders.delivered, color: '#22ff88' },
+              { label: 'Canceladas', value: stats.orders.cancelled, color: '#ff3860' },
+            ].map((item) => (
+              <div key={item.label} className="cp-stats-detail-row">
+                <span className="cp-stats-detail-label">{item.label}</span>
+                <span className="cp-stats-detail-value" style={{ color: item.color }}>
+                  {item.value}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
 
-        <TarjetaDetalle
-          titulo="Revenue"
-          filas={[
-            { etiqueta: 'Revenue total histórico', valor: formatCOP(stats.orders.revenue), tono: 'accent', monto: true },
-            { etiqueta: 'Revenue este mes', valor: formatCOP(stats.orders.revenueThisMonth), tono: 'ok', monto: true },
-          ]}
-        />
+        {/* Revenue */}
+        <div className="cp-admin-card">
+          <div className="cp-admin-card-header">
+            <div className="cp-admin-card-title">Revenue</div>
+          </div>
+          <div className="cp-stats-detail-list">
+            {[
+              { label: 'Revenue total histórico', value: formatCOP(stats.orders.revenue), color: 'var(--accent)' },
+              { label: 'Revenue este mes', value: formatCOP(stats.orders.revenueThisMonth), color: '#22ff88' },
+            ].map((item) => (
+              <div key={item.label} className="cp-stats-detail-row">
+                <span className="cp-stats-detail-label">{item.label}</span>
+                <span className="cp-stats-detail-value" style={{ color: item.color, fontFamily: 'var(--font-mono)', fontSize: 13 }}>
+                  {item.value}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )

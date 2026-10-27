@@ -68,7 +68,7 @@ describe('AdminUsers — validación y confirmación del motivo de baneo', () =>
   })
 
   // Camino 1,2,3,5,6,F — reason.trim().length >= 4
-  it('ejecuta adminService.banUser(id, reason) y actualiza la lista cuando el motivo es válido', async () => {
+  it('llama a adminService.banUser(id, reason) y actualiza la lista cuando el motivo es válido', async () => {
     // Arrange
     vi.mocked(adminService.getUsers).mockResolvedValue({
       data: [makeUser()],

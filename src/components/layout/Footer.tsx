@@ -1,10 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ShieldCheck, Truck, RefreshCw, Headphones } from 'lucide-react'
-import { usePreferencias } from '../../context/PreferencesContext'
 
 export function Footer() {
-  const { abrirPanel } = usePreferencias()
-
   return (
     <footer className="cp-footer">
       <div className="cp-container">
@@ -54,7 +51,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h2 className="cp-footer-col-title">Tienda</h2>
+            <div className="cp-footer-col-title">Tienda</div>
             <ul className="cp-footer-links">
               <li><Link to="/catalog">Todos los celulares</Link></li>
               <li><Link to="/catalog?condition=NEW">Nuevos</Link></li>
@@ -64,7 +61,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h2 className="cp-footer-col-title">Marcas</h2>
+            <div className="cp-footer-col-title">Marcas</div>
             <ul className="cp-footer-links">
               <li><Link to="/catalog?category=apple">iPhone</Link></li>
               <li><Link to="/catalog?category=samsung">Samsung</Link></li>
@@ -74,18 +71,15 @@ export function Footer() {
           </div>
 
           <div>
-            <h2 className="cp-footer-col-title">Ayuda</h2>
+            <div className="cp-footer-col-title">Ayuda</div>
+            {/* Heurística 4: cada enlace lleva a lo que dice. "Garantías" antes
+                abría el catálogo; ahora todos van a su sección del centro de ayuda. */}
             <ul className="cp-footer-links">
               <li><Link to="/ayuda">Centro de ayuda</Link></li>
-              <li><Link to="/dashboard">Mis pedidos</Link></li>
+              <li><Link to="/ayuda#preguntas">Preguntas frecuentes</Link></li>
               <li><Link to="/ayuda#garantias">Garantías</Link></li>
-              <li><a href="mailto:soporte@celularpro.co">Contacto</a></li>
-              <li><Link to="/privacidad">Privacidad de tus datos</Link></li>
-              <li>
-                <button type="button" className="cp-footer-link-btn" onClick={abrirPanel}>
-                  Pantalla y accesibilidad
-                </button>
-              </li>
+              <li><Link to="/ayuda#contacto">Contacto</Link></li>
+              <li><Link to="/dashboard">Mis pedidos</Link></li>
             </ul>
           </div>
         </div>
@@ -93,6 +87,10 @@ export function Footer() {
         <div className="cp-footer-bottom">
           <span>© {new Date().getFullYear()} CelularPro · Medellín, Colombia</span>
           <span>Precios en pesos colombianos (COP) · IVA incluido</span>
+          {/* Heurística 6: los atajos se anuncian para que quien vuelve los descubra */}
+          <span>
+            Atajos: <kbd>/</kbd> buscar · <kbd>?</kbd> <Link to="/ayuda#atajos">ver todos</Link>
+          </span>
         </div>
       </div>
     </footer>

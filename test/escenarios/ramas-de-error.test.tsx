@@ -56,6 +56,7 @@ describe('Cambio de rol — PUT /admin/users/:id/role', () => {
 
     // Act
     await user.click(within(filaDe('Ana Torres')).getByRole('button', { name: /hacer admin/i }))
+    await user.click(screen.getByRole('button', { name: 'Sí, hacer admin' }))
 
     // Assert
     expect(await within(filaDe('Ana Torres')).findByRole('button', { name: /quitar admin/i })).to.exist
@@ -70,6 +71,7 @@ describe('Cambio de rol — PUT /admin/users/:id/role', () => {
 
     // Act
     await user.click(within(filaDe('Carla Admin')).getByRole('button', { name: /quitar admin/i }))
+    await user.click(screen.getByRole('button', { name: 'Sí, quitar admin' }))
 
     // Assert
     expect(await within(filaDe('Carla Admin')).findByText('Usuario')).to.exist
@@ -83,6 +85,7 @@ describe('Cambio de rol — PUT /admin/users/:id/role', () => {
 
     // Act
     await user.click(within(filaDe('Ana Torres')).getByRole('button', { name: /hacer admin/i }))
+    await user.click(screen.getByRole('button', { name: 'Sí, hacer admin' }))
 
     // Assert
     expect(await screen.findByText('Usuario no encontrado')).to.exist
@@ -100,7 +103,7 @@ describe('Fallos inesperados de la capa de datos → 500', () => {
     abrirApp('/admin/users')
 
     // Assert
-    expect(await screen.findByText('Error interno del servidor')).to.exist
+    expect(await screen.findByText('Algo falló de nuestro lado. Inténtalo de nuevo en unos minutos.')).to.exist
     expect(screen.queryByText('Cargando usuarios...')).to.be.null
   })
 
@@ -113,7 +116,7 @@ describe('Fallos inesperados de la capa de datos → 500', () => {
     abrirApp('/admin/phones')
 
     // Assert
-    expect(await screen.findByText('Error interno del servidor')).to.exist
+    expect(await screen.findByText('Algo falló de nuestro lado. Inténtalo de nuevo en unos minutos.')).to.exist
   })
 
   it('y el listado de órdenes', async () => {
@@ -125,7 +128,7 @@ describe('Fallos inesperados de la capa de datos → 500', () => {
     abrirApp('/admin/orders')
 
     // Assert
-    expect(await screen.findByText('Error interno del servidor')).to.exist
+    expect(await screen.findByText('Algo falló de nuestro lado. Inténtalo de nuevo en unos minutos.')).to.exist
     expect(screen.queryByText('Cargando órdenes...')).to.be.null
   })
 })

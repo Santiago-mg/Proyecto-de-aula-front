@@ -1,10 +1,16 @@
-import type { AdminStats, AdminUser } from '../types/admin'
+import type { AdminStats, AdminUser, StockAlert } from '../types/admin'
 import type { Order } from '../types/order'
 import api from './api'
 
 export const adminService = {
   async getStats(): Promise<AdminStats> {
     const res = await api.get<{ data: AdminStats }>('/admin/stats')
+    return res.data.data
+  },
+
+  // Alertas de inventario abiertas, de la más reciente a la más antigua.
+  async getAlerts(): Promise<StockAlert[]> {
+    const res = await api.get<{ data: StockAlert[] }>('/admin/alerts')
     return res.data.data
   },
 

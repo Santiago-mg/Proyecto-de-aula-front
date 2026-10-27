@@ -1,0 +1,17 @@
+fileType: momentic/test/v2
+id: celularpro-login-clave-incorrecta
+description: Inicio de sesión — con la contraseña equivocada no entra y lo explica
+defaultEnv: local
+labels: [login, negativo]
+steps:
+  - navigate: "{{ env.BASE_URL }}/login"
+  - type:
+      text: "{{ env.ADMIN_EMAIL }}"
+      into: Email input
+  - type:
+      text: NoEsLaClave1
+      css: "#password"
+  - click: Ingresar submit button
+  - checkPageContains: Credenciales inválidas
+  - waitForUrl: /login
+  - assert: An error message about invalid credentials is shown, with a link to the help guide for login problems

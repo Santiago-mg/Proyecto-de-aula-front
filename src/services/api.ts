@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { marcarSesionVencida } from '../utils/sesion'
+import { CLAVE_AVISO, avisoDeSesion, codigoDeError, mensajeDeSuspension } from '../utils/errores'
 
 // Cliente HTTP centralizado — el token se inyecta automáticamente en cada request
 const api = axios.create({
@@ -23,10 +23,19 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && localStorage.getItem('cp_token')) {
       localStorage.removeItem('cp_token')
       localStorage.removeItem('cp_user')
-      // Se recuerda dónde estaba para avisar en el login por qué volvió y, al
-      // ingresar, devolverlo ahí (el cambio de página recarga la aplicación).
-      const { pathname = '', search = '' } = globalThis.location
-      marcarSesionVencida(`${pathname}${search}`)
+      // La página se recarga al redirigir: el motivo viaja en sessionStorage
+      // para que /login explique por qué se cerró la sesión.
+      sessionStorage.setItem(CLAVE_AVISO, avisoDeSesion(codigoDeError(error)))
+      globalThis.location.href = '/login'
+      return Promise.reject(error)
+    }
+    // 403 por suspensión de la cuenta: la sesión ya no sirve para nada, se
+    // cierra y /login muestra el motivo que dio el administrador.
+    const suspension = mensajeDeSuspension(error)
+    if (suspension && localStorage.getItem('cp_token')) {
+      localStorage.removeItem('cp_token')
+      localStorage.removeItem('cp_user')
+      sessionStorage.setItem(CLAVE_AVISO, suspension)
       globalThis.location.href = '/login'
     }
     return Promise.reject(error)

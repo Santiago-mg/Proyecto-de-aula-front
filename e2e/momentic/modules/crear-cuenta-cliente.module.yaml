@@ -1,0 +1,22 @@
+fileType: momentic/module/v2
+id: celularpro-crear-cuenta
+name: crear-cuenta-cliente
+steps:
+  - javascript:
+      code: return `momentic+${Date.now()}@gmail.com`
+      saveAs: CORREO_NUEVO
+  - navigate: "{{ env.BASE_URL }}/register"
+  - type:
+      text: Ana Pérez
+      into: Nombre completo input
+  - type:
+      text: "{{ env.CORREO_NUEVO }}"
+      into: Email input
+  - type:
+      text: "{{ env.CLAVE_PRUEBA }}"
+      css: "#password"
+  - type:
+      text: "{{ env.CLAVE_PRUEBA }}"
+      css: "#confirmPassword"
+  - click: Crear cuenta gratis button
+  - waitForUrl: /dashboard

@@ -68,6 +68,13 @@ pipeline {
             }
         }
 
+        stage('Verificar Gherkin') {
+            steps {
+                // Sin navegador: cada paso de cypress/gherkin tiene exactamente una definición
+                sh 'npm run gherkin:verificar'
+            }
+        }
+
         stage('Pruebas y cobertura') {
             steps {
                 // Suite de regresión: test/escenarios (los casos de los

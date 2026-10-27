@@ -1,0 +1,24 @@
+{
+  "name": "celularpro-e2e-stagehand",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Pruebas E2E con Stagehand (act, observe, extract) sobre las 6 funcionalidades de CelularPro",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "rp:importar": "node ../../reportportal/importar-junit.mjs reports/junit-stagehand.xml stagehand \"Stagehand (act, observe, extract)\""
+  },
+  "engines": {
+    "node": "^22.12.0 || >=24.0.0"
+  },
+  "dependencies": {
+    "@browserbasehq/stagehand": "3.7.3",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "^5.6.3",
+    "vitest": "^1.6.1"
+  }
+}

@@ -134,7 +134,7 @@ describe('Inicio de sesión — POST /auth/login', () => {
     await ingresar(user, 'mario@gmail.com', CLAVE)
 
     // Assert
-    expect(await screen.findByText('Error de conexión con el servidor')).to.exist
+    expect(await screen.findByText('No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.')).to.exist
     expect(screen.queryByText(/network error/i)).to.be.null
   })
 })
@@ -179,8 +179,9 @@ describe('Sesión — equivalente a GET /auth/me', () => {
     // Assert
     expect(await screen.findByRole('heading', { name: 'Hola, Laura' })).to.exist
     expect(screen.queryByText('laura@outlook.com')).to.exist
-    expect(screen.queryByRole('link', { name: 'Laura' })).to.exist
-    expect(screen.queryByRole('link', { name: 'Admin' })).to.be.null
+    // H4: el menú dice "Mi cuenta" (a dónde lleva); el nombre va en el title
+    expect(screen.getByRole('link', { name: 'Mi cuenta' }).getAttribute('title')).to.equal('Sesión iniciada como Laura Gómez')
+    expect(screen.queryByRole('link', { name: 'Panel admin' })).to.be.null
   })
 
   it('con sesión, entrar a /login o /register lleva directo al panel', async () => {
@@ -204,7 +205,7 @@ describe('Sesión — equivalente a GET /auth/me', () => {
     await screen.findByRole('heading', { name: 'Hola, Mario' })
 
     // Act
-    await user.click(screen.getByRole('button', { name: 'Salir' }))
+    await user.click(screen.getByRole('button', { name: 'Cerrar sesión' }))
 
     // Assert
     expect(await screen.findByRole('heading', { name: 'Ingresar' })).to.exist

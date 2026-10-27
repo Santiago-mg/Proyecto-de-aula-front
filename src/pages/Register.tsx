@@ -1,36 +1,24 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
-import { AuthLayout } from '../components/layout/AuthLayout'
-import { BotonMostrar } from '../components/ui/BotonMostrar'
-import { Campo } from '../components/ui/Campo'
 import { ErrorMessage } from '../components/ui/ErrorMessage'
 import { useState } from 'react'
 import { comoError } from '../utils/errores'
-import { rutaDesde } from '../utils/sesion'
-
-// Dominios de correo permitidos (misma regla que el backend: application/dtos/auth.dto.ts — emailSchema)
-const DOMINIOS_PERMITIDOS = new Set(['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com', 'icloud.com'])
-
-const emailSchema = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .email('Correo electrónico inválido')
-  .refine((email) => DOMINIOS_PERMITIDOS.has(email.split('@')[1] ?? ''), {
-    message: 'Correo inválido. Usa Gmail, Outlook, Hotmail, Yahoo o iCloud.',
-  })
+import { AYUDA_CONTRASENA, emailRegistroSchema, nameSchema, passwordSchema } from '../utils/validacion'
+import { PasswordInput } from '../components/ui/PasswordInput'
+import { ReglasContrasena } from '../components/ui/ReglasContrasena'
+import { AvisoSinConexion } from '../components/ui/AvisoSinConexion'
+import { useTituloPagina } from '../hooks/useTituloPagina'
 
 const schema = z
   .object({
-    name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-    email: emailSchema,
-    password: z
-      .string()
-      .min(8, 'La contraseña debe tener al menos 8 caracteres'),
-    confirmPassword: z.string(),
+    name: nameSchema,
+    email: emailRegistroSchema,
+    password: passwordSchema,
+    confirmPassword: z.string().min(1, 'Confirma tu contraseña'),
   })
   .refine((d) => d.password === d.confirmPassword, {
     message: 'Las contraseñas no coinciden',
@@ -39,17 +27,11 @@ const schema = z
 
 type FormData = z.infer<typeof schema>
 
-const LARGO_MINIMO = 8
-
 export function Register() {
   const { user, register: registerUser, isLoading } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
   const [serverError, setServerError] = useState<Error | null>(null)
-  const [verClave, setVerClave] = useState(false)
-
-  // Si venía de una página protegida (por ejemplo el checkout), vuelve ahí.
-  const destino = rutaDesde((location.state as { from?: unknown } | null)?.from) ?? '/dashboard'
+  useTituloPagina('Crear cuenta')
 
   const {
     register,
@@ -57,97 +39,153 @@ export function Register() {
     watch,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) })
+  const contrasena = watch('password') ?? ''
 
-  if (user) return <Navigate to={destino} replace />
+  if (user) return <Navigate to="/dashboard" replace />
 
   async function onSubmit(data: FormData) {
     setServerError(null)
     try {
       await registerUser(data.email, data.name, data.password)
-      navigate(destino)
+      navigate('/dashboard')
     } catch (err) {
       setServerError(comoError(err))
     }
   }
 
-  // Cuánto falta, a medida que escribe (en vez de enterarse al enviar)
-  const largo = (watch('password') ?? '').length
-  let ayudaClave = `Al menos ${LARGO_MINIMO} caracteres.`
-  if (largo > 0 && largo < LARGO_MINIMO) {
-    const faltan = LARGO_MINIMO - largo
-    ayudaClave = `Te ${faltan === 1 ? 'falta 1 carácter' : `faltan ${faltan} caracteres`}.`
-  } else if (largo >= LARGO_MINIMO) {
-    ayudaClave = 'Con eso alcanza.'
-  }
-
   return (
-    <AuthLayout
-      titulo="Crear cuenta"
-      subtitulo={
-        <>
+    <main className="cp-auth-page">
+      <motion.div
+        initial={{ opacity: 0, y: 32, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+        style={{ width: '100%', display: 'flex', justifyContent: 'center' }}
+      >
+      <div className="cp-auth-card">
+        {/* Heurísticas 1 y 3: salida visible a la tienda */}
+        <Link to="/" className="cp-link cp-auth-volver">
+          ← Volver a la tienda
+        </Link>
+        <AvisoSinConexion />
+        <Link to="/" className="cp-logo" style={{ marginBottom: 32, display: 'block' }}>
+          Celular<span>Pro</span>
+          <span className="cp-logo-badge">✓</span>
+        </Link>
+
+        <h1 className="cp-auth-title">Crear cuenta</h1>
+        <p className="cp-auth-sub">
           ¿Ya tienes cuenta?{' '}
-          <Link to="/login" state={location.state} className="cp-link">
+          <Link to="/login" className="cp-link">
             Ingresar
           </Link>
-        </>
-      }
-    >
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        <Campo
-          id="name"
-          type="text"
-          etiqueta="Nombre completo"
-          placeholder="Tu nombre"
-          autoComplete="name"
-          registro={register('name')}
-          error={errors.name?.message}
-        />
+        </p>
 
-        <Campo
-          id="email"
-          type="email"
-          etiqueta="Email"
-          placeholder="tu@correo.com"
-          autoComplete="email"
-          autoCapitalize="none"
-          spellCheck={false}
-          ayuda="Aceptamos Gmail, Outlook, Hotmail, Yahoo o iCloud."
-          registro={register('email')}
-          error={errors.email?.message}
-        />
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div className="cp-field">
+            <label htmlFor="name" className="cp-label">
+              Nombre completo
+            </label>
+            <input
+              id="name"
+              type="text"
+              autoComplete="name"
+              className={`cp-input ${errors.name ? 'error' : ''}`}
+              placeholder="Tu nombre"
+              aria-invalid={errors.name ? true : undefined}
+              aria-describedby={errors.name ? 'name-error' : undefined}
+              {...register('name')}
+            />
+            {errors.name && (
+              <p id="name-error" className="cp-field-error">{errors.name.message}</p>
+            )}
+          </div>
 
-        <Campo
-          id="password"
-          type={verClave ? 'text' : 'password'}
-          etiqueta="Contraseña"
-          placeholder="Mínimo 8 caracteres"
-          autoComplete="new-password"
-          ayuda={ayudaClave}
-          registro={register('password')}
-          error={errors.password?.message}
-          accion={<BotonMostrar visible={verClave} alternar={() => setVerClave((v) => !v)} controla="password" />}
-        />
+          <div className="cp-field">
+            <label htmlFor="email" className="cp-label">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              autoCapitalize="none"
+              spellCheck={false}
+              className={`cp-input ${errors.email ? 'error' : ''}`}
+              placeholder="tu@gmail.com"
+              aria-invalid={errors.email ? true : undefined}
+              aria-describedby={errors.email ? 'email-error email-hint' : 'email-hint'}
+              {...register('email')}
+            />
+            {/* Heurística 8: qué correo se acepta, dicho antes de fallar */}
+            <p id="email-hint" className="cp-field-hint">
+              Gmail, Outlook, Hotmail, Yahoo o iCloud.{' '}
+              <Link to="/ayuda#faq-correo" className="cp-link">¿Por qué?</Link>
+            </p>
+            {errors.email && (
+              <p id="email-error" className="cp-field-error">{errors.email.message}</p>
+            )}
+          </div>
 
-        <Campo
-          id="confirmPassword"
-          type={verClave ? 'text' : 'password'}
-          etiqueta="Confirmar contraseña"
-          placeholder="Repite tu contraseña"
-          autoComplete="new-password"
-          registro={register('confirmPassword')}
-          error={errors.confirmPassword?.message}
-        />
+          <div className="cp-field">
+            <label htmlFor="password" className="cp-label">
+              Contraseña
+            </label>
+            <PasswordInput
+              id="password"
+              autoComplete="new-password"
+              invalid={!!errors.password}
+              aria-describedby={errors.password ? 'password-error password-hint' : 'password-hint password-reglas'}
+              placeholder="Ej.: Medellin2026"
+              {...register('password')}
+            />
+            <p id="password-hint" className="cp-field-hint">{AYUDA_CONTRASENA}</p>
+            {/* Heurísticas 5, 7 y 8: cada requisito se marca mientras se escribe */}
+            <ReglasContrasena id="password-reglas" valor={contrasena} />
+            {errors.password && (
+              <p id="password-error" className="cp-field-error">{errors.password.message}</p>
+            )}
+          </div>
 
-        {serverError && <ErrorMessage error={serverError} />}
+          <div className="cp-field">
+            <label htmlFor="confirmPassword" className="cp-label">
+              Confirmar contraseña
+            </label>
+            <PasswordInput
+              id="confirmPassword"
+              autoComplete="new-password"
+              invalid={!!errors.confirmPassword}
+              aria-describedby={errors.confirmPassword ? 'confirm-error' : undefined}
+              placeholder="Repite tu contraseña"
+              {...register('confirmPassword')}
+            />
+            {errors.confirmPassword && (
+              <p id="confirm-error" className="cp-field-error">{errors.confirmPassword.message}</p>
+            )}
+          </div>
 
-        <button
-          type="submit"
-          className="cp-btn cp-btn-primary cp-btn-block cp-auth-submit"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Creando cuenta...' : 'Crear cuenta gratis'}
-        </button>
-      </form>
-    </AuthLayout>
+          {serverError && (
+            <ErrorMessage error={serverError} ayuda={{ ancla: 'preguntas', texto: 'Ver preguntas frecuentes' }} />
+          )}
+
+          <button
+            type="submit"
+            className="cp-btn cp-btn-primary"
+            style={{ width: '100%', marginTop: 24 }}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Creando cuenta...' : 'Crear cuenta gratis'}
+          </button>
+        </form>
+
+        <p className="cp-auth-ayuda">
+          ¿Dudas al crear tu cuenta?{' '}
+          <Link to="/ayuda#preguntas" className="cp-link">
+            Preguntas frecuentes
+          </Link>
+        </p>
+      </div>
+      </motion.div>
+    </main>
   )
 }

@@ -6,7 +6,7 @@ import type { Phone, PhoneListItem } from '../../src/types/phone'
 // Datos de prueba con la forma exacta que devuelve el backend. Cada función
 // arma una fila válida y deja sobreescribir lo que la prueba necesite.
 
-export const CLAVE = 'clave-segura-123'
+export const CLAVE = 'Clave-Segura-123'
 export const TOKEN_USUARIO = 'token-de-usuario'
 export const TOKEN_ADMIN = 'token-de-admin'
 
@@ -164,4 +164,19 @@ export function sesionIniciada(user: User = usuario(), token = TOKEN_USUARIO) {
 
 export function sesionDeAdmin(user: User = administrador()) {
   sesionIniciada(user, TOKEN_ADMIN)
+}
+
+
+/** Alerta de inventario tal como la devuelve GET /admin/alerts. */
+export function alertaDeStock(cambios: Record<string, unknown> = {}) {
+  const phone = {
+    id: 'phone-1', name: 'iPhone 15 Pro', slug: 'iphone-15-pro', stock: 3, minStock: 5, heroImage: null,
+    ...((cambios.phone as object) ?? {}),
+  }
+  return {
+    id: 'alerta-1', phoneId: phone.id, type: 'LOW_STOCK',
+    message: `"${phone.name}" tiene ${phone.stock} unidades, en o por debajo del mínimo de ${phone.minStock}.`,
+    isResolved: false, createdAt: '2026-10-07T14:30:00.000Z',
+    ...cambios, phone,
+  }
 }

@@ -1,0 +1,9 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>TC29_Pie_garantias_lleva_a_garantias</title></head><body><table cellpadding="1" cellspacing="1" border="1"><thead><tr><td rowspan="1" colspan="3">TC29_Pie_garantias_lleva_a_garantias</td></tr></thead><tbody><tr><td>store</td><td>http://localhost:5173</td><td>BASE</td></tr>
+<tr><td>open</td><td>${BASE}/login</td><td></td></tr>
+<tr><td>runScript</td><td>localStorage.clear(); sessionStorage.clear();</td><td></td></tr>
+<tr><td>open</td><td>${BASE}/catalog</td><td></td></tr>
+<tr><td>waitForElementPresent</td><td>xpath=//footer//a[normalize-space()=&#x27;Garantías&#x27;]</td><td></td></tr>
+<tr><td>click</td><td>xpath=//footer//a[normalize-space()=&#x27;Garantías&#x27;]</td><td></td></tr>
+<tr><td>waitForElementPresent</td><td>xpath=//h2[normalize-space()=&#x27;Garantías&#x27;]</td><td></td></tr>
+<tr><td>assertLocation</td><td>glob:*/ayuda#garantias</td><td></td></tr>
+<tr><td>assertElementNotPresent</td><td>id=filtro-buscar</td><td></td></tr></tbody></table></body></html>

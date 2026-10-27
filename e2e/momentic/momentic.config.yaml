@@ -1,0 +1,48 @@
+# Momentic para CelularPro. Base: el archivo que genera `npx momentic init`.
+# Docs: https://momentic.ai/docs/configuration/momentic-config
+
+# Nombre del proyecto en reportes y en la app de Momentic.
+name: celularpro
+
+# Archivos de prueba y módulos, relativos a este archivo.
+include:
+  - "tests/**/*.test.yaml"
+  - "modules/**/*.module.yaml"
+
+# Las pruebas comparten backend y el usuario administrador del seed: se corren de a una.
+parallel: 1
+
+gitMainBranch: main
+
+fileFormat: v2
+
+# Entornos. La URL del frontend y las credenciales se leen del shell (o del CI),
+# nunca se escriben aquí. Valores por defecto = desarrollo local con el seed.
+environments:
+  - name: local
+    baseUrl: ${BASE_URL:-http://localhost:5173}
+    envVariables:
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@celularpro.co}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin1234}
+      CLAVE_PRUEBA: ${CLAVE_PRUEBA:-Medellin2026}
+
+advanced:
+  aiActionShorthand: true
+
+browser:
+  disableSecondaryCacheResolution: true
+
+ai:
+  # Reusar decisiones de ejecuciones anteriores: la IA elige los mismos elementos.
+  useMemory: true
+  # Si un paso falla, la IA intenta un camino alternativo y lo deja registrado
+  # (mantenimiento asistido; ver docs/reliability/auto-maintenance).
+  failureRecovery: true
+  agentConfig:
+    locator: v5
+    assertion: v5
+    visual-assertion: v5
+    text-extraction: v3.0
+    failure-recovery: v2.1
+    android-locator: v2
+    ios-locator: v2

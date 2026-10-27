@@ -274,7 +274,7 @@ describe('PUT /orders/:id/status — cambiar estado', () => {
     await user.selectOptions(selector, 'PENDING')
 
     // Assert
-    expect(await screen.findByText('Datos inválidos')).to.exist
+    expect(await screen.findByText('Algunos datos no son válidos. Revisa el formulario e inténtalo de nuevo.')).to.exist
     expect(selector.value).to.equal('CONFIRMED')
   })
 
@@ -313,59 +313,10 @@ describe('PUT /orders/:id/status — cambiar estado', () => {
 
     // Act
     await user.selectOptions(selector, 'CANCELLED')
-    await user.click(screen.getByRole('button', { name: 'Sí, marcar como cancelado' }))
 
     // Assert
     expect(await screen.findByText('Un pedido entregado no puede cambiar de estado')).to.exist
     expect(selector.value).to.equal('DELIVERED')
-  })
-
-  it('cancelar un pedido pide confirmación y, si la persona se arrepiente, no envía nada', async () => {
-    // Arrange
-    const { user, selector } = await abrirOrdenes()
-
-    // Act
-    await user.selectOptions(selector, 'CANCELLED')
-    const dialogo = screen.getByRole('alertdialog', { name: 'Marcar como cancelado' })
-    const mencionaElPedido = within(dialogo).queryByText('CP-0001') !== null
-    await user.click(within(dialogo).getByRole('button', { name: 'Volver' }))
-
-    // Assert
-    expect(mencionaElPedido).to.be.true
-    expect(screen.queryByRole('alertdialog')).to.be.null
-    expect(servidor.peticiones('PUT')).to.be.empty
-    expect(selector.value).to.equal('CONFIRMED')
-  })
-
-  it('confirmar la cancelación sí cambia el estado', async () => {
-    // Arrange
-    servidor.responder('PUT', '/orders/order-1/status', ok(pedido({ status: 'CANCELLED' })))
-    const { user, selector } = await abrirOrdenes()
-
-    // Act
-    await user.selectOptions(selector, 'CANCELLED')
-    await user.click(screen.getByRole('button', { name: 'Sí, marcar como cancelado' }))
-
-    // Assert
-    await waitFor(() => {
-      expect(selector.value).to.equal('CANCELLED')
-    })
-    expect(servidor.peticiones('PUT', '/orders/order-1/status')[0].body).to.deep.equal({ status: 'CANCELLED' })
-  })
-
-  it('pasar a un estado intermedio no pregunta nada', async () => {
-    // Arrange
-    servidor.responder('PUT', '/orders/order-1/status', ok(pedido({ status: 'SHIPPED' })))
-    const { user, selector } = await abrirOrdenes()
-
-    // Act
-    await user.selectOptions(selector, 'SHIPPED')
-
-    // Assert
-    await waitFor(() => {
-      expect(selector.value).to.equal('SHIPPED')
-    })
-    expect(screen.queryByRole('alertdialog')).to.be.null
   })
 })
 

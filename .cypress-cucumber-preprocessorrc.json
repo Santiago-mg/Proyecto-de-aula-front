@@ -1,0 +1,5 @@
+{
+  "stepDefinitions": "cypress/gherkin/pasos/**/*.ts",
+  "html": { "enabled": true, "output": "cypress/gherkin/reportes/cucumber.html" },
+  "messages": { "enabled": true, "output": "cypress/gherkin/reportes/cucumber-messages.ndjson" }
+}

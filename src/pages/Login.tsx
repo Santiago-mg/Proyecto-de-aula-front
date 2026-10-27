@@ -1,20 +1,19 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import axios from 'axios'
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
-import { AuthLayout } from '../components/layout/AuthLayout'
-import { Aviso } from '../components/ui/Aviso'
-import { BotonMostrar } from '../components/ui/BotonMostrar'
-import { Campo } from '../components/ui/Campo'
 import { ErrorMessage } from '../components/ui/ErrorMessage'
 import { useEffect, useState } from 'react'
-import { comoError } from '../utils/errores'
-import { leerSesionVencida, limpiarSesionVencida, rutaDesde, rutaSegura } from '../utils/sesion'
+import { CLAVE_AVISO, comoError } from '../utils/errores'
+import { emailSchema } from '../utils/validacion'
+import { PasswordInput } from '../components/ui/PasswordInput'
+import { AvisoSinConexion } from '../components/ui/AvisoSinConexion'
+import { useTituloPagina } from '../hooks/useTituloPagina'
 
 const schema = z.object({
-  email: z.string().email('Email inválido'),
+  email: emailSchema,
   password: z.string().min(1, 'La contraseña es requerida'),
 })
 
@@ -23,20 +22,13 @@ type FormData = z.infer<typeof schema>
 export function Login() {
   const { user, login, isLoading } = useAuth()
   const navigate = useNavigate()
-  const location = useLocation()
   const [serverError, setServerError] = useState<Error | null>(null)
-  const [verClave, setVerClave] = useState(false)
-
-  // De dónde viene la persona: una página protegida que la mandó aquí, o la
-  // página donde se le venció la sesión.
-  const origen = rutaDesde((location.state as { from?: unknown } | null)?.from)
-  const [vencida] = useState(leerSesionVencida)
-  const destino = origen ?? rutaSegura(vencida) ?? '/dashboard'
-
+  useTituloPagina('Ingresar')
+  // Motivo por el que se cerró la sesión (vencida, revocada…), si venimos de ahí.
+  const [aviso] = useState(() => sessionStorage.getItem(CLAVE_AVISO))
   useEffect(() => {
-    // El aviso de sesión vencida se muestra una vez, no cada vez que se abre el login.
-    if (vencida !== null) limpiarSesionVencida()
-  }, [vencida])
+    sessionStorage.removeItem(CLAVE_AVISO)
+  }, [])
 
   const {
     register,
@@ -44,88 +36,118 @@ export function Login() {
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) })
 
-  // Si ya hay sesión, ir a donde iba (o al dashboard)
-  if (user) return <Navigate to={destino} replace />
+  // Si ya hay sesión, ir al dashboard
+  if (user) return <Navigate to="/dashboard" replace />
 
   async function onSubmit(data: FormData) {
     setServerError(null)
     try {
       await login(data.email, data.password)
-      navigate(destino)
+      navigate('/dashboard')
     } catch (err) {
       setServerError(comoError(err))
     }
   }
 
-  // Un 401 en el login significa credenciales incorrectas, no sesión vencida.
-  const credencialesMalas = axios.isAxiosError(serverError) && serverError.response?.status === 401
-
   return (
-    <AuthLayout
-      titulo="Ingresar"
-      subtitulo={
-        <>
+    <main className="cp-auth-page">
+      <motion.div
+        initial={{ opacity: 0, y: 32, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+        style={{ width: '100%', display: 'flex', justifyContent: 'center' }}
+      >
+      <div className="cp-auth-card">
+        {/* Heurísticas 1 y 3: salida visible a la tienda (antes solo el logo, que no parece enlace) */}
+        <Link to="/" className="cp-link cp-auth-volver">
+          ← Volver a la tienda
+        </Link>
+        <AvisoSinConexion />
+        <Link to="/" className="cp-logo" style={{ marginBottom: 32, display: 'block' }}>
+          Celular<span>Pro</span>
+          <span className="cp-logo-badge">✓</span>
+        </Link>
+
+        <h1 className="cp-auth-title">Ingresar</h1>
+        <p className="cp-auth-sub">
           ¿No tienes cuenta?{' '}
-          <Link to="/register" state={location.state} className="cp-link">
+          <Link to="/register" className="cp-link">
             Regístrate gratis
           </Link>
-        </>
-      }
-    >
-      {vencida !== null && (
-        <Aviso tono="warn">Tu sesión venció. Ingresa de nuevo para seguir donde ibas.</Aviso>
-      )}
-      {vencida === null && origen && (
-        <Aviso>
-          {origen.startsWith('/checkout')
-            ? 'Ingresa para finalizar tu compra. Tu carrito se conserva.'
-            : 'Ingresa para continuar.'}
-        </Aviso>
-      )}
+        </p>
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        <Campo
-          id="email"
-          type="email"
-          etiqueta="Email"
-          placeholder="tu@correo.com"
-          autoComplete="email"
-          autoCapitalize="none"
-          spellCheck={false}
-          registro={register('email')}
-          error={errors.email?.message}
-        />
-
-        <Campo
-          id="password"
-          type={verClave ? 'text' : 'password'}
-          etiqueta="Contraseña"
-          placeholder="••••••••"
-          autoComplete="current-password"
-          registro={register('password')}
-          error={errors.password?.message}
-          accion={<BotonMostrar visible={verClave} alternar={() => setVerClave((v) => !v)} controla="password" />}
-        />
-
-        {serverError && (
-          <ErrorMessage
-            error={serverError}
-            pista={
-              credencialesMalas
-                ? 'Revisa que el correo y la contraseña estén bien escritos. Con «Mostrar» puedes ver lo que escribes.'
-                : undefined
-            }
-          />
+        {aviso && (
+          <p role="status" className="cp-flash">
+            {aviso}
+          </p>
         )}
 
-        <button
-          type="submit"
-          className="cp-btn cp-btn-primary cp-btn-block cp-auth-submit"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Ingresando...' : 'Ingresar'}
-        </button>
-      </form>
-    </AuthLayout>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div className="cp-field">
+            <label htmlFor="email" className="cp-label">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              autoCapitalize="none"
+              spellCheck={false}
+              className={`cp-input ${errors.email ? 'error' : ''}`}
+              placeholder="tu@gmail.com"
+              aria-invalid={errors.email ? true : undefined}
+              aria-describedby={errors.email ? 'email-error' : undefined}
+              {...register('email')}
+            />
+            {errors.email && (
+              <p id="email-error" className="cp-field-error">{errors.email.message}</p>
+            )}
+          </div>
+
+          <div className="cp-field">
+            <label htmlFor="password" className="cp-label">
+              Contraseña
+            </label>
+            <PasswordInput
+              id="password"
+              autoComplete="current-password"
+              invalid={!!errors.password}
+              aria-describedby={errors.password ? 'password-error' : undefined}
+              placeholder="••••••••"
+              {...register('password')}
+            />
+            {errors.password && (
+              <p id="password-error" className="cp-field-error">{errors.password.message}</p>
+            )}
+          </div>
+
+          {serverError && (
+            <ErrorMessage
+              error={serverError}
+              ayuda={{ ancla: 'guia-no-puedo-ingresar', texto: '¿Problemas para ingresar? Ver la guía' }}
+            />
+          )}
+
+          <button
+            type="submit"
+            className="cp-btn cp-btn-primary"
+            style={{ width: '100%', marginTop: 24 }}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Ingresando...' : 'Ingresar'}
+          </button>
+        </form>
+
+        {/* Heurística 10: ayuda justo donde más se necesita */}
+        <p className="cp-auth-ayuda">
+          ¿Olvidaste tu contraseña o no puedes ingresar?{' '}
+          <Link to="/ayuda#guia-no-puedo-ingresar" className="cp-link">
+            Centro de ayuda
+          </Link>
+        </p>
+      </div>
+      </motion.div>
+    </main>
   )
 }

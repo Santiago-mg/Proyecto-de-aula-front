@@ -6,7 +6,9 @@
 //   1. Backend     corre el job celularpro-backend  (pruebas + SonarQube + imagen)
 //   2. Frontend    corre el job celularpro-front    (pruebas + SonarQube + imagen)
 //   3. Docker      levanta la app completa: base de datos, API y front
+//   3b. Pruebas    Cypress (API, E2E, accesibilidad y Gherkin) contra lo desplegado en Docker
 //   4. Vercel      publica la API y el front
+//   5. Pruebas     Cypress contra lo publicado en Vercel (si se dan sus URLs)
 //
 // Cada etapa corre solo si la anterior pasó. Si el backend falla, el front ni
 // se prueba; si el front falla, no se despliega nada. Nunca se publica algo
@@ -45,11 +47,31 @@ pipeline {
             defaultValue: true,
             description: 'Publicar la API y el front en Vercel al final (necesita las credenciales de Vercel en Jenkins).'
         )
+        string(
+            name: 'REPO_BACKEND',
+            defaultValue: 'https://github.com/Santiago-mg/Proyecto-de-aula.git',
+            description: 'Repositorio del backend (Proyecto-de-aula-mario). Cámbialo por el del equipo si es otro.'
+        )
+        string(
+            name: 'RAMA_BACKEND',
+            defaultValue: 'main',
+            description: 'Rama del backend que se prueba y se despliega.'
+        )
+        string(
+            name: 'URL_FRONT_VERCEL',
+            defaultValue: '',
+            description: 'URL pública del front en Vercel, para las pruebas posteriores al despliegue (vacío = no se prueban).'
+        )
+        string(
+            name: 'URL_API_VERCEL',
+            defaultValue: '',
+            description: 'URL pública de la API en Vercel, terminada en /api/v1.'
+        )
     }
 
     environment {
-        REPO_BACKEND = 'https://github.com/Santiago-mg/Proyecto-de-aula.git'
-        RAMA_BACKEND = 'main'
+        REPO_BACKEND = "${params.REPO_BACKEND}"
+        RAMA_BACKEND = "${params.RAMA_BACKEND}"
     }
 
     stages {
@@ -126,6 +148,42 @@ pipeline {
             }
         }
 
+        // ── Criterio 9: pruebas DESPUÉS del despliegue ─────────────────────────
+        // Mismas suites que ya pasaron antes de desplegar, ahora contra la app
+        // desplegada: confirman que las correcciones siguen ahí (regresión) y
+        // que nada se rompió al empaquetar. Stagehand queda fuera, como pide la rúbrica.
+        stage('3b. Pruebas posteriores al despliegue (Docker)') {
+            agent {
+                docker {
+                    // Misma versión de Cypress que el proyecto (13.17.0), con el binario incluido.
+                    image 'cypress/included:13.17.0'
+                    // --network host: el navegador alcanza localhost:8081 y localhost:3001 del host
+                    // (la URL de la API quedó grabada en el front como localhost:3001).
+                    args '--network host -u root --entrypoint='
+                }
+            }
+            environment {
+                CYPRESS_BASE_URL       = 'http://localhost:8081'
+                CYPRESS_API_URL        = 'http://localhost:3001/api/v1'
+                CYPRESS_INSTALL_BINARY = '0'   // el binario ya viene en la imagen
+            }
+            steps {
+                sh 'npm ci --no-audit --no-fund'
+                // API: contrato, seguridad (cabeceras, 403 al banear a un admin, 429...) y regresión
+                sh 'CY_SUITE=post-despliegue-api npx cypress run --spec "cypress/api/**/*.cy.ts"'
+                // E2E: las 6 funcionalidades, usabilidad y accesibilidad (WCAG 2.1 AA)
+                sh 'CY_SUITE=post-despliegue-e2e npx cypress run --spec "cypress/e2e/**/*.cy.ts"'
+                // Gherkin + Screenplay: los mismos escenarios Dado–Cuando–Entonces, sobre lo desplegado
+                sh 'npx cypress run --config-file cypress.gherkin.config.ts'
+            }
+            post {
+                always {
+                    junit testResults: 'cypress/resultados/*.xml', allowEmptyResults: true
+                    archiveArtifacts artifacts: 'cypress/screenshots/**,cypress/videos/**,cypress/gherkin/reportes/**', allowEmptyArchive: true
+                }
+            }
+        }
+
         stage('4. Desplegar en Vercel') {
             when {
                 beforeAgent true   // si no se pide Vercel, ni siquiera arma el agente
@@ -151,10 +209,40 @@ pipeline {
                     sh '''
                         git clone --depth 1 --branch "$RAMA_BACKEND" "$REPO_BACKEND" /tmp/backend
                         cd /tmp/backend
-                        VERCEL_PROJECT_ID="$PROYECTO_BACKEND" npx --yes vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
+                        VERCEL_PROJECT_ID="$PROYECTO_BACKEND" npx --yes vercel@62.7.0 deploy --prod --yes --token "$VERCEL_TOKEN"
                     '''
                     // Front: el de este repositorio (el workspace del job).
-                    sh 'VERCEL_PROJECT_ID="$PROYECTO_FRONT" npx --yes vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"'
+                    sh 'VERCEL_PROJECT_ID="$PROYECTO_FRONT" npx --yes vercel@62.7.0 deploy --prod --yes --token "$VERCEL_TOKEN"'
+                }
+            }
+        }
+        stage('5. Pruebas posteriores al despliegue (Vercel)') {
+            when {
+                beforeAgent true
+                expression { params.DESPLEGAR_VERCEL && params.URL_FRONT_VERCEL && params.URL_API_VERCEL }
+            }
+            agent {
+                docker {
+                    image 'cypress/included:13.17.0'
+                    args '-u root --entrypoint='
+                }
+            }
+            environment {
+                CYPRESS_BASE_URL       = "${params.URL_FRONT_VERCEL}"
+                CYPRESS_API_URL        = "${params.URL_API_VERCEL}"
+                CYPRESS_INSTALL_BINARY = '0'
+            }
+            steps {
+                sh 'npm ci --no-audit --no-fund'
+                // Contrato y seguridad de la API publicada
+                sh 'CY_SUITE=vercel-api npx cypress run --spec "cypress/api/**/*.cy.ts"'
+                // Recorridos principales sobre el front publicado
+                sh 'CY_SUITE=vercel-e2e npx cypress run --spec "cypress/e2e/acceso.cy.ts,cypress/e2e/perfil-y-roles.cy.ts,cypress/e2e/heuristicas.cy.ts"'
+            }
+            post {
+                always {
+                    junit testResults: 'cypress/resultados/*.xml', allowEmptyResults: true
+                    archiveArtifacts artifacts: 'cypress/screenshots/**,cypress/videos/**', allowEmptyArchive: true
                 }
             }
         }
@@ -162,7 +250,7 @@ pipeline {
 
     post {
         success {
-            echo 'Cadena completa: back y front probados y analizados, app desplegada en Docker y Vercel.'
+            echo 'Cadena completa: back y front probados y analizados, desplegados en Docker y Vercel, y vueltos a probar después del despliegue.'
         }
         failure {
             echo 'La cadena se detuvo. Mira qué etapa quedó en rojo: las siguientes no corrieron.'

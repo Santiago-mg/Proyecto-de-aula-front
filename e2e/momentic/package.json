@@ -1,0 +1,21 @@
+{
+  "name": "celularpro-e2e-momentic",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pruebas funcionales y E2E de CelularPro con Momentic (YAML en el repositorio, pasos con IA)",
+  "scripts": {
+    "lint": "momentic lint",
+    "check": "momentic check config && momentic check duplicate-names && momentic check unused",
+    "listar": "momentic list",
+    "editor": "momentic app",
+    "test": "momentic run --env local --reporter list --reporter junit --reporter-dir reports",
+    "test:subir": "npm test -- --upload-results",
+    "rp:importar": "node ../../reportportal/importar-junit.mjs reports/junit.xml momentic \"Pruebas Momentic (IA)\""
+  },
+  "engines": {
+    "node": "^22.12.0 || >=24.0.0"
+  },
+  "devDependencies": {
+    "momentic": "3.63.1"
+  }
+}

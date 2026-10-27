@@ -1,72 +1,58 @@
-import { Accessibility, ShoppingBag, Menu, X } from 'lucide-react'
-import { useEffect, useId, useState } from 'react'
+import { ShoppingBag, Menu, X, CircleHelp, LogOut } from 'lucide-react'
+import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
-import { usePreferencias } from '../../context/PreferencesContext'
 
 interface NavProps {
   onOpenCart(): void
 }
 
-const LINKS = [
-  { label: 'Tienda', to: '/catalog' },
-  { label: 'Nuevos', to: '/catalog?condition=NEW' },
-  { label: 'Certificados', to: '/catalog?condition=CERTIFIED' },
-  { label: 'iPhone', to: '/catalog?category=apple' },
-  { label: 'Samsung', to: '/catalog?category=samsung' },
-  { label: 'Ayuda', to: '/ayuda' },
-]
-
 export function Nav({ onOpenCart }: Readonly<NavProps>) {
   const { user, logout } = useAuth()
   const { totalItems } = useCart()
-  const { abrirPanel } = usePreferencias()
   const navigate = useNavigate()
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const idMenu = useId()
-  const idConteo = useId()
-
-  // Al cambiar de página el menú móvil se cierra solo.
-  useEffect(() => {
-    setMobileOpen(false)
-  }, [location.pathname, location.search])
-
-  // Escape cierra el menú sin tener que buscar la "X".
-  useEffect(() => {
-    if (!mobileOpen) return
-    function cerrar(e: KeyboardEvent) {
-      if (e.key === 'Escape') setMobileOpen(false)
-    }
-    document.addEventListener('keydown', cerrar)
-    return () => document.removeEventListener('keydown', cerrar)
-  }, [mobileOpen])
 
   function handleLogout() {
     logout()
     navigate('/login')
   }
 
-  const actual = location.pathname + location.search
+  // Heurística 1: el menú marca dónde está la persona. aria-current="page"
+  // lo anuncia también a los lectores de pantalla.
+  const ruta = location.pathname + location.search
+  const marca = (destino: string, exacto = true) => {
+    const activo = exacto ? ruta === destino : location.pathname.startsWith(destino)
+    return { className: activo ? 'active' : '', ariaCurrent: activo ? ('page' as const) : undefined }
+  }
+
+  const links = [
+    { label: 'Tienda', to: '/catalog' },
+    { label: 'Nuevos', to: '/catalog?condition=NEW' },
+    { label: 'Certificados', to: '/catalog?condition=CERTIFIED' },
+    { label: 'iPhone', to: '/catalog?category=apple' },
+    { label: 'Samsung', to: '/catalog?category=samsung' },
+  ]
 
   return (
     <header className="cp-nav">
       <div className="cp-container cp-nav-inner">
         {/* Logo */}
-        <Link to="/" className="cp-logo" aria-label="CelularPro, ir al inicio">
+        <Link to="/" className="cp-logo">
           Celular<span>Pro</span>
-          <span className="cp-logo-badge" aria-hidden="true">✓</span>
+          <span className="cp-logo-badge">✓</span>
         </Link>
 
         {/* Links desktop */}
-        <nav className="cp-nav-links" aria-label="Principal">
-          {LINKS.map((l) => (
+        <nav className="cp-nav-links">
+          {links.map((l) => (
             <Link
               key={l.to}
               to={l.to}
-              className={`cp-nav-link ${actual === l.to ? 'active' : ''}`}
-              aria-current={actual === l.to ? 'page' : undefined}
+              className={`cp-nav-link ${marca(l.to).className}`}
+              aria-current={marca(l.to).ariaCurrent}
             >
               {l.label}
             </Link>
@@ -78,78 +64,85 @@ export function Nav({ onOpenCart }: Readonly<NavProps>) {
           {user ? (
             <>
               {user.role === 'ADMIN' && (
-                <Link to="/admin/phones" className="cp-nav-link cp-hide-mobile">
-                  Admin
+                <Link to="/admin" className="cp-nav-link cp-hide-mobile">
+                  Panel admin
                 </Link>
               )}
-              <Link to="/dashboard" className="cp-nav-link cp-hide-mobile">
-                {user.name.split(' ')[0]}
+              {/* Heurística 4: la etiqueta dice a dónde lleva ("Mi cuenta"), no el
+                  nombre de la persona; el nombre queda como texto de apoyo. */}
+              <Link
+                to="/dashboard"
+                className={`cp-nav-link cp-hide-mobile ${marca('/dashboard', false).className || marca('/profile', false).className}`}
+                aria-current={marca('/dashboard', false).ariaCurrent ?? marca('/profile', false).ariaCurrent}
+                title={`Sesión iniciada como ${user.name}`}
+              >
+                Mi cuenta
               </Link>
+              {/* Heurística 2: el mismo nombre en escritorio y en móvil */}
               <button className="cp-btn cp-btn-ghost cp-hide-mobile" onClick={handleLogout}>
-                Salir
+                <LogOut size={14} aria-hidden="true" /> Cerrar sesión
               </button>
             </>
           ) : (
             <>
-              <Link to="/login" className="cp-nav-link cp-hide-mobile">
+              <Link to="/login" className="cp-nav-link">
                 Ingresar
               </Link>
-              <Link to="/register" className="cp-btn cp-btn-primary cp-hide-mobile">
+              <Link to="/register" className="cp-btn cp-btn-primary">
                 Registrarse
               </Link>
             </>
           )}
 
-          <button
-            className="cp-icon-btn"
-            onClick={abrirPanel}
-            aria-label="Pantalla y accesibilidad"
-            title="Pantalla y accesibilidad"
+          {/* Heurística 10: la ayuda siempre a la vista, no solo en el pie */}
+          <Link
+            to="/ayuda"
+            className={`cp-icon-btn ${marca('/ayuda', false).className}`}
+            aria-label="Ayuda"
+            aria-current={marca('/ayuda', false).ariaCurrent}
+            title="Ayuda (atajo: ?)"
           >
-            <Accessibility size={18} aria-hidden="true" />
-          </button>
+            <CircleHelp size={18} aria-hidden="true" />
+          </Link>
 
           <button
             className="cp-icon-btn"
             onClick={onOpenCart}
             aria-label="Carrito"
-            aria-describedby={idConteo}
           >
-            <ShoppingBag size={18} aria-hidden="true" />
+            <ShoppingBag size={18} />
             {totalItems > 0 && (
               <span className="cp-cart-badge">{totalItems}</span>
             )}
           </button>
-          <span id={idConteo} className="cp-sr-only">
-            {totalItems === 1 ? '1 unidad en el carrito' : `${totalItems} unidades en el carrito`}
-          </span>
 
           <button
             className="cp-icon-btn cp-show-mobile"
             onClick={() => setMobileOpen((v) => !v)}
-            aria-label="Menú"
+            aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
             aria-expanded={mobileOpen}
-            aria-controls={idMenu}
           >
-            {mobileOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </div>
 
       {/* Menú móvil */}
       {mobileOpen && (
-        <div id={idMenu} className="cp-mobile-menu">
-          {LINKS.map((l) => (
+        <div className="cp-mobile-menu">
+          {links.map((l) => (
             <Link
               key={l.to}
               to={l.to}
               className="cp-mobile-link"
-              aria-current={actual === l.to ? 'page' : undefined}
               onClick={() => setMobileOpen(false)}
             >
               {l.label}
             </Link>
           ))}
+          <Link to="/ayuda" className="cp-mobile-link" onClick={() => setMobileOpen(false)}>
+            Ayuda
+          </Link>
           <hr className="cp-mobile-divider" />
           {user ? (
             <>
@@ -160,6 +153,18 @@ export function Nav({ onOpenCart }: Readonly<NavProps>) {
               >
                 Mi cuenta
               </Link>
+              <Link
+                to="/profile"
+                className="cp-mobile-link"
+                onClick={() => setMobileOpen(false)}
+              >
+                Mi perfil
+              </Link>
+              {user.role === 'ADMIN' && (
+                <Link to="/admin" className="cp-mobile-link" onClick={() => setMobileOpen(false)}>
+                  Panel admin
+                </Link>
+              )}
               <button className="cp-mobile-link" onClick={handleLogout}>
                 Cerrar sesión
               </button>

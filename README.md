@@ -14,8 +14,6 @@ Tienda de celulares certificados. Compra equipos nuevos, reacondicionados y usad
 
 ## Estructura
 
-> Las mejoras de experiencia de uso (heurísticas, accesibilidad, ayuda) están explicadas en [`docs/mejoras-ux.md`](docs/mejoras-ux.md).
-
 ```
 src/
   services/    → Llamadas a la API (cliente HTTP centralizado)
@@ -25,21 +23,12 @@ src/
   pages/       → Composición de vistas
   types/       → Interfaces TypeScript
   routes/      → AppRouter con rutas protegidas
-  styles/      → ux.css, componentes.css, tienda.css y admin.css (se suman a index.css)
-  utils/       → Formatos, estados, búsqueda, errores, filtros y sesión
 
 test/
   setup.ts     → Doble de red, polyfills de jsdom y limpieza entre pruebas
   helpers/     → Doble de red, fixtures y montaje de la app
   escenarios/  → Los casos de los escenarios del back, desde la interfaz
-  regresion/   → Regresión de las funcionalidades 13 y 26-30
   unit/        → Pruebas por componente, contexto, servicio y hook
-
-e2e/                        (una carpeta por autor)
-  santiago/serenityjs/  → E2E con Serenity/JS + Playwright + Cucumber (Screenplay)
-  santiago/cypress/     → Los mismos casos con Cypress (estructura tipo Screenplay)
-  mario/                → E2E de Mario: Serenity/JS + Cucumber, y casos de Katalon Recorder
-  companero-test/       → E2E de otro compañero: Serenity/JS con Playwright Test
 ```
 
 ## Configuración
@@ -84,10 +73,9 @@ npm run test:coverage   # suite + reporte de cobertura en coverage/
 npm run typecheck       # tipos de src/ y tambien de test/
 ```
 
-La suite tiene 401 pruebas en 61 archivos: `test/escenarios/` repite los casos
+La suite tiene 415 pruebas en 50 archivos: `test/escenarios/` repite los casos
 de los escenarios del back (ESC-26 a ESC-30, autenticación, pedidos, catálogo y
-ramas de error) desde la interfaz, `test/regresion/` es la suite de regresión (una carpeta por autor)
-de las funcionalidades 13 y 26 a 30, y `test/unit/` prueba cada pieza por separado.
+ramas de error) desde la interfaz, y `test/unit/` prueba cada pieza por separado.
 Corren sobre jsdom, sin backend: solo se sustituye la red. Las aserciones son
 fluidas (Chai) y cada prueba sigue el patrón AAA. El detalle está en
 [`test/README.md`](test/README.md).
@@ -106,16 +94,6 @@ prueba toca, así que el porcentaje global es el real. Solo se excluyen
 
 Con `CI=true` (como en Jenkins) se genera además `reports/junit.xml`, que es lo
 que Jenkins lee para mostrar cada prueba en la pestaña *Test Result*.
-
-### Pruebas E2E
-
-`e2e/` tiene pruebas de extremo a extremo con el patrón Screenplay, una
-carpeta por autor. Las de Santiago (funcionalidades 13, 26, 27, 28, 29 y 30)
-están en `e2e/santiago/serenityjs` (Serenity/JS) y, con los mismos casos, en
-`e2e/santiago/cypress` (Cypress). A diferencia de las de `test/`,
-corren contra la app completa encendida (front, API y base de datos), así que
-no forman parte de `npm test`. Cómo levantar la app y correrlas:
-[`e2e/README.md`](e2e/README.md).
 
 ### SonarQube
 
@@ -136,6 +114,8 @@ Corre las pruebas con cobertura y envía el análisis al proyecto
 | `/login` | Iniciar sesión | Público |
 | `/register` | Crear cuenta | Público |
 | `/dashboard` | Mis órdenes | Usuario |
+| `/profile` | Mi perfil: editar nombre y cambiar contraseña | Usuario |
+| `/admin/alerts` | Alertas de inventario (celulares en su mínimo o agotados) | Admin |
 | `/checkout` | Finalizar compra | Usuario |
 | `/admin/phones` | Panel de celulares | Admin |
 | `/admin/phones/new` | Crear celular | Admin |
@@ -187,3 +167,98 @@ La configuración paso a paso, y cómo demostrar la regresión en vivo, están e
 Lo hace el orquestador (etapa 4) con la CLI de Vercel, y solo si el back y el
 front pasaron sus pruebas y su Quality Gate. `VITE_API_URL` se configura en el
 proyecto de Vercel.
+
+## Entrega final
+
+Qué criterio de la rúbrica está en qué carpeta y cómo se ejecuta: [`ENTREGA-FINAL.md`](ENTREGA-FINAL.md).
+
+## Herramientas de pruebas con IA
+
+Autify Nexus (E2E con bajo código), Momentic (pruebas con IA) y ReportPortal (reportes y análisis de fallos con ML)
+están integrados con todas las suites. Ver [`HERRAMIENTAS-IA.md`](HERRAMIENTAS-IA.md).
+
+## Usabilidad
+
+Los cambios hechos a partir de la evaluación heurística (Nielsen + Tognazzini), con su prueba por hallazgo, están en
+[`REFACTORIZACION-HEURISTICAS.md`](REFACTORIZACION-HEURISTICAS.md): centro de ayuda `/ayuda`, títulos por pantalla,
+requisitos de contraseña en vivo, atajos `/` y `?`, aviso sin conexión, "Descartar cambios" y más.
+
+## Backend con el que trabaja
+
+Este frontend consume el backend de **Proyecto-de-aula-mario** (`/api/v1`). Las
+rutas de cuenta que usa son exactamente las de `src/interface/routes/auth.routes.ts`:
+
+| Acción | Petición | Respuesta |
+|---|---|---|
+| Registro | `POST /auth/register` | 201 `{ data: { user, token } }` |
+| Inicio de sesión | `POST /auth/login` | 200 `{ data: { user, token } }`; 401, 429 |
+| Editar nombre | `PATCH /auth/me` | 200 `{ data: user }` |
+| Cambiar contraseña | `PUT /auth/me/password` | **204 sin cuerpo**; 400 si la actual no es correcta |
+| Cerrar sesión | — (no hay endpoint) | El JWT es sin estado: se borra del navegador |
+
+`test/unit/validacion-credenciales/auth-service-contrato.test.ts` falla si alguien
+vuelve a apuntar a una ruta que el backend no tiene.
+
+## Reglas de formulario
+
+Las reglas viven en `src/utils/validacion.ts` y son **copia exacta** de las del
+backend (`src/domain/credenciales.ts` y `src/application/dtos/auth.dto.ts`):
+
+- **Correo:** se recorta y pasa a minúsculas. Para **registrarse** debe ser de
+  Gmail, Outlook, Hotmail, Yahoo o iCloud; para **iniciar sesión** no se exige
+  dominio (así puede entrar `admin@celularpro.co`).
+- **Contraseña:** de 8 a 72 caracteres, con mayúscula, minúscula y número, con
+  los mismos mensajes que devuelve el backend.
+- **Nombre:** de 2 a 80 caracteres, recortado.
+
+`test/unit/validacion-credenciales/reglas-backend.test.ts` fija los mismos valores
+que la regresión del backend: si una regla cambia en un solo lado, falla.
+
+## Sesión
+
+- **Cerrar sesión** borra el token y el usuario de `localStorage` al instante.
+- **Cambiar la contraseña** no cambia el token: el backend responde 204 y la
+  sesión sigue vigente (valida la cuenta en cada petición).
+- **401 con sesión guardada** (token inválido o vencido): `api.ts` limpia la
+  sesión, guarda el aviso en `sessionStorage` y `/login` lo muestra.
+- **403 por suspensión** ("Tu cuenta ha sido suspendida. Motivo: …"): igual que
+  el 401, pero `/login` muestra el motivo del administrador. Un 403 de "Acceso
+  restringido a administradores" **no** cierra la sesión.
+
+## Alertas de stock (funcionalidad 14)
+
+El backend decide cuándo hay una alerta; el frontend solo la muestra:
+
+- **Insignia en el menú del panel** con el número de alertas abiertas (se vuelve a pedir en cada
+  cambio de página, así que baja sola al reponer).
+- **Aviso en el dashboard** con enlace a la lista.
+- **Página `/admin/alerts`** con el tipo (Sin stock / Stock bajo), el mensaje, el stock y el mínimo,
+  y un enlace "Reponer" que abre el celular. Tiene estados de carga, error con "Reintentar" y vacío.
+- **Tabla de celulares:** la marca de estado sale de las alertas (misma regla que el backend), ya
+  no de umbrales fijos en el código.
+- **Formulario de celular:** campo "Stock mínimo (umbral de alerta)", por defecto 5. Los topes de
+  stock y precio coinciden con los del backend.
+
+## Pruebas
+
+| Capa | Dónde | Cómo | Estado |
+|---|---|---|---|
+| Unitarias y de escenario (vitest + Testing Library) | `test/` | `npm test` | 339 pruebas, todas pasan |
+| Accesibilidad (axe-core) | `test/escenarios/accesibilidad-axe.test.tsx` | `npm test` | 13 pruebas, 0 violaciones |
+| E2E con Serenity/JS (patrón Screenplay) | `e2e/serenityjs/` | ver `e2e/README.md` | 28 de 28 escenarios ejecutados |
+| E2E con Katalon (Selenese) | `e2e/katalon/` | ver `e2e/README.md` | 25 de 25 como se esperaba (ejecutor propio) |
+| Cypress: componentes, API y E2E | `cypress/` | `npm run cy:component`, `cy:api`, `cy:e2e` | Escrito y verificado con el compilador; **no ejecutado** (necesita el binario de Cypress) |
+
+La cobertura por funcionalidad está en **`COBERTURA-DE-PRUEBAS.md`**. La evidencia de las ejecuciones E2E (reporte HTML de Serenity, capturas de Katalon y `RESULTADOS.md` con las condiciones) está en `e2e/evidencia/` y `e2e/katalon/evidencia/`.
+
+**Cypress:** instala Cypress con su binario (`npm i` descarga lo necesario), levanta backend y frontend y corre `npm run cy:open`. Variables: `CYPRESS_BASE_URL`, `CYPRESS_API_URL`, `CYPRESS_ADMIN_EMAIL`, `CYPRESS_ADMIN_PASSWORD`. Se fijó la versión 13 porque su API (`Cypress.env`, `cypress/react18`) cambió en versiones posteriores.
+
+## Dependencias
+
+`npm audit --omit=dev` deja 2 avisos moderados de `react-router` (open redirect en `<Link>`/`navigate` y una inyección en hidratación SSR). **Riesgo aceptado**: la aplicación solo navega a rutas internas fijas y es una SPA sin SSR; la corrección exige pasar a la versión 7 (cambio mayor). Revisar al migrar.
+
+## Pruebas E2E
+
+Los escenarios de extremo a extremo (Serenity/JS y Katalon Recorder) están en un paquete aparte,
+`CelularPro-E2E`, con su propio README. Apuntan a estos ids y textos; si los cambias, corre
+`python3 verificar-localizadores.py <ruta/al/frontend/src> <ruta/al/backend/src>` desde ese paquete.

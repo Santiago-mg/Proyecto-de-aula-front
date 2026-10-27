@@ -1,30 +1,43 @@
-import { Lock } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { EmptyState } from '../components/ui/EmptyState'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useTituloPagina } from '../hooks/useTituloPagina'
 
 export function Unauthorized() {
-  useDocumentTitle('Acceso no autorizado')
-
+  useTituloPagina('Acceso no autorizado')
   return (
-    <div className="cp-container cp-status-page">
-      <EmptyState
-        nivel={1}
-        icono={<Lock size={40} />}
-        titulo="Acceso no autorizado"
-        acciones={
-          <>
-            <Link to="/" className="cp-btn cp-btn-primary">
-              Volver al inicio
-            </Link>
-            <Link to="/catalog" className="cp-btn cp-btn-secondary">
-              Ver el catálogo
-            </Link>
-          </>
-        }
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '60vh',
+        textAlign: 'center',
+        padding: '40px 20px',
+      }}
+    >
+      <div style={{ fontSize: 64, marginBottom: 16 }}>🔒</div>
+      <h1
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 32,
+          fontWeight: 400,
+          letterSpacing: '-0.02em',
+          marginBottom: 12,
+        }}
       >
-        No tienes permisos para ver esta página. Si crees que deberías tenerlos, pídele acceso a un administrador.
-      </EmptyState>
+        Acceso no autorizado
+      </h1>
+      <p style={{ color: 'var(--ink-soft)', marginBottom: 32 }}>
+        No tienes permisos para ver esta página.
+      </p>
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+        <Link to="/" className="cp-btn cp-btn-primary">
+          Volver al inicio
+        </Link>
+        <Link to="/ayuda#faq-admin" className="cp-btn cp-btn-secondary">
+          ¿Por qué veo esto?
+        </Link>
+      </div>
     </div>
   )
 }

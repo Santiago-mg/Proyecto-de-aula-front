@@ -62,7 +62,7 @@ describe('Login — envío de credenciales y autenticación', () => {
 
     // Act
     await user.type(screen.getByLabelText(/email/i), 'user@gmail.com')
-    await user.type(screen.getByLabelText(/contraseña/i), 'password123')
+    await user.type(screen.getByLabelText(/^contraseña$/i), 'password123')
     await user.click(screen.getByRole('button', { name: /ingresar/i }))
 
     // Assert
@@ -84,7 +84,7 @@ describe('Login — envío de credenciales y autenticación', () => {
 
     // Act
     await user.type(screen.getByLabelText(/email/i), 'user@gmail.com')
-    await user.type(screen.getByLabelText(/contraseña/i), 'wrong-password')
+    await user.type(screen.getByLabelText(/^contraseña$/i), 'wrong-password')
     await user.click(screen.getByRole('button', { name: /ingresar/i }))
 
     // Assert

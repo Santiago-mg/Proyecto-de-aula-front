@@ -15,6 +15,7 @@ servidor.instalar()
 beforeEach(() => {
   servidor.reiniciar()
   localStorage.clear()
+  sessionStorage.clear() // el aviso de sesión vencida viaja en sessionStorage
   globalThis.history.replaceState(null, '', '/')
 })
 

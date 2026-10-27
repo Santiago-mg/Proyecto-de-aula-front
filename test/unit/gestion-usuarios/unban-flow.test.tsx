@@ -47,9 +47,9 @@ beforeEach(() => {
   })
 })
 
-describe('AdminUsers — ejecución del desbaneo', () => {
+describe('AdminUsers — desbaneo confirmado', () => {
   // Camino 1,2,3,4,F — unbanUser() resuelve sin error
-  it('ejecuta adminService.unbanUser(id) y refleja el estado "Activo" al confirmar', async () => {
+  it('llama a adminService.unbanUser(id) y refleja el estado "Activo" al confirmar', async () => {
     // Arrange
     vi.mocked(adminService.getUsers).mockResolvedValue({
       data: [makeUser()],

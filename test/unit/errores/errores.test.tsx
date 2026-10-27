@@ -35,7 +35,7 @@ describe('ErrorMessage — texto que ve el usuario', () => {
     render(<ErrorMessage error={error} />)
 
     // Assert
-    expect(screen.queryByText('Error de conexión con el servidor')).to.exist
+    expect(screen.queryByText('No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.')).to.exist
     expect(screen.queryByText('Request failed')).to.be.null
   })
 

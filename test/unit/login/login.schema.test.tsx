@@ -18,7 +18,7 @@ beforeEach(() => {
 
 describe('Login — validación del esquema del formulario', () => {
   // Camino 1,2,3,4,F — email con formato inválido
-  it('muestra "Email inválido" con un correo mal formado', async () => {
+  it('muestra "Correo electrónico inválido" con un correo mal formado', async () => {
     // Arrange
     const user = userEvent.setup()
     render(
@@ -29,12 +29,12 @@ describe('Login — validación del esquema del formulario', () => {
 
     // Act
     await user.type(screen.getByLabelText(/email/i), 'no-es-un-correo')
-    await user.type(screen.getByLabelText(/contraseña/i), 'password123')
+    await user.type(screen.getByLabelText(/^contraseña$/i), 'password123')
     await user.click(screen.getByRole('button', { name: /ingresar/i }))
 
     // Assert
     await waitFor(() => {
-      expect(screen.queryByText('Email inválido')).to.exist
+      expect(screen.queryByText('Correo electrónico inválido')).to.exist
     })
   })
 
@@ -72,14 +72,14 @@ describe('Login — validación del esquema del formulario', () => {
 
     // Act
     await user.type(screen.getByLabelText(/email/i), 'user@gmail.com')
-    await user.type(screen.getByLabelText(/contraseña/i), 'password123')
+    await user.type(screen.getByLabelText(/^contraseña$/i), 'password123')
     await user.click(screen.getByRole('button', { name: /ingresar/i }))
 
     // Assert
     await waitFor(() => {
       expect(loginFn.mock.calls).to.have.lengthOf(1)
     })
-    expect(screen.queryByText('Email inválido')).to.be.null
+    expect(screen.queryByText('Correo electrónico inválido')).to.be.null
     expect(screen.queryByText('La contraseña es requerida')).to.be.null
   })
 })

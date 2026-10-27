@@ -145,4 +145,24 @@ describe('ShaderBackground — fondo animado con WebGL', () => {
     expect(vi.mocked(cancelAnimationFrame).mock.calls).to.deep.equal([[1]])
     expect(gl.viewport.mock.calls).to.have.lengthOf(1)
   })
+
+  it('H12: con "reducir movimiento" pinta un cuadro fijo y no anima', () => {
+    // Arrange
+    const gl = contextoFalso()
+    usarContexto(gl)
+    const original = globalThis.matchMedia
+    globalThis.matchMedia = ((consulta: string) => ({
+      matches: consulta === '(prefers-reduced-motion: reduce)',
+      media: consulta,
+    })) as unknown as typeof globalThis.matchMedia
+    render(<ShaderBackground />)
+
+    // Act
+    cuadros[0](0)
+
+    // Assert: se dibujó una vez y no se pidió un segundo cuadro
+    expect(gl.drawArrays.mock.calls).to.have.lengthOf(1)
+    expect(cuadros).to.have.lengthOf(1)
+    globalThis.matchMedia = original
+  })
 })

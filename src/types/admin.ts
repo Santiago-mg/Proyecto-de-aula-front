@@ -1,5 +1,26 @@
 import type { User } from './auth'
 
+// Alerta de inventario. El backend decide el tipo con una regla única: sin
+// unidades es OUT_OF_STOCK; en o por debajo del mínimo es LOW_STOCK.
+export type AlertType = 'LOW_STOCK' | 'OUT_OF_STOCK'
+
+export interface StockAlert {
+  id: string
+  phoneId: string
+  type: AlertType
+  message: string
+  isResolved: boolean
+  createdAt: string
+  phone: {
+    id: string
+    name: string
+    slug: string
+    stock: number
+    minStock: number
+    heroImage: string | null
+  }
+}
+
 export interface AdminStats {
   users: {
     total: number

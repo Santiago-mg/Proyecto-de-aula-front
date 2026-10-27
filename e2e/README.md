@@ -1,61 +1,95 @@
-# Pruebas E2E de CelularPro — por autor
+> **Heurísticas de usabilidad.** "Salir" pasó a "Cerrar sesión" y "Dashboard" a "Panel" en todos los casos.
+> Nuevos: `features/heuristicas.feature` (5 escenarios Screenplay), `cypress/e2e/heuristicas.cy.ts` (13 casos)
+> y Katalon TC27–TC29. Detalle en `../REFACTORIZACION-HEURISTICAS.md`.
 
-Cada persona del equipo tiene su carpeta, con sus propias dependencias y sus
-propios comandos. Correr una carpeta **no** ejecuta las de otra.
+> **Integración con Proyecto-de-aula-mario (octubre 2026).** Los casos se ajustaron
+> al backend de Proyecto-de-aula-mario: correos `@gmail.com`, contraseña con
+> mayúscula, minúscula y número, y sus mensajes de error. Se agregaron el escenario
+> Serenity "Correo con un dominio no permitido", una fila más en el esquema de
+> contraseñas y los casos Katalon **TC25** (dominio no permitido) y **TC26**
+> (contraseña sin mayúscula). La evidencia de `evidencia/` es de la ejecución
+> anterior contra otro backend: **hay que volver a generarla**.
+>
+> Verificación sin navegador contra este backend:
+> `python3 verificar-localizadores.py ../src ../../Proyecto-de-aula-mario/src`
 
-Todas corren contra la aplicación real encendida (front, API y base de datos),
-no contra dobles. Cómo levantarla: [`santiago/README.md`](santiago/README.md),
-sección 1. Por defecto esperan el front en <http://localhost:8081> y la API en
-<http://localhost:3001/api/v1>.
+# CelularPro — pruebas E2E (Serenity/JS y Katalon)
 
-| Carpeta | Autor | Herramientas | Qué cubre | Resultado contra esta app |
-|---|---|---|---|---|
-| [`santiago/serenityjs/`](santiago/serenityjs/README.md) | Santiago | Serenity/JS + Playwright + Cucumber | Funcionalidades 13, 26–30 (web y API) | 32 de 32 |
-| [`santiago/cypress/`](santiago/cypress/README.md) | Santiago | Cypress + TypeScript (estructura Screenplay) | Las mismas 13, 26–30 (web y API) | 32 de 32 |
-| [`mario/`](mario/README.md) | Mario | Serenity/JS + Cucumber (Gherkin) y Katalon Recorder | Registro, inicio de sesión, credenciales, roles (+ perfil y alertas de stock, pendientes) | 13 de 13 activos; 13 pendientes; Katalon 3 de 3 activos |
-| [`companero-test/`](companero-test/README.md) | Compañero sin identificar (archivo `test.zip`) | Serenity/JS con Playwright Test | Login, catálogo, banear, desbanear, cancelar pedido (+ favoritos, pendiente) | 6 de 6 activos; 1 pendiente |
+Pruebas de extremo a extremo de las **6 funcionalidades**: registro de usuario, inicio de sesión, gestión de perfil, validación de credenciales, control de roles y alertas de stock bajo. Viven dentro del repositorio del frontend porque dependen de sus ids y textos.
 
-## Comandos
+| # | Funcionalidad | Serenity/JS (escenarios) | Katalon (casos) |
+|---|---|---|---|
+| 1 | Registro de usuario | `registro.feature` (6) | TC01 a TC04 |
+| 2 | Inicio de sesión | `login.feature` (5) | TC05 a TC08 |
+| 3 | Gestión de perfil | `perfil.feature` (4) | TC09 a TC12 |
+| 4 | Validación de credenciales | `credenciales.feature` (3) | TC13 a TC15 |
+| 5 | Control de roles | `roles.feature` (3) | TC16 a TC18 |
+| 14 | Alertas de stock bajo | `alertas.feature` (7) | TC19 a TC24 |
+
+Técnicas de los materiales del curso: patrón **Screenplay** (actores, tareas, interacciones, preguntas), Gherkin en español, **Selenese** para Katalon Recorder y **una sola entrada incorrecta a la vez** en los casos negativos de login.
+
+## Cómo ejecutarlas
+
+Necesitas el backend, el frontend y un navegador Chromium.
+
+**Sin instalar Postgres** (recomendado para empezar), usando la base en memoria del backend:
 
 ```bash
-# Santiago (Serenity/JS)
-cd e2e/santiago/serenityjs && npm install && npx playwright install chromium && npm test
+# Terminal 1 — backend con base en memoria (admin@celularpro.co / admin1234)
+cd <backend> && npm run dev:memoria            # http://localhost:3001
 
-# Santiago (Cypress)
-cd e2e/santiago/cypress && npm install && npm test
-
-# Mario
-cd e2e/mario && npm ci && npx playwright install chromium
-npm test                   # los escenarios que sí aplican a este proyecto
-npm run test:katalon       # sus casos de Katalon Recorder, ejecutados con Playwright
-npm run test:pendiente     # los que esperan código que este proyecto no tiene (fallan a propósito)
-
-# Compañero (test.zip)
-cd e2e/companero-test && npm install && npx playwright install chromium
-npm test
-npm run test:pendiente
+# Terminal 2 — frontend apuntando a ese backend
+cd <frontend> && VITE_API_URL=http://localhost:3001/api/v1 npm run dev -- --port 5173
 ```
 
-Con un Chromium ya instalado (por ejemplo, en una red restringida):
-`CHROMIUM_PATH=/ruta/a/chrome npm test`.
+**Serenity/JS:**
 
-## Qué significa "pendiente"
+```bash
+cd e2e/serenityjs
+npm ci
+npx playwright install chromium         # una vez
+npm test                                # los 35 escenarios + reporte en reports/serenity-js
+npm run test:smoke                      # solo los @smoke
+npm run test:alertas                    # una funcionalidad (también registro, login, perfil, credenciales, roles)
+```
 
-Los tres autores partieron del mismo proyecto de clase, pero cada uno le agregó
-y le cambió cosas. Una prueba queda como **pendiente** cuando verifica algo que
-esta aplicación no hace (por ejemplo, la página de perfil de Mario o la lista de
-favoritos del otro compañero). Se separa en vez de borrarla o de cambiar el
-código de producción para que pase: así la corrida normal no queda en rojo por
-funciones que no existen, y la lista de pendientes dice qué faltaría construir.
+> **No pases `--format` a cucumber-js.** Reemplaza el formato configurado y desactiva el adaptador de Serenity: los escenarios dejan de aislarse (comparten navegador y sesión) y fallan en cascada.
 
-## Cómo se comprobó que las pruebas ajenas verifican lo correcto
+Variables: `BASE_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `HEADLESS=false`, y para un Chromium propio `CHROMIUM_PATH` y `CHROMIUM_ARGS` (en contenedores: `--no-sandbox --disable-gpu --disable-dev-shm-usage`; **sin** `--single-process`, que es inestable).
 
-1. Se corrieron contra esta aplicación y se miró cada falla: ¿la app está mal o
-   la prueba busca algo que aquí se llama distinto? Lo segundo se adaptó (ver el
-   README de cada carpeta); lo primero quedó como pendiente.
-2. **Mutación:** con la app encendida se rompió a propósito una regla del código
-   (por ejemplo, que el login acepte cualquier contraseña) y se comprobó que la
-   prueba correspondiente falla. Mario: 7 de 7 detectadas. Compañero: 6 de 6.
-   Una prueba que sigue en verde cuando la regla está rota no protege nada.
-3. Las que pasan se repitieron para descartar que dependan del orden o de datos
-   que dejó la corrida anterior.
+**Katalon Recorder:** instala la extensión, *Test Suite → Open Test Suite* y elige `katalon/Suite_CelularPro_Completa.html` (o la de humo). La dirección base está en la primera fila de cada caso.
+
+**Sin la extensión** (CI, equipos sin interfaz): `katalon/ejecutar-selenese.cjs` interpreta los mismos archivos con Playwright y deja evidencia en `katalon/evidencia/`:
+
+```bash
+cd e2e/katalon && npm i playwright-core        # una vez
+node ejecutar-selenese.cjs                      # suite completa + caso fallido a propósito
+```
+
+## Evidencia incluida
+
+| Qué | Dónde | Resultado |
+|---|---|---|
+| Serenity/JS, 35 escenarios | `evidencia/serenity-js/` (reporte HTML) y `evidencia/serenity-resumen.txt` | ver `evidencia/RESULTADOS.md` |
+| Katalon (ejecutor Selenese), 25 casos | `katalon/evidencia/` (capturas, `resultados.md/json`) | ver `evidencia/RESULTADOS.md` |
+
+**Dónde se ejecutó:** Chromium 153 en un equipo de 1 núcleo, frontend con Vite, **código real del backend con base de datos en memoria** (no Postgres). Conviene repetir en tu entorno con Postgres antes de entregar.
+
+### Actividad de la Clase 18: un caso aprobado y uno fallido
+
+`katalon/Suite_Falla_Controlada.html` contiene `TC99_FALLA_CONTROLADA_login_clave_incorrecta`: es el TC06 con el texto esperado cambiado a propósito, así que **debe salir en rojo**. Con el ejecutor, esa es la línea `Failed (debía fallar)`.
+
+## Verificación sin navegador
+
+`python3 verificar-localizadores.py ../src <backend>/src` comprueba que cada id, clase, texto de botón y mensaje que usan las pruebas **existe** en el código, incluidos los títulos que el CSS muestra en mayúsculas. Se corre también en CI (`.github/workflows/e2e-estatico.yml`).
+
+## Lecciones que ya costaron tiempo
+
+- **Texto en mayúsculas:** `Dashboard` y `Alertas de inventario` se *muestran* como `DASHBOARD`. Selenium/Katalon y Serenity leen el texto mostrado y distinguen mayúsculas; por eso se usa XPath (DOM) o `regexpi:`/minúsculas.
+- **`isVisible()` de Serenity exige estar dentro de la ventana:** los campos de formularios largos quedan debajo del borde. Las tareas esperan que el campo *exista* y se desplazan hasta él.
+- **El aviso de confirmación dura unos 3 s:** se verifica de inmediato, no tras otras acciones.
+
+## Pendiente
+
+- Un caso E2E para el cambio de rol de otra persona (hoy cubierto por pruebas de integración y `AdminUsers`).
+- Ejecutar contra Postgres real y en el navegador de tu equipo.

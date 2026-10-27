@@ -1,0 +1,23 @@
+fileType: momentic/test/v2
+id: celularpro-registro-dominio
+description: Registro de usuario — un correo corporativo se rechaza antes de enviar
+defaultEnv: local
+labels: [registro, credenciales, negativo]
+steps:
+  - navigate: "{{ env.BASE_URL }}/register"
+  - type:
+      text: Ana Pérez
+      into: Nombre completo input
+  - type:
+      text: ana@empresa.com
+      into: Email input
+  - type:
+      text: "{{ env.CLAVE_PRUEBA }}"
+      css: "#password"
+  - type:
+      text: "{{ env.CLAVE_PRUEBA }}"
+      css: "#confirmPassword"
+  - click: Crear cuenta gratis button
+  - checkPageContains: Correo inválido. Usa Gmail, Outlook, Hotmail, Yahoo o iCloud.
+  - waitForUrl: /register
+  - assert: The email field is marked as invalid and the user is still on the sign-up form

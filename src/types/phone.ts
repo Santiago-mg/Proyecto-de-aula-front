@@ -32,6 +32,8 @@ export interface PhoneListItem {
 
 export interface Phone extends PhoneListItem {
   categoryId: string
+  // Umbral de reposición: al llegar a este stock el panel levanta una alerta.
+  minStock?: number
   camera: string | null
   battery: string | null
   screen: string | null
@@ -76,6 +78,7 @@ export interface PhoneFormData {
   compareAt?: number
   badge?: string
   stock: number
+  minStock?: number
   condition: Condition
   verified: boolean
   batteryHealth?: number
